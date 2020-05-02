@@ -1,0 +1,11 @@
+{
+  "name": "luxmsbi-web-resources",
+  "version": "4.0.0",
+  "description": "Resources editor",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
