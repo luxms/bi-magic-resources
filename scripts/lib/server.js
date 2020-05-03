@@ -8,10 +8,15 @@ axiosCookieJarSupport(axios);
 const cookieJar = new tough.CookieJar();
 
 let SERVER = '';
+let authenticated = false;
 
 function setServer(server) {
   if (server.endsWith('/')) server = server.slice(0, -1);
   SERVER = server;
+}
+
+function isAuthenticated() {
+  return authenticated;
 }
 
 async function login(username, password) {
@@ -24,6 +29,7 @@ async function login(username, password) {
     jar: cookieJar,
     withCredentials: true,
   });
+  authenticated = true;
 }
 
 async function logout() {
@@ -32,21 +38,7 @@ async function logout() {
     jar: cookieJar,
     withCredentials: true,
   });
-}
-
-async function getSchemaNames() {
-  const url = `${SERVER}/api/db/adm.datasets`;
-  try {
-    const response = await axios.get(url, {
-      jar: cookieJar,
-      withCredentials: true,
-    });
-    const data = response.data;
-    return data.map(item => item.schema_name);
-  } catch (err) {
-    console.warn(`Failed request ${url}`, err);
-    throw err;
-  }
+  authenticated = false;
 }
 
 async function getResourceId(resource) {
@@ -62,6 +54,36 @@ async function getResourceId(resource) {
     })).data[0].id;                                                                                 // TODO: handle not found
   }
   return resourceId;
+}
+
+async function getResourceName(resource) {
+  const [schemaName, resourceId] = splitResource(resource);
+  let resourceName;
+  if (resourceId.match(/^\d+$/)) {
+    const metaUrl = `${SERVER}/api/db/${schemaName}.resources/${resourceId}`;
+    resourceName = (await axios.get(metaUrl, {
+      jar: cookieJar,
+      withCredentials: true,
+    })).data[0].alt_id;                                                                                 // TODO: handle not found
+  } else {
+    resourceName = resourceId;
+  }
+  return resourceName;
+}
+
+async function getSchemaNames() {
+  const url = `${SERVER}/api/db/adm.datasets`;
+  try {
+    const response = await axios.get(url, {
+      jar: cookieJar,
+      withCredentials: true,
+    });
+    const data = response.data;
+    return data.map(item => item.schema_name);
+  } catch (err) {
+    console.warn(`Failed request ${url}`, err);
+    throw err;
+  }
 }
 
 /**
@@ -183,6 +205,7 @@ module.exports = {
   setServer,
   login,
   logout,
+  isAuthenticated,
   getSchemaNames,
   getResources,
   getResourceContent,

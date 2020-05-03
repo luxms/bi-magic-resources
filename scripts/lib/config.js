@@ -13,19 +13,26 @@ function getCliArg(argName) {
   }
 }
 
+const savedValues = {};
+
+
 function getOption(name, prompt) {
+  // may be cached
+  const savedValue = savedValues[name];
+  if (savedValue) return savedValue;
+
   // try read from cli args:
   // ex:
   //   npm run pull -- --option=value
   const cliValue = getCliArg(name);
-  if (cliValue) return cliValue;
+  if (cliValue) return (savedValues[name] = cliValue);
 
   // read value from env variable
   // which is uppercase
   // ex:
   //   SERVER=http://127.0.0.1 npm run pull
   const envValue = process.env[name.toUpperCase()];
-  if (envValue) return envValue;
+  if (envValue) return (savedValues[name] = envValue);
 
   // two config files:
   //   config.json - for server and other options
@@ -34,7 +41,7 @@ function getOption(name, prompt) {
   try {
     const jsonConfig = JSON.parse(fs.readFileSync(path.resolve(__dirname, '..', '..', jsonConfigFileName), 'utf8'));
     const jsonConfigValue = jsonConfig[name];
-    if (jsonConfigValue) return jsonConfigValue;
+    if (jsonConfigValue) return (savedValues[name] = jsonConfigValue);
   } catch (err) {
     // file might not exists or invalid...
     // skip
@@ -44,7 +51,7 @@ function getOption(name, prompt) {
   const kbdValue = readlineSync.question(prompt || `Enter ${name}: `, {
     hideEchoBack: name === 'password'
   });
-  return kbdValue;
+  return (savedValues[name] = kbdValue);
 }
 
 function getServer() {
