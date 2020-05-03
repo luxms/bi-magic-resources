@@ -1,12 +1,14 @@
 const connect = require('connect');
 const http = require('http');
+const fs = require('fs');
+const path = require('path');
 const parse = require('url-parse')
+const mime = require('mime-types');
 const { createProxyMiddleware } = require('http-proxy-middleware');
 const { getResourceContent } = require('./lib/local');
 const server = require('./lib/server');
 const config = require('./lib/config');
 const utils = require('./lib/utils');
-const mime = require('mime-types');
 
 
 const SERVER = config.getServer();
@@ -25,9 +27,6 @@ async function fixResourceIdToName(resource) {
     return `/${schemaName}/${encodeURIComponent(resourceIdOrName)}`;
   }
 }
-
-const {SERVER, USERNAME, PASSWORD} = config.getSUPConfigAndLog();
-server.login(USERNAME, PASSWORD);
 
 const app = connect();
 
@@ -57,6 +56,22 @@ app.use('/srv/resources/', async function(req, res, next){
   }
 });
 
+
+try {
+  const settingsJs = path.join(__dirname, '..', 'settings.js');
+  fs.statSync(settingsJs);
+
+  app.use('/settings/settings.js', function(req, res) {
+    res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+    res.end(fs.readFileSync(settingsJs, 'utf8'));
+  });
+
+} catch (err) {
+  // skip
+}
+
+
+// app.use(parse(SERVER).pathname, createProxyMiddleware({ target: parse(SERVER).origin, changeOrigin: true, secure: true }));
 app.use('/', createProxyMiddleware({ target: SERVER, changeOrigin: true, secure: true }));
 
 http.createServer(app).listen(3000);
