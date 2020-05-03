@@ -5,16 +5,39 @@ const _colors = require('colors');
 const chalk = require('chalk');
 const Confirm = require('prompt-confirm');
 const config = require('./config');
-const server = require('./server');
 
+/**
+ * extract schemaName and resource name from resource identifier
+ * @param {string} resource
+ * @returns {[string, string]}
+ */
+function splitResource(resource) {
+  const match = resource.match(/^\/(\w+?)\/(.+)/);
+  if (!match) throw new Error('Invalid schema name and resource ' + resource);
+  let [schemaName, resourceName] = match.slice(1);
+  return [schemaName, decodeURIComponent(resourceName)];
+}
 
+/**
+ * load full list of resources
+ * @param origin - imported from server or local
+ * @returns {Promise<[]>}
+ */
 async function enumResources(origin) {
   const list = [];
   const schemaNames = await origin.getSchemaNames();
   for (let schemaName of schemaNames) {
-    const resources = await origin.getResources(schemaName);
-    for (let resource of resources) {
-      list.push(`/${schemaName}/${encodeURIComponent(resource)}`);
+    try {
+      const resources = await origin.getResources(schemaName);
+      for (let resource of resources) {
+        list.push(`/${schemaName}/${encodeURIComponent(resource)}`);
+      }
+    } catch (err) {
+      if (err.isAxiosError) {
+        console.log(chalk.red('Error: ' + JSON.stringify(err.response.data)));
+      } else {
+        throw err;
+      }
     }
   }
   list.sort();
@@ -117,6 +140,7 @@ async function synchronize(fromModule, toModule) {
 }
 
 async function pullPushInit(fnCallback) {
+  const server = require('./server');
   const {SERVER, USERNAME, PASSWORD} = config.getSUPConfigAndLog();
   server.setServer(SERVER);
 
@@ -137,12 +161,22 @@ async function pullPushInit(fnCallback) {
   try {
     await fnCallback();                                                                             // run callback
 
+  } catch (err) {
+    if (err.isAxiosError) {
+      console.log(chalk.redBright('Network error'));
+      console.log('    ', err.response.config.method, err.response.config.url);
+      console.log('    ', err.response.status, err.response.statusText);
+      console.error(err.response.data);
+    } else {
+      console.error(err);
+    }
   } finally {
     await server.logout();
   }
 }
 
 module.exports = {
+  splitResource,
   synchronize,
   pullPushInit,
 }

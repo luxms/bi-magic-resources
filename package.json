@@ -23,6 +23,7 @@
     "http": "0.0.1-security",
     "http-proxy-middleware": "^1.0.3",
     "md5": "^2.2.1",
+    "mime-types": "^2.1.27",
     "prompt-confirm": "^2.0.4",
     "readline-sync": "^1.4.10",
     "tough-cookie": "^4.0.0",

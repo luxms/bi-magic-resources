@@ -1,10 +1,11 @@
 const fs = require('fs');
 const fsp = fs.promises;
 const path = require('path');
+const { splitResource } = require('./utils');
 
 const baseDir = path.resolve(__dirname, '..', '..', 'src');
 const getSchemaPath = (schemaName) => path.resolve(baseDir, schemaName);
-const getResourcePath = (schemaName, resourceId) => path.resolve(baseDir, schemaName, resourceId);
+const getResourcePath = (schemaName, resourceName) => path.resolve(baseDir, schemaName, resourceName);
 
 async function getSchemaNames() {
   const entries = await fsp.readdir(baseDir, { withFileTypes: true });
@@ -24,17 +25,9 @@ async function getResources(schemaName) {
   return files;
 }
 
-function splitResource(resource) {
-  const match = resource.match(/^\/(\w+?)\/(.+)/);
-  if (!match) throw new Error('Invalid schema name and resource ' + resource);
-  let [schemaName, resourceId] = match.slice(1);
-  resourceId = decodeURIComponent(resourceId);
-  return [schemaName, resourceId];
-}
-
 async function getResourceContent(resource) {
-  const [schemaName, resourceId] = splitResource(resource);
-  const filePath = getResourcePath(schemaName, resourceId);
+  const [schemaName, resourceName] = splitResource(resource);
+  const filePath = getResourcePath(schemaName, resourceName);
   try {
     await fsp.stat(filePath);
   } catch (err) {
@@ -44,20 +37,33 @@ async function getResourceContent(resource) {
   return content;
 }
 
-async function createResourceContent(resource, content) {
-  const [schemaName, resourceId] = splitResource(resource);
+/**
+ * Save resource content to file
+ * @param {string} resource
+ * @param {ArrayBuffer} content
+ * @returns {Promise<void>}
+ */
+async function saveResourceContent(resource, content) {
+  const [schemaName, resourceName] = splitResource(resource);
   const dirPath = getSchemaPath(schemaName);
   try {
     await fsp.stat(dirPath);
   } catch (err) {
     await fsp.mkdir(dirPath);
   }
-  const filePath = getResourcePath(schemaName, resourceId);
-  await fsp.writeFile(filePath, content, 'utf8');
+  const filePath = getResourcePath(schemaName, resourceName);
+  await fsp.writeFile(filePath, content);
 }
 
-async function saveResourceContent(resource, content) {
-  return createResourceContent(resource, content);
+
+/**
+ * create file for resource and store content
+ * @param {string} resource
+ * @param {ArrayBuffer} content
+ * @returns {Promise<void>}
+ */
+async function createResourceContent(resource, content) {
+  return saveResourceContent(resource, content);
 }
 
 async function removeResourceContent(resource) {
