@@ -4,8 +4,28 @@
   "description": "Resources editor",
   "main": "index.js",
   "scripts": {
+    "pull": "node scripts/pull.js",
+    "push": "node scripts/push.js",
+    "start": "node scripts/start.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.19.2",
+    "axios-cookiejar-support": "^1.0.0",
+    "chalk": "^4.0.0",
+    "cli-progress": "^3.8.2",
+    "cli-spinner": "^0.2.10",
+    "colors": "^1.4.0",
+    "connect": "^3.7.0",
+    "fs": "0.0.1-security",
+    "http": "0.0.1-security",
+    "http-proxy-middleware": "^1.0.3",
+    "md5": "^2.2.1",
+    "prompt-confirm": "^2.0.4",
+    "readline-sync": "^1.4.10",
+    "tough-cookie": "^4.0.0",
+    "url-parse": "^1.4.7"
+  }
 }
