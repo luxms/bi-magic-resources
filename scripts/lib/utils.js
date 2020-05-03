@@ -4,6 +4,8 @@ const { SingleBar } = require('cli-progress');
 const _colors = require('colors');
 const chalk = require('chalk');
 const Confirm = require('prompt-confirm');
+const config = require('./config');
+const server = require('./server');
 
 
 async function enumResources(origin) {
@@ -35,7 +37,7 @@ async function synchronize(fromModule, toModule) {
 
   //
   // collect new, modified and removed resources
-
+  //
   let createItems = [];
   let overwriteItems = [];
   let removeItems = [];
@@ -48,25 +50,25 @@ async function synchronize(fromModule, toModule) {
   for (let resource of fromResources) {
     let fromContent = await fromModule.getResourceContent(resource);
 
-    if (toResources.includes(resource)) {                                     // may be overwrite
+    if (toResources.includes(resource)) {                                                           // may be overwrite
       let toContent = await toModule.getResourceContent(resource);
-      if (md5(fromContent) !== md5(toContent)) {
+      if (md5(fromContent) !== md5(toContent)) {                                                    // check if content changed
         overwriteItems.push({resource, content: fromContent});
       }
-    } else {
+    } else {                                                                                        // has new resource
       createItems.push({resource, content: fromContent})
     }
 
     bar1.increment();
   }
 
-  bar1.stop();
-
   for (let resource of toResources) {
-    if (!fromResources.includes(resource)) {
+    if (!fromResources.includes(resource)) {                                                        // extra resources should be removed
       removeItems.push({resource});
     }
   }
+
+  bar1.stop();
 
   if (createItems.length === 0 && overwriteItems.length === 0 && removeItems.length === 0) {
     console.log(chalk.green('No changes'));
@@ -81,7 +83,7 @@ async function synchronize(fromModule, toModule) {
     console.log('OVERWRITE:');
     overwriteItems.forEach(item => console.log('    ', chalk.yellow(decodeURIComponent(item.resource))));
   }
-  if (removeItems) {
+  if (removeItems.length) {
     console.log('REMOVE:');
     removeItems.forEach(item => console.log('    ', chalk.red(decodeURIComponent(item.resource))));
   }
@@ -112,22 +114,35 @@ async function synchronize(fromModule, toModule) {
   } finally {
     bar2.stop();
   }
+}
 
+async function pullPushInit(fnCallback) {
+  const {SERVER, USERNAME, PASSWORD} = config.getSUPConfigAndLog();
+  server.setServer(SERVER);
 
-  // const schemaNames = await server.getSchemaNames();
-  // for (let schemaName of schemaNames) {
-  //   const resources = await server.getResources(schemaName);
-  //   for (let resource of resources) {
-  //     const {alt_id} = resource;
-  //     const content = await server.getResource(schemaName, alt_id);
-  //     local.saveResourceContent(schemaName, alt_id, content);
-  //     console.log(`Created file src/${schemaName}/${alt_id}`);
-  //   }
-  // }
+  // authentication
+  const authSpinner = new Spinner('Authentication... %s');
+  authSpinner.start();
+  try {
+    await server.login(USERNAME, PASSWORD);
+  } catch (err) {
+    console.log(chalk.red('\nERROR:'));
+    console.error(chalk.red(err.message));
+    return;
+  } finally {
+    authSpinner.stop();
+  }
+  console.log(' SUCCESS');
 
+  try {
+    await fnCallback();                                                                             // run callback
+
+  } finally {
+    await server.logout();
+  }
 }
 
 module.exports = {
-  enumResources,
   synchronize,
+  pullPushInit,
 }
