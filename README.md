@@ -79,14 +79,21 @@ npm start
 - `server` - http адрес сервера, например `http://project.luxmsbi.com/`
 - `username` - имя пользователя для доступа к серверу. Требуются админские права
 - `password` - пароль для пользователя `username`
+- `port` - порт для запуска локального сервера для `npm start`
 
 Если значения нигде не найдены, то их потребуется ввести с клавиатуры
+
+
+
+### Источники конфигурации
 
 Последовательно проверяются следующие источники конфигурации:
 
 - Опции командной строки
 
-    При запуске команды можно указать любые из `--server=...`, `--username=...` и `--password=...`. При этом
+    При запуске команды можно указать любые из опций:
+    `--server=...`, `--username=...`, `--password=...`, `--port=...`
+    При этом
     их необходимо отделять от команды знаком `--`
     ```
     npm run push  -- --server=http://project.luxmsbi.com/ --username=admin --password=secret
@@ -97,7 +104,8 @@ npm start
     должны быть написаны заглавными буквами: `SERVER`, `USERNAME`, `PASSWORD`
     ```
     SERVER=http://project.luxmsbi.com/  npm start
-
+    ```
+    ```
     export USERNAME=admin
     export PASSWORD=secret
     npm run push
@@ -125,6 +133,50 @@ npm start
     Если значение не найдено ни одим из предыдущих способов, команды `npm start`, `npm run pull` и
     `npm run push` запросят их ввод с клавиатуры
 
+### Примеры
+
+#### server - указать удаленный сервер, с которым синхронизировать ресурсы
+Способы указать сервер
+Аргументами командной строки:
+```
+$ npm run push -- --server=http://project.luxmsbi.com:8000/
+```
+Через переменную окружения
+```
+$ export SERVER=http://project.luxmsbi.com:8000/
+$ npm run push
+```
+
+```
+$ SERVER=http://project.luxmsbi.com:8000/ npm run push
+```
+Через конфиг файл
+```
+$ cat config.json
+{
+  "server": "http://project.luxmsbi.com:8000/"
+}
+$ npm run push
+```
+
+
+#### port - локальный порт для запуска `npm start`
+Способы запустить проект на порту 8080, вместо порта по умолчанию 3000
+```
+$ npm start -- --port=8080
+```
+```
+$ PORT=8080 npm start
+```
+```
+$ cat config.json
+{
+  "server": "http://project.luxmsbi.com",
+  "port": 8080
+}
+$ npm start
+```
+
 
 ### Примечания
 
@@ -133,3 +185,4 @@ npm start
 Однако, если перейти в браузере на `http://localhost:3000/#/ds/ds_xxx/resources` то в консоли может
 запроситься имя пользователя и пароль (если не указаны каким либо другим образом).
 Они необходимы для конвертации `resource.id` в имя файла.
+

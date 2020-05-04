@@ -12,6 +12,9 @@ const utils = require('./lib/utils');
 
 
 const SERVER = config.getServer();
+const PORT = config.getPort();
+
+// initialize server module
 server.setServer(SERVER);
 
 
@@ -74,4 +77,6 @@ try {
 // app.use(parse(SERVER).pathname, createProxyMiddleware({ target: parse(SERVER).origin, changeOrigin: true, secure: true }));
 app.use('/', createProxyMiddleware({ target: SERVER, changeOrigin: true, secure: true }));
 
-http.createServer(app).listen(3000);
+console.log(`Server running on http://localhost:${PORT}`);
+
+http.createServer(app).listen(PORT);

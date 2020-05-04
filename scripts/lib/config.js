@@ -13,31 +13,45 @@ function getCliArg(argName) {
   }
 }
 
+/**
+ * saved values for config
+ * used to prevent several input from console while option is already entered
+ * @type {Object.<string, string>}
+ */
 const savedValues = {};
+
+/**
+ *
+ * @type {Object.<string, number>}
+ */
+const defaultValues = {
+  port: '3000'
+};
 
 
 function getOption(name, prompt) {
-  // may be cached
+  // 1. may be cached
   const savedValue = savedValues[name];
   if (savedValue) return savedValue;
 
-  // try read from cli args:
+  // 2. read from cli args:
   // ex:
   //   npm run pull -- --option=value
   const cliValue = getCliArg(name);
   if (cliValue) return (savedValues[name] = cliValue);
 
-  // read value from env variable
-  // which is uppercase
+  // 3. read value from ENV
+  // (must be uppercase)
   // ex:
   //   SERVER=http://127.0.0.1 npm run pull
   const envValue = process.env[name.toUpperCase()];
   if (envValue) return (savedValues[name] = envValue);
 
+  // 4. read from config
   // two config files:
   //   config.json - for server and other options
-  //   authConfig  - for username and password
-  let jsonConfigFileName = name === 'username' || name === 'password' ? 'authConfig.json': 'config.json';
+  //   authConfig  - only for username and password
+  const jsonConfigFileName = (name === 'username' || name === 'password') ? 'authConfig.json': 'config.json';
   try {
     const jsonConfig = JSON.parse(fs.readFileSync(path.resolve(__dirname, '..', '..', jsonConfigFileName), 'utf8'));
     const jsonConfigValue = jsonConfig[name];
@@ -47,7 +61,11 @@ function getOption(name, prompt) {
     // skip
   }
 
-  // read from keyboard
+  // 5. default value for option
+  const defaultValue = defaultValues[name];
+  if (defaultValue) return (savedValues[name] = defaultValue);
+
+  // 6. read from keyboard
   const kbdValue = readlineSync.question(prompt || `Enter ${name}: `, {
     hideEchoBack: name === 'password'
   });
@@ -56,6 +74,14 @@ function getOption(name, prompt) {
 
 function getServer() {
   return getOption('server', 'Enter server URL: ');
+}
+
+/**
+ * get port for local to open with 'npm start' from config
+ * @returns {number}
+ */
+function getPort() {
+  return +getOption('port');
 }
 
 
@@ -79,5 +105,6 @@ function getSUPConfigAndLog() {
 
 module.exports = {
   getServer,
+  getPort,
   getSUPConfigAndLog,
 }
