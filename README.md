@@ -96,18 +96,18 @@ npm start
     При этом
     их необходимо отделять от команды знаком `--`
     ```
-    npm run push  -- --server=http://project.luxmsbi.com/ --username=admin --password=secret
-    npm start  -- --server=http://project.luxmsbi.com/
+    npm run push -- --server=http://project.luxmsbi.com/ --username=admin --password=secret
+    npm start -- --server=http://project.luxmsbi.com/
     ```
 
 - переменные окружения
-    должны быть написаны заглавными буквами: `SERVER`, `USERNAME`, `PASSWORD`
+    должны быть написаны заглавными буквами с префиксом `BI_`: `BI_SERVER`, `BI_USERNAME`, `BI_PASSWORD`
     ```
-    SERVER=http://project.luxmsbi.com/  npm start
+    BI_SERVER=http://project.luxmsbi.com/  npm start
     ```
     ```
-    export USERNAME=admin
-    export PASSWORD=secret
+    export BI_USERNAME=admin
+    export BI_PASSWORD=secret
     npm run push
     ```
 
@@ -143,12 +143,12 @@ $ npm run push -- --server=http://project.luxmsbi.com:8000/
 ```
 Через переменную окружения
 ```
-$ export SERVER=http://project.luxmsbi.com:8000/
+$ export BI_SERVER=http://project.luxmsbi.com:8000/
 $ npm run push
 ```
 
 ```
-$ SERVER=http://project.luxmsbi.com:8000/ npm run push
+$ BI_SERVER=http://project.luxmsbi.com:8000/ npm run push
 ```
 Через конфиг файл
 ```
@@ -166,7 +166,7 @@ $ npm run push
 $ npm start -- --port=8080
 ```
 ```
-$ PORT=8080 npm start
+$ BI_PORT=8080 npm start
 ```
 ```
 $ cat config.json

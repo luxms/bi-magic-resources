@@ -43,8 +43,8 @@ function getOption(name, prompt) {
   // 3. read value from ENV
   // (must be uppercase)
   // ex:
-  //   SERVER=http://127.0.0.1 npm run pull
-  const envValue = process.env[name.toUpperCase()];
+  //   BI_SERVER=http://127.0.0.1 npm run pull
+  const envValue = process.env['BI_' + name.toUpperCase()];
   if (envValue) return (savedValues[name] = envValue);
 
   // 4. read from config
