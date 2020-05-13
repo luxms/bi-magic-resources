@@ -91,10 +91,15 @@ function getPort() {
  * and will log values to console
  * @returns {{SERVER: string, PASSWORD: string, USERNAME: string}}
  */
-function getSUPConfigAndLog() {
+function getSUPConfig() {
   const SERVER = getServer();
   const USERNAME = getOption('username');
   const PASSWORD = getOption('password')
+  return {SERVER, USERNAME, PASSWORD};
+}
+
+function getSUPConfigAndLog() {
+  const {SERVER, USERNAME, PASSWORD} = getSUPConfig();
   console.log();
   console.log('SERVER  :', chalk.yellowBright(SERVER));
   console.log('USERNAME:', chalk.yellowBright(USERNAME));
@@ -106,5 +111,6 @@ function getSUPConfigAndLog() {
 module.exports = {
   getServer,
   getPort,
+  getSUPConfig,
   getSUPConfigAndLog,
 }

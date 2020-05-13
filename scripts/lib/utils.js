@@ -143,31 +143,32 @@ async function synchronize(fromModule, toModule) {
 async function loginWithSpinner() {
   const server = require('./server');
 
-  const {SERVER, USERNAME, PASSWORD} = config.getSUPConfigAndLog();
+  const {SERVER, USERNAME, PASSWORD} = config.getSUPConfig();
   server.setServer(SERVER);
 
   // authentication
   const authSpinner = new Spinner('Authentication... %s');
   authSpinner.start();
   try {
-    return await server.login(USERNAME, PASSWORD);
+    const result = await server.login(USERNAME, PASSWORD);
+    authSpinner.stop();
+    console.log('SUCCESS\n');
+    return result;
   } catch (err) {
+    authSpinner.stop();
     console.log(chalk.red('\nERROR:'));
     console.error(chalk.red(err.message));
     throw err;
-  } finally {
-    authSpinner.stop();
   }
 }
 
 
 async function pullPushInit(fnCallback) {
+  config.getSUPConfigAndLog()
   const server = require('./server');
-  const {SERVER, USERNAME, PASSWORD} = config.getSUPConfigAndLog();
-  server.setServer(SERVER);
 
   try {
-    loginWithSpinner();
+    await loginWithSpinner();
   } catch (err) {
     return;
   }

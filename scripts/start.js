@@ -12,6 +12,7 @@ const utils = require('./lib/utils');
 
 
 // initialize server module
+config.getSUPConfigAndLog();
 utils.loginWithSpinner().then(start);
 
 
