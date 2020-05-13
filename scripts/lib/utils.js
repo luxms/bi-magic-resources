@@ -66,7 +66,7 @@ async function synchronize(fromModule, toModule) {
   let removeItems = [];
 
   const bar1 = new SingleBar({
-    format: 'Loading resources content... |' + _colors.cyan('{bar}') + '| {percentage}% || {value}/{total} Resources',
+    format: 'Loading resources content... |' + _colors.cyan('{bar}') + '| {percentage}% || {value}/{total}',
   });
   bar1.start(fromResources.length, 0);
 
@@ -139,8 +139,10 @@ async function synchronize(fromModule, toModule) {
   }
 }
 
-async function pullPushInit(fnCallback) {
+
+async function loginWithSpinner() {
   const server = require('./server');
+
   const {SERVER, USERNAME, PASSWORD} = config.getSUPConfigAndLog();
   server.setServer(SERVER);
 
@@ -148,15 +150,27 @@ async function pullPushInit(fnCallback) {
   const authSpinner = new Spinner('Authentication... %s');
   authSpinner.start();
   try {
-    await server.login(USERNAME, PASSWORD);
+    return await server.login(USERNAME, PASSWORD);
   } catch (err) {
     console.log(chalk.red('\nERROR:'));
     console.error(chalk.red(err.message));
-    return;
+    throw err;
   } finally {
     authSpinner.stop();
   }
-  console.log(' SUCCESS');
+}
+
+
+async function pullPushInit(fnCallback) {
+  const server = require('./server');
+  const {SERVER, USERNAME, PASSWORD} = config.getSUPConfigAndLog();
+  server.setServer(SERVER);
+
+  try {
+    loginWithSpinner();
+  } catch (err) {
+    return;
+  }
 
   try {
     await fnCallback();                                                                             // run callback
@@ -175,8 +189,10 @@ async function pullPushInit(fnCallback) {
   }
 }
 
+
 module.exports = {
   splitResource,
   synchronize,
+  loginWithSpinner,
   pullPushInit,
 }

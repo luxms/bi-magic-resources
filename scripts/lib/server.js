@@ -8,15 +8,10 @@ axiosCookieJarSupport(axios);
 const cookieJar = new tough.CookieJar();
 
 let SERVER = '';
-let authenticated = false;
 
 function setServer(server) {
   if (server.endsWith('/')) server = server.slice(0, -1);
   SERVER = server;
-}
-
-function isAuthenticated() {
-  return authenticated;
 }
 
 async function login(username, password) {
@@ -29,7 +24,7 @@ async function login(username, password) {
     jar: cookieJar,
     withCredentials: true,
   });
-  authenticated = true;
+  return result.data;
 }
 
 async function logout() {
@@ -38,7 +33,6 @@ async function logout() {
     jar: cookieJar,
     withCredentials: true,
   });
-  authenticated = false;
 }
 
 async function getResourceId(resource) {
@@ -201,11 +195,16 @@ async function removeResourceContent(resource) {
   });
 }
 
+
+function getCookies() {
+  return cookieJar.getCookiesSync(SERVER).join('; ');
+}
+
 module.exports = {
   setServer,
   login,
   logout,
-  isAuthenticated,
+  getCookies,
   getSchemaNames,
   getResources,
   getResourceContent,
