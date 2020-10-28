@@ -25,7 +25,7 @@ function splitResource(resource) {
  */
 async function enumResources(origin) {
   const list = [];
-  const schemaNames = await origin.getSchemaNames();
+  const schemaNames = await retryOnFail(() => origin.getSchemaNames());
   for (let schemaName of schemaNames) {
     try {
       const resources = await origin.getResources(schemaName);
@@ -34,15 +34,29 @@ async function enumResources(origin) {
       }
     } catch (err) {
       if (err.isAxiosError) {
-        console.log(chalk.red('Error: ' + JSON.stringify(err.response.data)));
-      } else {
-        throw err;
+        console.log(chalk.red('Error: ' + JSON.stringify(err.response?.data)));
       }
+      throw err;
     }
   }
   list.sort();
   return list;
 }
+
+async function retryOnFail(fn) {
+  let error = null;
+  for (let i = 0; i < 5; i++) {
+    try {
+      let result = await fn();
+      return result;
+    } catch (err) {
+      console.log('retryOnFail: error, retrying... ');
+      error = err;
+    }
+  }
+  throw error;
+}
+
 
 async function synchronize(fromModule, toModule) {
   const resSpinner = new Spinner('Loading resources list... %s');
@@ -51,8 +65,8 @@ async function synchronize(fromModule, toModule) {
   let fromResources, toResources;
 
   try {
-    fromResources = await enumResources(fromModule);
-    toResources = await enumResources(toModule);
+    fromResources = await retryOnFail(() => enumResources(fromModule));
+    toResources = await retryOnFail(() => enumResources(toModule));
   } finally {
     resSpinner.stop();
   }
@@ -71,10 +85,10 @@ async function synchronize(fromModule, toModule) {
   bar1.start(fromResources.length, 0);
 
   for (let resource of fromResources) {
-    let fromContent = await fromModule.getResourceContent(resource);
+    let fromContent = await retryOnFail(() => fromModule.getResourceContent(resource));
 
     if (toResources.includes(resource)) {                                                           // may be overwrite
-      let toContent = await toModule.getResourceContent(resource);
+      let toContent = await retryOnFail(() => toModule.getResourceContent(resource));
       if (md5(fromContent) !== md5(toContent)) {                                                    // check if content changed
         overwriteItems.push({resource, content: fromContent});
       }
@@ -150,7 +164,7 @@ async function loginWithSpinner() {
   const authSpinner = new Spinner('Authentication... %s');
   authSpinner.start();
   try {
-    const result = await server.login(USERNAME, PASSWORD);
+    const result = await retryOnFail(() => server.login(USERNAME, PASSWORD));
     authSpinner.stop();
     console.log('SUCCESS\n');
     return result;
@@ -179,14 +193,22 @@ async function pullPushInit(fnCallback) {
   } catch (err) {
     if (err.isAxiosError) {
       console.log(chalk.redBright('Network error'));
-      console.log('    ', err.response.config.method, err.response.config.url);
-      console.log('    ', err.response.status, err.response.statusText);
-      console.error(err.response.data);
+      if (err.response) {
+        console.log('    ', err.response.config.method, err.response.config.url);
+        console.log('    ', err.response.status, err.response.statusText);
+        console.error(err.response.data);
+      } else {
+        console.error(err.stack);
+      }
     } else {
       console.error(err);
     }
   } finally {
-    await server.logout();
+    try {
+      await server.logout();
+    } catch (err2) {
+      // ignore
+    }
   }
 }
 
@@ -196,4 +218,5 @@ module.exports = {
   synchronize,
   loginWithSpinner,
   pullPushInit,
-}
+  retryOnFail,
+};

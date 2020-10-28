@@ -75,7 +75,7 @@ async function getSchemaNames() {
     const data = response.data;
     return data.map(item => item.schema_name);
   } catch (err) {
-    console.warn(`Failed request ${url}`, err);
+    console.warn(`Failed request ${url}`, err.message);
     throw err;
   }
 }
