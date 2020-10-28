@@ -34,7 +34,7 @@ async function enumResources(origin) {
       }
     } catch (err) {
       if (err.isAxiosError) {
-        console.log(chalk.red('Error: ' + JSON.stringify(err.response?.data)));
+        console.log(chalk.red('Error: ' + JSON.stringify(err.response ? err.response.data : null)));
       }
       throw err;
     }
