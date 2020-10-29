@@ -7,8 +7,8 @@ const chalk = require('chalk');
 function getCliArg(argName) {
   let args = process.argv.slice(2);
   for (let arg of args) {
-    if (arg.match(/^--(\w+?)=(.+)$/) && RegExp.$1 === argName) {
-      return RegExp.$2;
+    if (arg.match(/^--(\w+?)(?:=(.+)?)?$/) && RegExp.$1 === argName) {
+      return RegExp.$2 || true;
     }
   }
 }
@@ -25,7 +25,8 @@ const savedValues = {};
  * @type {Object.<string, number>}
  */
 const defaultValues = {
-  port: '3000'
+  port: '3000',
+  force: false,
 };
 
 
@@ -63,7 +64,7 @@ function getOption(name, prompt) {
 
   // 5. default value for option
   const defaultValue = defaultValues[name];
-  if (defaultValue) return (savedValues[name] = defaultValue);
+  if (defaultValue !== undefined) return (savedValues[name] = defaultValue);
 
   // 6. read from keyboard
   const kbdValue = readlineSync.question(prompt || `Enter ${name}: `, {
@@ -82,6 +83,14 @@ function getServer() {
  */
 function getPort() {
   return +getOption('port');
+}
+
+/**
+ * get force: whether to ask "Continue? YN"
+ * @returns boolean
+ */
+function getForce() {
+  return !!getOption('force');
 }
 
 
@@ -111,6 +120,7 @@ function getSUPConfigAndLog() {
 module.exports = {
   getServer,
   getPort,
+  getForce,
   getSUPConfig,
   getSUPConfigAndLog,
 }

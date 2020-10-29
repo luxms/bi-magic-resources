@@ -125,9 +125,11 @@ async function synchronize(fromModule, toModule) {
     removeItems.forEach(item => console.log('    ', chalk.red(decodeURIComponent(item.resource))));
   }
 
-  const prompt = new Confirm('Continue?');
-  if (!(await prompt.run())) {
-    return;
+  if (!config.getForce()) {
+    const prompt = new Confirm('Continue?');
+    if (!(await prompt.run())) {
+      return;
+    }
   }
 
   const bar2 = new SingleBar({
