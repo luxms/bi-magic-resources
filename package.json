@@ -19,6 +19,7 @@
     "cli-spinner": "^0.2.10",
     "colors": "^1.4.0",
     "connect": "^3.7.0",
+    "current-git-branch": "^1.1.0",
     "fs": "0.0.1-security",
     "http": "0.0.1-security",
     "http-proxy-middleware": "^1.0.3",

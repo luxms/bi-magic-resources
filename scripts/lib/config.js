@@ -53,9 +53,15 @@ function getOption(name, prompt) {
   //   authConfig  - only for username and password
   const jsonConfigFileName = (name === 'username' || name === 'password') ? 'authConfig.json': 'config.json';
   try {
-    const jsonConfig = JSON.parse(fs.readFileSync(path.resolve(__dirname, '..', '..', jsonConfigFileName), 'utf8'));
-    const jsonConfigValue = jsonConfig[name];
-    if (jsonConfigValue) return (savedValues[name] = jsonConfigValue);
+    const authConfig = fs.readFileSync(path.resolve(__dirname, '..', '..', jsonConfigFileName), 'utf8');
+    try {
+      const jsonConfig = JSON.parse(authConfig);
+      const currentBranchName = require('current-git-branch')();
+      const jsonConfigValue = (currentBranchName in jsonConfig) ? jsonConfig[currentBranchName][name] : jsonConfig[name];
+      if (jsonConfigValue) return (savedValues[name] = jsonConfigValue);
+    } catch (err) {
+      console.warn('Error reading authConfig.json:', err.message);
+    }
   } catch (err) {
     // file might not exists or invalid...
     // skip
