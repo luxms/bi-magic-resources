@@ -5,23 +5,25 @@ const { splitResource } = require('./utils');
 
 const baseDir = path.resolve(__dirname, '..', '..', 'src');
 const getSchemaPath = (schemaName) => path.resolve(baseDir, schemaName);
-const getResourcePath = (schemaName, resourceName) => path.resolve(baseDir, schemaName, resourceName);
+const getResourcePath = (schemaName, resourceName) => path.resolve(baseDir, schemaName, path.join(...resourceName.split('/')));
+
+function getFiles(dir, prefix = '') {
+  const dirents = fs.readdirSync(dir, { withFileTypes: true });
+  const files = dirents.map((dirent) => {
+    return dirent.isDirectory() ? getFiles(path.resolve(dir, dirent.name), prefix + dirent.name + '/') : prefix + dirent.name;
+  });
+  return Array.prototype.concat(...files);
+}
 
 async function getSchemaNames() {
   const entries = await fsp.readdir(baseDir, { withFileTypes: true });
-  const dirs = entries.filter(entry => entry.isDirectory()).map(entry => entry.name);
+  const dirs = entries.filter(entry => entry.isDirectory() && entry.name.startsWith('ds_')).map(entry => entry.name);
   return dirs;
 }
 
 async function getResources(schemaName) {
   const dirPath = getSchemaPath(schemaName);
-  try {
-    await fsp.stat(dirPath);
-  } catch (err) {
-    return [];
-  }
-  const entries = await fsp.readdir(dirPath, { withFileTypes: true });
-  const files = entries.filter(entry => entry.isFile()).map(entry => entry.name);
+  const files = getFiles(dirPath);
   return files;
 }
 
@@ -44,15 +46,17 @@ async function getResourceContent(resource) {
  * @returns {Promise<void>}
  */
 async function saveResourceContent(resource, content) {
-  const [schemaName, resourceName] = splitResource(resource);
-  const dirPath = getSchemaPath(schemaName);
+  const [schema_name, alt_id] = splitResource(resource);
+  const filePath = alt_id.split('/').slice(0, -1);
+  const dir = path.join(getSchemaPath(schema_name), ...filePath);
+
   try {
-    await fsp.stat(dirPath);
+    await fsp.stat(dir);
   } catch (err) {
-    await fsp.mkdir(dirPath);
+    await fsp.mkdir(dir, { recursive: true });
   }
-  const filePath = getResourcePath(schemaName, resourceName);
-  await fsp.writeFile(filePath, content);
+
+  await fsp.writeFile(getResourcePath(schema_name, alt_id), content);
 }
 
 

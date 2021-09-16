@@ -36,18 +36,17 @@ async function logout() {
 }
 
 async function getResourceId(resource) {
-  const [schemaName, resourceName] = splitResource(resource);
-  let resourceId;
-  if (resourceName.match(/^\d+$/)) {
-    resourceId = +resourceName;
-  } else {
-    const metaUrl = `${SERVER}/api/db/${schemaName}.resources/.filter(alt_id='${encodeURIComponent(resourceName)}')`;
-    resourceId = (await axios.get(metaUrl, {
-      jar: cookieJar,
-      withCredentials: true,
-    })).data[0].id;                                                                                 // TODO: handle not found
+  const [schema_name, alt_id] = splitResource(resource);
+  const metaUrl = `${SERVER}/api/db/${schema_name}.resources/.filter(alt_id='${encodeURIComponent(alt_id)}')`;
+  const response = await axios.get(metaUrl, {
+    jar: cookieJar,
+    withCredentials: true,
+  });
+  if (!response.data.length) {
+    throw new Error(`Not found resource in ${schema_name} with alt_id=${alt_id} (${metaUrl})`);
   }
-  return resourceId;
+  const id = response.data[0].id;
+  return id;
 }
 
 async function getResourceName(resource) {
@@ -122,20 +121,10 @@ async function getResourceContent(resource) {
  * @returns {Promise<void>}
  */
 async function saveResourceContent(resource, content) {
-  const [schemaName, resourceName] = splitResource(resource);
-  // let resourceId;
-  // if (resourceName.match(/^\d+$/)) {
-  //   resourceId = +resourceName;
-  // } else {
-  //   const metaUrl = `${SERVER}/api/db/${schemaName}.resources/.filter(alt_id='${encodeURIComponent(resourceName)}')`;
-  //   resourceId = (await axios.get(metaUrl, {
-  //     jar: cookieJar,
-  //     withCredentials: true,
-  //   })).data[0].id;                                                                                 // TODO: handle not found
-  // }
+  const [schema_name, alt_id] = splitResource(resource);
+  const id = await getResourceId(resource);
 
-  // const url = `${SERVER}/srv/resources/${schemaName}/${resourceId}`;
-  const url = `${SERVER}/srv/resources${resource}`;
+  const url = `${SERVER}/srv/resources/${schema_name}/${id}`;
   const response = await axios({
     method: 'put',
     url: url,
@@ -143,7 +132,8 @@ async function saveResourceContent(resource, content) {
     withCredentials: true,
     data: content,
     headers: {
-      'Content-Type': mime.lookup(resourceName) || 'application/octet-stream',
+      // Server issue with application/json content
+      'Content-Type': (mime.lookup(alt_id) || 'application/octet-stream').replace('application/json', 'text/plain'),
     },
   });
 }
@@ -155,8 +145,8 @@ async function saveResourceContent(resource, content) {
  * @returns {Promise<void>}
  */
 async function createResourceContent(resource, content) {
-  const [schemaName, resourceName] = splitResource(resource);
-  const createMetaUrl = `${SERVER}/api/db/${schemaName}.resources/`;
+  const [schema_name, alt_id] = splitResource(resource);
+  const createMetaUrl = `${SERVER}/api/db/${schema_name}.resources/`;
 
   const createMetaResponse = await axios({
     method: 'post',
@@ -167,8 +157,9 @@ async function createResourceContent(resource, content) {
       'Content-Type': 'application/json',
     },
     data: {
-      alt_id: resourceName,
-      content_type: mime.lookup(resourceName) || 'application/octet-stream',
+      alt_id: alt_id,
+      // Server issue with application/json content
+      content_type: (mime.lookup(alt_id) || 'application/octet-stream').replace('application/json', 'text/plain'),
     },
   });
   const data = createMetaResponse.data;
