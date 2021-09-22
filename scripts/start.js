@@ -8,16 +8,17 @@ const { createProxyMiddleware } = require('http-proxy-middleware');
 const { getResourceContent } = require('./lib/local');
 const server = require('./lib/server');
 const config = require('./lib/config');
-const utils = require('./lib/utils');
+const { splitResource } = require('./lib/utils');
+const { loginWithSpinner }  = require('./lib/commands');
 
 
 // initialize server module
 config.getSUPConfigAndLog();
-utils.loginWithSpinner().then(start);
+loginWithSpinner().then(start);
 
 
 async function fixResourceIdToName(resource) {
-  const [schemaName, resourceIdOrName] = utils.splitResource(resource);
+  const [schemaName, resourceIdOrName] = splitResource(resource);
   if (resourceIdOrName.match(/^\d+$/)) {
     // TODO
     throw new Error('Not implemented');

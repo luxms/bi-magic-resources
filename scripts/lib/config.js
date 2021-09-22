@@ -27,6 +27,8 @@ const savedValues = {};
 const defaultValues = {
   port: '3000',
   force: false,
+  include: 'ds_\\w+$',
+  exclude: '',
 };
 
 
@@ -79,9 +81,15 @@ function getOption(name, prompt) {
   return (savedValues[name] = kbdValue);
 }
 
+
+/**
+ * get remote server url
+ * @return {string}
+ */
 function getServer() {
   return getOption('server', 'Enter server URL: ');
 }
+
 
 /**
  * get port for local to open with 'npm start' from config
@@ -90,6 +98,25 @@ function getServer() {
 function getPort() {
   return +getOption('port');
 }
+
+
+/**
+ * get regexp for schemas to include
+ * @return {string}
+ */
+function getInclude() {
+  return getOption('include');
+}
+
+
+/**
+ * get regexp for schemas to exclude
+ * @return {string}
+ */
+function getExclude() {
+  return getOption('exclude');
+}
+
 
 /**
  * get force: whether to ask "Continue? YN"
@@ -127,6 +154,8 @@ module.exports = {
   getServer,
   getPort,
   getForce,
+  getInclude,
+  getExclude,
   getSUPConfig,
   getSUPConfigAndLog,
 }

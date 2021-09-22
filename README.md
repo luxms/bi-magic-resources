@@ -81,6 +81,8 @@ npm start
 - `password` - пароль для пользователя `username`
 - `port` - порт для запуска локального сервера для `npm start`
 - `force` - выдавать ли предупреждение перед обновлением источника
+- `include` - регулярное выражение для схем, которые следует включить (`^ds_\w+$` по умолчанию)
+- `exclude` - регулярное выражение для схем, которые следует исключить
 
 Если значения `server`, `username` или `password` нигде не найдены,
 то их потребуется ввести с клавиатуры.
@@ -94,19 +96,38 @@ npm start
 - Опции командной строки
 
     При запуске команды можно указать любые из опций:
-    `--server=...`, `--username=...`, `--password=...`, `--port=...`
-    При этом
-    их необходимо отделять от команды знаком `--`
+    * `--server=...`
+    * `--username=...`
+    * `--password=...`
+    * `--port=...`
+    * `--force`
+    * `--include=...`
+    * `--exclude=...`
+
+    Их необходимо отделять от команды знаком `--`
+
     ```
-    npm run push -- --server=http://project.luxmsbi.com/ --username=admin --password=secret
+    npm run push -- --server=http://project.luxmsbi.com/ --username=admin --password=secret --exclude=ds_res
     npm start -- --server=http://project.luxmsbi.com/
     ```
 
 - переменные окружения
-    должны быть написаны заглавными буквами с префиксом `BI_`: `BI_SERVER`, `BI_USERNAME`, `BI_PASSWORD`
+
+    Те же имена, но должны быть написаны заглавными буквами с префиксом `BI_`:
+    * `BI_SERVER`
+    * `BI_USERNAME`
+    * `BI_PASSWORD`
+    * `BI_PORT`
+    * `BI_FORCE`
+    * `BI_INCLUDE`
+    * `BI_EXCLUDE`
+
+    Например:
     ```
     BI_SERVER=http://project.luxmsbi.com/  npm start
+    BI_FORCE=yes BI_EXCLUDE=ds_res  npm start
     ```
+
     ```
     export BI_USERNAME=admin
     export BI_PASSWORD=secret
@@ -114,6 +135,7 @@ npm start
     ```
 
 - Файлы конфигурации
+
     В корне проекта лежит файл `config.json`, который хранит значение конфигурации server
     ```
     {

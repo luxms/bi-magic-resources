@@ -1,7 +1,7 @@
 const fs = require('fs');
 const fsp = fs.promises;
 const path = require('path');
-const { splitResource } = require('./utils');
+const { splitResource, filterSchemaNames } = require('./utils');
 
 const baseDir = path.resolve(__dirname, '..', '..', 'src');
 const getSchemaPath = (schemaName) => path.resolve(baseDir, schemaName);
@@ -17,7 +17,7 @@ function getFiles(dir, prefix = '') {
 
 async function getSchemaNames() {
   const entries = await fsp.readdir(baseDir, { withFileTypes: true });
-  const dirs = entries.filter(entry => entry.isDirectory() && entry.name.startsWith('ds_')).map(entry => entry.name);
+  const dirs = filterSchemaNames(entries.filter(entry => entry.isDirectory()).map(entry => entry.name));
   return dirs;
 }
 

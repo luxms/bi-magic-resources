@@ -2,7 +2,7 @@ const axios = require('axios').default;
 const axiosCookieJarSupport = require('axios-cookiejar-support').default;
 const tough = require('tough-cookie');
 const mime = require('mime-types');
-const { splitResource } = require('./utils');
+const { splitResource, filterSchemaNames } = require('./utils');
 
 axiosCookieJarSupport(axios);
 const cookieJar = new tough.CookieJar();
@@ -72,7 +72,7 @@ async function getSchemaNames() {
       withCredentials: true,
     });
     const data = response.data;
-    return data.map(item => item.schema_name);
+    return filterSchemaNames(data.map(item => item.schema_name));
   } catch (err) {
     console.warn(`Failed request ${url}`, err.message);
     throw err;
