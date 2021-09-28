@@ -5,7 +5,7 @@ const path = require('path');
 const parse = require('url-parse')
 const mime = require('mime-types');
 const { createProxyMiddleware } = require('http-proxy-middleware');
-const { getResourceContent } = require('./lib/local');
+const local = require('./lib/local');
 const server = require('./lib/server');
 const config = require('./lib/config');
 const { splitResource } = require('./lib/utils');
@@ -35,9 +35,16 @@ function start(loginResponse) {
     try {
       const {method, url} = req;
       const resource = await fixResourceIdToName(parse(url, true).pathname);
+      const [schema_name] = splitResource(resource);
+      const validSchemas = await local.getSchemaNames();
+
+      if (!validSchemas.includes(schema_name)) {
+        next();
+        return;
+      }
 
       if (method === 'GET') {
-        const content = await getResourceContent(resource);
+        const content = await local.getResourceContent(resource);
         if (content === null) {
           res.statusCode = 404;
           res.setHeader('Content-Type', 'text/plain');
