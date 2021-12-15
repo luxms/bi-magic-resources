@@ -31,7 +31,7 @@ async function loginWithSpinner() {
 
 
 async function pullPushInit(fnCallback) {
-  config.getSUPConfigAndLog()
+  config.getSUPConfigAndLog();
 
   try {
     await loginWithSpinner();
@@ -132,9 +132,11 @@ async function synchronize(fromModule, toModule) {
     bar1.increment();
   }
 
-  for (let resource of toResources) {
-    if (!fromResources.includes(resource)) {                                                        // extra resources should be removed
-      removeItems.push({resource});
+  if (!config.getNoRemove()) {
+    for (let resource of toResources) {
+      if (!fromResources.includes(resource)) {                                                      // extra resources should be removed
+        removeItems.push({resource});
+      }
     }
   }
 

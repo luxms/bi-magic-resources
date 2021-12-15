@@ -4,10 +4,14 @@ const readlineSync = require('readline-sync');
 const chalk = require('chalk');
 
 
+const varNameToEnv = (varName) => 'BI_' + varName.replace(/[A-Z]/g, letter => '_' + letter).toUpperCase();
+const varNameToCli = (varName) => varName.replace(/[A-Z]/g, letter => '-' + letter.toLowerCase());
+
+
 function getCliArg(argName) {
   let args = process.argv.slice(2);
   for (let arg of args) {
-    if (arg.match(/^--(\w+?)(?:=(.+)?)?$/) && RegExp.$1 === argName) {
+    if (arg.match(/^--([A-Za-z_-]+?)(?:=(.+)?)?$/) && RegExp.$1 === varNameToCli(argName)) {
       return RegExp.$2 || true;
     }
   }
@@ -27,6 +31,7 @@ const savedValues = {};
 const defaultValues = {
   port: '3000',
   force: false,
+  noRemove: false,
   include: 'ds_\\w+$',
   exclude: '',
 };
@@ -47,7 +52,7 @@ function getOption(name, prompt) {
   // (must be uppercase)
   // ex:
   //   BI_SERVER=http://127.0.0.1 npm run pull
-  const envValue = process.env['BI_' + name.toUpperCase()];
+  const envValue = process.env[varNameToEnv(name)];
   if (envValue) return (savedValues[name] = envValue);
 
   // 4. read from config
@@ -128,6 +133,15 @@ function getForce() {
 
 
 /**
+ * get force: whether to ask "Continue? YN"
+ * @returns boolean
+ */
+function getNoRemove() {
+  return !!getOption('noRemove');
+}
+
+
+/**
  * get server, username and password values from config
  * if none exists, will ask to enter from keyboard
  * and will log values to console
@@ -154,6 +168,7 @@ module.exports = {
   getServer,
   getPort,
   getForce,
+  getNoRemove,
   getInclude,
   getExclude,
   getSUPConfig,
