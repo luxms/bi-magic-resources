@@ -45,10 +45,64 @@ async function retryOnFail(fn) {
   throw error;
 }
 
+function compareObjests(x, y) {
+  if (x === y) return true;
+  if (!(x instanceof Object) || !(y instanceof Object)) return false;
+  if (x.constructor !== y.constructor) return false;
 
+  for (const p in x) {
+    if (!x.hasOwnProperty(p)) continue;
+    if (!y.hasOwnProperty(p)) return false;
+    if (x[p] === y[p]) continue;
+    if (typeof (x[p]) !== "object") return false;
+    if (!compareObjests(x[p], y[p])) return false;
+  }
+
+  for (const p in y) {
+    if (y.hasOwnProperty(p) && !x.hasOwnProperty(p)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+async function fixResourceIdToName(resource) {
+  const [schemaName, resourceIdOrName] = splitResource(resource);
+  if (resourceIdOrName.match(/^\d+$/)) {
+    // TODO
+    throw new Error('Not implemented');
+  } else {
+    return `/${schemaName}/${encodeURIComponent(resourceIdOrName)}`;
+  }
+}
+
+function getExtension (str) {
+  const arr = str.split('.')
+  return arr[arr.length - 1];
+}
+
+function getFileNameWithoutExt (str) {
+  const temp = str.split('.');
+  if (temp.length) {
+    temp.length--;
+  }
+  return temp.join('.');
+}
+
+function makePathTsxJsx (str) {
+  let temp = str;
+  if (getExtension(temp) === 'map') temp = getFileNameWithoutExt(temp);
+  return [getFileNameWithoutExt(temp) + '.tsx', getFileNameWithoutExt(temp) + '.jsx'];
+}
 
 module.exports = {
   splitResource,
   filterSchemaNames,
   retryOnFail,
+  compareObjests,
+  fixResourceIdToName,
+  getExtension,
+  getFileNameWithoutExt,
+  makePathTsxJsx
 };

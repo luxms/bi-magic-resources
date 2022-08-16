@@ -34,6 +34,7 @@ const defaultValues = {
   noRemove: false,
   include: 'ds_\\w+$',
   exclude: '',
+  dashboards: false,
 };
 
 
@@ -140,6 +141,16 @@ function getNoRemove() {
   return !!getOption('noRemove');
 }
 
+/**
+ * get dashboards: it's possibility to save configs
+ * of Dashboards and Dashlets to a local disk.
+ * Also, upload it to a server after.
+ * @returns boolean
+ */
+function mustSaveDashboardConfigToDisk() {
+  return !!getOption('dashboards');
+}
+
 
 /**
  * get server, username and password values from config
@@ -173,4 +184,5 @@ module.exports = {
   getExclude,
   getSUPConfig,
   getSUPConfigAndLog,
+  mustSaveDashboardConfigToDisk,
 }
