@@ -69,6 +69,7 @@ module.exports = {
     'three': 'three',
     '@react-three/fiber': '@react-three/fiber',
     '@react-three/drei': '@react-three/drei',
+    'echarts': 'echarts',
     'bi-internal': 'bi-internal',
     'bi-internal/font': 'bi-internal/font',
     'bi-internal/core': 'bi-internal/core',
