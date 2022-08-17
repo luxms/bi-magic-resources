@@ -71,7 +71,7 @@
     "babel-plugin-transform-class-properties": "6.24.1",
     "babel-plugin-transform-runtime": "^6.23.0",
     "babel-polyfill": "^6.26.0",
-    "bi-internal": "git+https://github.com/luxms/bi-internal.git",
+    "bi-internal": "git+http://github.com/luxms/bi-internal.git",
     "chalk": "^4.1.2",
     "cli-progress": "^3.9.1",
     "cli-spinner": "^0.2.10",

@@ -3084,9 +3084,9 @@ bcrypt-pbkdf@^1.0.0:
   dependencies:
     tweetnacl "^0.14.3"
 
-"bi-internal@git+https://github.com/luxms/bi-internal.git":
+"bi-internal@git+http://github.com/luxms/bi-internal.git":
   version "1.0.0"
-  resolved "git+ssh://git@github.com/luxms/bi-internal.git#70ee51d20bbbedf9b1c2c12c5729a4328c2b6ff1"
+  resolved "git+http://github.com/luxms/bi-internal.git#66106c888b82e8ed5291858c0d211ef1ae900dc8"
 
 bidi-js@^1.0.2:
   version "1.0.2"
