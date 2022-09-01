@@ -317,8 +317,8 @@ commands.loginWithSpinner().then(() => {
   });
 
 
-// ids is array of strings of form `schema_name/resource_id`
-// return [ {schema_name, ids: [...]}, ... ]
+  // ids is array of strings of form `schema_name/resource_id`
+  // return [ {schema_name, ids: [...]}, ... ]
   function groupBySchemaNames(ids) {
     let h = {};
     ids.forEach(id => {
@@ -327,5 +327,4 @@ commands.loginWithSpinner().then(() => {
     });
     return Object.values(h);
   }
-
 });

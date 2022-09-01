@@ -30,10 +30,8 @@ const getResourcePath = (schemaName, resourceName) => path.resolve(baseDir, sche
 function getFiles(dir, prefix = '') {
   const dirents = fs.readdirSync(dir, { withFileTypes: true });
   const files = dirents
-    .filter((dirent) => !(dirent.isDirectory() && dirent.name.includes('topic.')))
-    .map((dirent) => {
-    return dirent.isDirectory() ? getFiles(path.resolve(dir, dirent.name), prefix + dirent.name + '/') : prefix + dirent.name;
-  });
+    .filter((dirent) => !(dirent.isDirectory() && dirent.name.includes('topic.')) && dirent.name !== '.gitkeep')
+    .map((dirent) => dirent.isDirectory() ? getFiles(path.resolve(dir, dirent.name), prefix + dirent.name + '/') : prefix + dirent.name);
   return Array.prototype.concat(...files);
 }
 
@@ -267,7 +265,7 @@ async function removeFolder(config) {
   fs.readdir(folderPath, async (err, files) => {
     for (let file of files) {
       await fsp.unlink(folderPath + '/' + file);
-    };
+    }
     await fsp.rmdir(folderPath);
   });
 }
@@ -320,7 +318,7 @@ async function createDashboard(payload) {
   }
 }
 
-async function createDashlet (payload) {
+async function createDashlet(payload) {
   const {schemaName, topicId, dashboardId, id, content} = payload;
   const alt_id = `topic.${topicId}/dashboard.${dashboardId}/${id}.json`;
   const filePath = alt_id.split('/').slice(0, -1);

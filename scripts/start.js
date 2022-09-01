@@ -31,7 +31,7 @@ async function fixResourceIdToName(resource) {
 function start(loginResponse) {
   const app = connect();
 
-  app.use('/srv/resources/', async function(req, res, next){
+  app.use('/srv/resources/', async function(req, res, next) {
     try {
       const {method, url} = req;
       const resource = await fixResourceIdToName(parse(url, true).pathname);

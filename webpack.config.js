@@ -13,9 +13,9 @@ const JSON5 = require('json5');
 
 function getFiles(dir, prefix = '') {
   const dirents = fs.readdirSync(dir, { withFileTypes: true });
-  const files = dirents.map((dirent) => {
-    return dirent.isDirectory() ? getFiles(path.resolve(dir, dirent.name), prefix + dirent.name + '/') : prefix + dirent.name;
-  });
+  const files = dirents
+    .filter(dirent => dirent.name !== '.gitkeep')
+    .map((dirent) => dirent.isDirectory() ? getFiles(path.resolve(dir, dirent.name), prefix + dirent.name + '/') : prefix + dirent.name);
   return Array.prototype.concat(...files);
 }
 
@@ -150,7 +150,7 @@ module.exports = {
       patterns: SCHEMA_NAMES.map(schema_name => ({
         from: path.join('src', schema_name),
         to: (mode === 'production') ? schema_name : `srv/resources/${schema_name}`,
-        filter: f => !(f.endsWith('.tsx') || f.endsWith('.jsx') || f.endsWith('.scss')),
+        filter: f => !(f.endsWith('.tsx') || f.endsWith('.jsx') || f.endsWith('.scss') || f.endsWith('.gitkeep')),
         transform: (content, path) => {
           if (path.match(/topic\./g) && path.endsWith('.json')) return json5ToJson(content);
           return content;
