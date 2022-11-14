@@ -38,7 +38,7 @@ async function loginKerberos(kerberosUrl) {
 
   const resp = await axios({
     method: 'get',
-    url: 'http://bi-sso.spb.luxms.com/api/auth/check',
+    url: `${SERVER}/api/auth/check`,
     headers: {'Authorization': 'Negotiate ' + ticket,},
     jar: cookieJar,
     withCredentials: true,
