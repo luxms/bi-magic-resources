@@ -29,12 +29,13 @@ const savedValues = {};
  * @type {Object.<string, number>}
  */
 const defaultValues = {
-  port: '3000',
+  port: '3003',
   force: false,
   noRemove: false,
   include: 'ds_\\w+$',
   exclude: '',
   dashboards: false,
+  kerberos: '',
 };
 
 
@@ -160,17 +161,22 @@ function mustSaveDashboardConfigToDisk() {
  */
 function getSUPConfig() {
   const SERVER = getServer();
-  const USERNAME = getOption('username');
-  const PASSWORD = getOption('password')
-  return {SERVER, USERNAME, PASSWORD};
+  const KERBEROS = getOption('kerberos');
+  const USERNAME = !KERBEROS ? getOption('username') : '';
+  const PASSWORD = !KERBEROS ? getOption('password') : '';
+  return {SERVER, USERNAME, PASSWORD, KERBEROS};
 }
 
 function getSUPConfigAndLog() {
-  const {SERVER, USERNAME, PASSWORD} = getSUPConfig();
+  const {SERVER, USERNAME, PASSWORD, KERBEROS} = getSUPConfig();
   console.log();
   console.log('SERVER  :', chalk.yellowBright(SERVER));
-  console.log('USERNAME:', chalk.yellowBright(USERNAME));
-  console.log('PASSWORD:', chalk.yellowBright(PASSWORD.split('').map(_ => '*').join('')), '\n');
+  if (!!KERBEROS) {
+    console.log('KERBEROS:', chalk.yellowBright(KERBEROS));
+  } else {
+    console.log('USERNAME:', chalk.yellowBright(USERNAME));
+    console.log('PASSWORD:', chalk.yellowBright(PASSWORD.split('').map(_ => '*').join('')), '\n');
+  }
   return {SERVER, USERNAME, PASSWORD};
 }
 

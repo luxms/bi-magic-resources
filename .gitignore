@@ -3,3 +3,4 @@ node_modules
 .idea
 authConfig.json
 dist
+yarn-error.log
