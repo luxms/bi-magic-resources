@@ -3,6 +3,7 @@ const axiosCookieJarSupport = require('axios-cookiejar-support').default;
 const tough = require('tough-cookie');
 const mime = require('mime-types');
 const { splitResource, filterSchemaNames } = require('./utils');
+const kerberos = require('kerberos').Kerberos;
 
 axiosCookieJarSupport(axios);
 const cookieJar = new tough.CookieJar();
@@ -26,6 +27,25 @@ async function login(username, password) {
     withCredentials: true,
   });
   return result.data;
+}
+
+async function loginKerberos(kerberosUrl) {
+  const client = await kerberos.initializeClient(kerberosUrl, {
+    mechOID: kerberos.GSS_MECH_OID_SPNEGO,
+  });
+
+  const ticket = await client.step("");
+
+  const resp = await axios({
+    method: 'get',
+    url: 'http://bi-sso.spb.luxms.com/api/auth/check',
+    headers: {'Authorization': 'Negotiate ' + ticket,},
+    jar: cookieJar,
+    withCredentials: true,
+  });
+
+  const res = await resp.data;
+  return res;
 }
 
 async function logout() {
@@ -406,6 +426,7 @@ async function getId (payload) {
 
 module.exports = {
   setServer,
+  loginKerberos,
   login,
   logout,
   getCookies,
