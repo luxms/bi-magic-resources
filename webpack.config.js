@@ -59,6 +59,10 @@ module.exports = {
     library: pkg.name,
     libraryTarget: 'umd',
     libraryExport: 'default',
+    assetModuleFilename: function() {
+      console.log('___xxx___images/[hash][ext][query]');
+      return null;
+    }
   },
   externals: {
     'react': 'react',
@@ -110,6 +114,24 @@ module.exports = {
         ],
       },
       {
+        test: /\.(woff(2)?|ttf|eot)$/,
+        type: 'asset/resource',
+        generator: {
+          publicPath: 'srv/resources/',
+          filename: function(data, assetInfo) {
+            let resourcePath = data.filename.split(path.sep);
+            if (resourcePath[0] !== 'src') throw new Error('Cannot get image outside ot src', resourcePath);
+            resourcePath = resourcePath.slice(1);
+
+            const schema_name = resourcePath[0];
+            if (!schema_name.startsWith('ds_')) throw new Error('Cannot get image outside ot schema', resourcePath);
+            resourcePath = resourcePath.slice(1);
+
+            return path.join(schema_name, ...resourcePath);
+          },
+        },
+      },
+      {
         test: /\.(jpe?g|gif|png|svg)$/i,
         use: [
           {
@@ -117,6 +139,20 @@ module.exports = {
             options: {
               esModule: false,
               limit: 8192,
+              name: '[name].[ext]',
+              publicPath: (url, resourcePath, context) => {
+                resourcePath = resourcePath.slice(context.length + path.sep.length);
+                resourcePath = resourcePath.split(path.sep);
+
+                if (resourcePath[0] !== 'src') throw new Error('Cannot get image outside ot src', resourcePath);
+                resourcePath = resourcePath.slice(1);
+
+                const schema_name = resourcePath[0];
+                if (!schema_name.startsWith('ds_')) throw new Error('Cannot get image outside ot schema', resourcePath);
+                resourcePath = resourcePath.slice(1);
+
+                return path.join('srv', 'resources', schema_name, ...resourcePath);
+              },
               outputPath: (url, resourcePath, context) => {
                 resourcePath = resourcePath.slice(context.length + path.sep.length);
                 resourcePath = resourcePath.split(path.sep);
@@ -128,11 +164,7 @@ module.exports = {
                 if (!schema_name.startsWith('ds_')) throw new Error('Cannot get image outside ot schema', resourcePath);
                 resourcePath = resourcePath.slice(1);
 
-                if (mode === 'production') {
-                  return path.join(schema_name, ...resourcePath);
-                } else {
-                  return path.join('srv', 'resources', schema_name, ...resourcePath);
-                }
+                return path.join(schema_name, ...resourcePath);
               },
             }
           }
