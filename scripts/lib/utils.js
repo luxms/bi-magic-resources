@@ -45,7 +45,7 @@ async function retryOnFail(fn) {
   throw error;
 }
 
-function compareObjests(x, y) {
+function compareObjects(x, y) {
   if (x === y) return true;
   if (!(x instanceof Object) || !(y instanceof Object)) return false;
   if (x.constructor !== y.constructor) return false;
@@ -55,7 +55,7 @@ function compareObjests(x, y) {
     if (!y.hasOwnProperty(p)) return false;
     if (x[p] === y[p]) continue;
     if (typeof (x[p]) !== "object") return false;
-    if (!compareObjests(x[p], y[p])) return false;
+    if (!compareObjects(x[p], y[p])) return false;
   }
 
   for (const p in y) {
@@ -65,6 +65,14 @@ function compareObjests(x, y) {
   }
 
   return true;
+}
+
+function cleanPropertyMembers(o) {
+  const result = {};
+  Object.keys(o)
+    .filter(key => !key.startsWith('_'))
+    .forEach(key => result[key] = o[key]);
+  return result;
 }
 
 async function fixResourceIdToName(resource) {
@@ -100,7 +108,8 @@ module.exports = {
   splitResource,
   filterSchemaNames,
   retryOnFail,
-  compareObjests,
+  cleanPropertyMembers,
+  compareObjects,
   fixResourceIdToName,
   getExtension,
   getFileNameWithoutExt,

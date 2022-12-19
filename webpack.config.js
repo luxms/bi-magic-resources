@@ -85,6 +85,7 @@ module.exports = {
     'bi-internal/utils': 'bi-internal/utils',
     'bi-internal/ds-helpers': 'bi-internal/ds-helpers',
     'bi-internal/ui': 'bi-internal/ui',
+    'bi-internal/_internal': 'bi-internal/_internal',
   },
   optimization:{
     minimize: false,                                                                                // disables uglify
@@ -101,7 +102,16 @@ module.exports = {
       {
         test: /\.s[ac]ss$/i,
         use: [
-          'style-loader',                                                                           // Creates `style` nodes from JS strings
+          {
+            loader: 'style-loader',                                                                           // Creates `style` nodes from JS strings
+            options: {
+              insert: function insertToHead(element, options) {
+                document.head.appendChild(element);
+                var utils = require('bi-internal/utils');
+                if (utils._registerStyleElement) utils._registerStyleElement(element);
+              },
+            },
+          },
           'css-loader',                                                                             // Translates CSS into CommonJS
           'sass-loader',                                                                            // Compiles Sass to CSS
         ],

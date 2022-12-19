@@ -247,11 +247,11 @@ async function synchronizeII(fromModule, toModule) {
 
   if (config.mustSaveDashboardConfigToDisk()) {
     for (let config of fromConfigs) {
-      let fromContent = await retryOnFail(() => fromModule.getConfigContent(config));
+      const fromContent = utils.cleanPropertyMembers(await retryOnFail(() => fromModule.getConfigContent(config)));
 
       if (toConfigs.includes(config)) {                                                               // may be overwrite
-        let toContent = await retryOnFail(() => toModule.getConfigContent(config));
-        if (!utils.compareObjests(fromContent, toContent)) {                                             // check if config changed
+        let toContent = utils.cleanPropertyMembers(await retryOnFail(() => toModule.getConfigContent(config)));
+        if (!utils.compareObjects(fromContent, toContent)) {                                             // check if config changed
           overwriteConfigItems.push({config, content: fromContent});
         }
       } else {                                                                                        // has new config
