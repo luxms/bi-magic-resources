@@ -3,7 +3,6 @@ const axiosCookieJarSupport = require('axios-cookiejar-support').default;
 const tough = require('tough-cookie');
 const mime = require('mime-types');
 const { splitResource, filterSchemaNames } = require('./utils');
-const kerberos = require('kerberos').Kerberos;
 
 axiosCookieJarSupport(axios);
 const cookieJar = new tough.CookieJar();
