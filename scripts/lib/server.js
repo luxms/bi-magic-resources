@@ -30,22 +30,48 @@ async function login(username, password) {
 }
 
 async function loginKerberos(kerberosUrl) {
-  const client = await kerberos.initializeClient(kerberosUrl, {
-    mechOID: kerberos.GSS_MECH_OID_SPNEGO,
-  });
+  const kerberos = require('kerberos').Kerberos;
+  try {
+    const client = await kerberos.initializeClient(kerberosUrl, {
+      mechOID: kerberos.GSS_MECH_OID_SPNEGO,
+    });
 
-  const ticket = await client.step("");
+    const ticket = await client.step("");
 
-  const resp = await axios({
-    method: 'get',
-    url: `${SERVER}/api/auth/check`,
-    headers: {'Authorization': 'Negotiate ' + ticket,},
-    jar: cookieJar,
-    withCredentials: true,
-  });
+    const resp = await axios({
+      method: 'get',
+      url: `${SERVER}/api/auth/check`,
+      headers: {'Authorization': 'Negotiate ' + ticket,},
+      jar: cookieJar,
+      withCredentials: true,
+    });
 
-  const res = await resp.data;
-  return res;
+    const res = await resp.data;
+    return res;
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+}
+
+async function loginSSO(kerberosUrl) {
+  try {
+    const url = `${SERVER}/api/auth/check`;
+    const { sso } = require('node-expose-sspi');
+    const client = new sso.Client();
+    const response = await client.fetch(url);
+    const Cookie = tough.Cookie;
+    const cookie = Cookie.parse(response.headers.get('set-cookie'));
+    await cookieJar.setCookie(
+      cookie,
+      url
+    );
+
+    return await response.json();
+  } catch (err) {
+    // console.log('login SSO', err);
+    return loginKerberos(kerberosUrl);
+  }
 }
 
 async function logout() {
@@ -427,6 +453,7 @@ async function getId (payload) {
 module.exports = {
   setServer,
   loginKerberos,
+  loginSSO,
   login,
   logout,
   getCookies,

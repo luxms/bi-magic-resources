@@ -17,7 +17,7 @@ async function _loginWithSpinner() {
   const authSpinner = new Spinner('Authentication... %s');
   authSpinner.start();
   try {
-    const result = KERBEROS ? await retryOnFail(() => server.loginKerberos(KERBEROS)) : await retryOnFail(() => server.login(USERNAME, PASSWORD));
+    const result = KERBEROS ? await retryOnFail(() => server.loginSSO(KERBEROS)) : await retryOnFail(() => server.login(USERNAME, PASSWORD));
     authSpinner.stop();
     console.log('SUCCESS\n');
     return result;

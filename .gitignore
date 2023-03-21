@@ -4,3 +4,4 @@ node_modules
 authConfig.json
 dist
 yarn-error.log
+.DS_Store

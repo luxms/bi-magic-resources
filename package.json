@@ -51,6 +51,9 @@
     "kerberos": "^2.0.1",
     "three": "^0.136.0"
   },
+  "optionalDependencies": {
+    "node-expose-sspi": "^0.1.60"
+  },
   "devDependencies": {
     "@babel/cli": "7.12.10",
     "@babel/core": "7.12.10",
