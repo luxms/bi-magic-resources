@@ -32,7 +32,7 @@ const defaultValues = {
   port: '3003',
   force: false,
   noRemove: false,
-  include: 'ds_\\w+$',
+  include: '^ds_\\w+$',
   exclude: '',
   dashboards: false,
   kerberos: '',
