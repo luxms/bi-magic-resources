@@ -36,6 +36,7 @@ const defaultValues = {
   exclude: '',
   dashboards: false,
   kerberos: '',
+  noLogin: false,
 };
 
 
@@ -135,12 +136,13 @@ function getForce() {
 
 
 /**
- * get force: whether to ask "Continue? YN"
+ * get no remove: whether to disable remove while push/pull
  * @returns boolean
  */
 function getNoRemove() {
   return !!getOption('noRemove');
 }
+
 
 /**
  * get dashboards: it's possibility to save configs
@@ -150,6 +152,15 @@ function getNoRemove() {
  */
 function mustSaveDashboardConfigToDisk() {
   return !!getOption('dashboards');
+}
+
+
+/**
+ * get no login: whether perform login on server. Valid only for dev mode
+ * @returns boolean
+ */
+function getNoLogin() {
+  return !!getOption('noLogin');
 }
 
 
@@ -191,4 +202,5 @@ module.exports = {
   getSUPConfig,
   getSUPConfigAndLog,
   mustSaveDashboardConfigToDisk,
+  getNoLogin,
 }
