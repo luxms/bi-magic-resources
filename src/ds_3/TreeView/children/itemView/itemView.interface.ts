@@ -6,6 +6,8 @@ export interface ItemViewProps {
   formColumns: FaformColumn[];
   visibleContextMenu: VisibleContextMenuState;
   setVisibleContextMenu: (params: VisibleContextMenuState) => void;
+  setItems: (items: OrganisationData[]) => void;
+  items: OrganisationData[];
 }
 
 export interface VisibleContextMenuState {

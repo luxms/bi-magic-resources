@@ -5,7 +5,7 @@ import { useFaformColumns, useItems } from "./utils/hooks";
 import { Th } from "./children/th/Th";
 import { Td } from "./children/td/Td";
 import { ItemView } from "./children/itemView/ItemView";
-import { TreeViewContext } from "./treeView.context";
+import { OrganisationData } from "./treeView.interface";
 
 import "./TreeView.scss";
 
@@ -18,9 +18,12 @@ const TreeView = (props) => {
       pred_id: undefined,
       frm_id: undefined,
     });
+  const [items, setItems] = useState<OrganisationData[]>([]);
 
-  const items = useItems({ GR_ID: ["=", 7] }, props);
+  useItems({ GR_ID: ["=", 7] }, setItems, props);
   const formColumns = useFaformColumns();
+
+  console.log(items);
 
   return (
     <div style={{ padding: "20px", overflow: "scroll", maxHeight: "400px" }}>
@@ -41,6 +44,8 @@ const TreeView = (props) => {
               formColumns={formColumns}
               visibleContextMenu={visibleContextMenu}
               setVisibleContextMenu={setVisibleContextMenu}
+              items={items}
+              setItems={setItems}
             />
           ))}
         </tbody>
@@ -49,12 +54,4 @@ const TreeView = (props) => {
   );
 };
 
-const TreeViewMain = (props) => {
-  const [isReloadData, setIsReloadData] = useState(false);
-  return (
-    <TreeViewContext.Provider value={{ isReloadData, setIsReloadData }}>
-      <TreeView {...props} />
-    </TreeViewContext.Provider>
-  );
-};
-export default TreeViewMain;
+export default TreeView;

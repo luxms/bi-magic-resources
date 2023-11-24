@@ -13,7 +13,7 @@ export const createItemFaformStatus = async (data: FaformStatusDto) => {
       body: JSON.stringify(data),
       headers: { "Content-type": "application/json; charset=utf-8" },
     });
-    return response.status;
+    return response;
   } catch (error) {
     console.log(error);
   }

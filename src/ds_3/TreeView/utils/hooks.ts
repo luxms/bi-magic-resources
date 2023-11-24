@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { IKoobDataModel } from "bi-internal/services/koob";
 
@@ -11,18 +11,19 @@ import {
   OrganisationDataDto,
 } from "../treeView.interface";
 import { mapColumns, mapItems } from "./transformationData";
-import { TreeViewContext } from "../treeView.context";
 
 /**
  * Хук загрузки орагнизаций.
  */
-export const useItems = (filters: any = {}, props?: any) => {
-  const { isReloadData, setIsReloadData } = useContext(TreeViewContext);
+export const useItems = (
+  filters: any = {},
+  setItems: (items: OrganisationData[]) => void,
+  props?: any
+) => {
   const dataService = useMemo(
     () => createRootKoobDataService(filters),
     [props]
   );
-  const [items, setItems] = useState<OrganisationData[]>([]);
 
   const handleSataServiceUpdate = useCallback(
     (model: IKoobDataModel) => {
@@ -38,25 +39,14 @@ export const useItems = (filters: any = {}, props?: any) => {
   );
 
   useEffect(() => {
-    if (!items.length || isReloadData) {
-      dataService.subscribeUpdatesAndNotify(handleSataServiceUpdate);
-    }
-  }, [dataService, isReloadData, handleSataServiceUpdate]);
-
-  useEffect(() => {
-    if (isReloadData) {
-      setIsReloadData(false);
-    }
-  }, [items, setIsReloadData]);
-
-  return items;
+    dataService.subscribeUpdatesAndNotify(handleSataServiceUpdate);
+  }, [dataService, handleSataServiceUpdate]);
 };
 
 /**
  * Хук загрузки доп. колонок.
  */
 export const useFaformColumns = () => {
-  const { isReloadData, setIsReloadData } = useContext(TreeViewContext);
   const dataService = useMemo(createFaformKoobDataService, []);
   const [items, setItems] = useState<FaformColumn[]>([]);
 
@@ -75,16 +65,8 @@ export const useFaformColumns = () => {
   );
 
   useEffect(() => {
-    if (!items.length || isReloadData) {
-      dataService.subscribeUpdatesAndNotify(handleSataServiceUpdate);
-    }
-  }, [isReloadData, dataService, handleSataServiceUpdate]);
-
-  useEffect(() => {
-    if (items.length !== 0) {
-      setIsReloadData(false);
-    }
-  }, [items, setIsReloadData]);
+    dataService.subscribeUpdatesAndNotify(handleSataServiceUpdate);
+  }, [dataService, handleSataServiceUpdate]);
 
   return items;
 };

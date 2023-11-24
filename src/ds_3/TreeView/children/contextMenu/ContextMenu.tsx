@@ -1,12 +1,14 @@
-import React, { useCallback, useContext } from "react";
+import React, { useCallback } from "react";
 
 import { createItemFaformStatus } from "../../utils/createItemFaformStatus";
-import { TreeViewContext } from "../../treeView.context";
+import { FaformStatusDto, OrganisationData } from "../../treeView.interface";
 
 interface ContextMenuProps {
   frm_id: number;
   pred_id: number;
   formStatus?: number;
+  setItems: (items: OrganisationData[]) => void;
+  items: OrganisationData[];
 }
 /**
  * Компонента для контекстного меню по клику на статусы дополнительных колонок.
@@ -16,16 +18,25 @@ export const ContextMenu = ({
   frm_id,
   pred_id,
   formStatus,
+  setItems,
+  items,
 }: ContextMenuProps) => {
-  const { setIsReloadData } = useContext(TreeViewContext);
   const onClick = useCallback(async () => {
-    const status = await createItemFaformStatus({
+    const response = await createItemFaformStatus({
       frm_id: frm_id,
       pred_id: pred_id,
       frm_st: 10, // Заменить хардкод, id статуса должен быть в таблице
     });
-    if (status === 200) {
-      setIsReloadData(true);
+    if (response?.status === 200) {
+      const data: FaformStatusDto = await response.json();
+      setItems(
+        items.map((item) => {
+          if (data.pred_id === item.id) {
+            item.formData.set(data.frm_id, data.frm_st);
+          }
+          return { ...item };
+        })
+      );
     }
   }, [frm_id, pred_id]);
 

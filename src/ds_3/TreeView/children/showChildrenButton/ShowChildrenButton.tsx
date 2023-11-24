@@ -1,5 +1,7 @@
 import React, { useCallback } from "react";
 
+import { ShowChildrenButtonProps } from "./showChildrenButton.interface";
+
 import "./styles.scss";
 /**
  * Кнопка свернуть/развернуть дочерние организации.

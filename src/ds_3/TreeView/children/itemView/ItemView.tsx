@@ -15,6 +15,8 @@ export const ItemView = ({
   formColumns,
   setVisibleContextMenu,
   visibleContextMenu,
+  setItems,
+  items,
 }: ItemViewProps) => {
   const [isOpened, setIsOpened] = useState(false);
 
@@ -60,6 +62,8 @@ export const ItemView = ({
                     frm_id={column.id}
                     pred_id={item.id}
                     formStatus={formStatus}
+                    setItems={setItems}
+                    items={items}
                   />
                 )}
             </Td>

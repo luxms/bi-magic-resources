@@ -14,10 +14,6 @@ export const mapItems = (dtos: OrganisationDataDto[]): OrganisationData[] => {
     // Если у записи dto поле pred_v_id = какому либо
     // другому значению predpr_pred_id из dtos, то этой записи не должно быть
     const isReturn = dtos.find((item) => dto.pred_v_id === item.predpr_pred_id);
-    if (isReturn) {
-      console.log(isReturn.predpr_pred_id + " --- " + dto.predpr_pred_id);
-    }
-
     let organisationData: OrganisationData;
     if (!isReturn) {
       organisationData = organisationsMap.has(dto.predpr_pred_id)
