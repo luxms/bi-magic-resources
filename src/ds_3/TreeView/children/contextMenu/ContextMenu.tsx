@@ -6,12 +6,17 @@ import { TreeViewContext } from "../../treeView.context";
 interface ContextMenuProps {
   frm_id: number;
   pred_id: number;
+  formStatus?: number;
 }
 /**
  * Компонента для контекстного меню по клику на статусы дополнительных колонок.
  */
 
-export const ContextMenu = ({ frm_id, pred_id }: ContextMenuProps) => {
+export const ContextMenu = ({
+  frm_id,
+  pred_id,
+  formStatus,
+}: ContextMenuProps) => {
   const { setIsReloadData } = useContext(TreeViewContext);
   const onClick = useCallback(async () => {
     const status = await createItemFaformStatus({
@@ -28,7 +33,11 @@ export const ContextMenu = ({ frm_id, pred_id }: ContextMenuProps) => {
     <div className="context-menu">
       <ul>
         <li>
-          <button className="context-menu__btn" onClick={onClick}>
+          <button
+            className="context-menu__btn"
+            onClick={onClick}
+            disabled={formStatus !== undefined}
+          >
             Согласовать
           </button>
         </li>

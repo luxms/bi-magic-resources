@@ -49,15 +49,22 @@ export const ItemView = ({
           {item.id}
         </Td>
         <Td>{item.name}</Td>
-        {formColumns.map((column) => (
-          <Td key={column.id} onClick={() => onClickTdFormColumn(column.id)}>
-            {item.formData.get(column.id) || "No data"}
-            {visibleContextMenu?.pred_id === item.id &&
-              visibleContextMenu?.frm_id === column.id && (
-                <ContextMenu frm_id={column.id} pred_id={item.id} />
-              )}
-          </Td>
-        ))}
+        {formColumns.map((column) => {
+          const formStatus = item.formData.get(column.id);
+          return (
+            <Td key={column.id} onClick={() => onClickTdFormColumn(column.id)}>
+              {formStatus || "No data"}
+              {visibleContextMenu?.pred_id === item.id &&
+                visibleContextMenu?.frm_id === column.id && (
+                  <ContextMenu
+                    frm_id={column.id}
+                    pred_id={item.id}
+                    formStatus={formStatus}
+                  />
+                )}
+            </Td>
+          );
+        })}
       </tr>
       {isOpened && (
         <ItemChildrenView

@@ -17,7 +17,7 @@ export interface OrganisationDataDto {
   vname?: string;
   pred_v_id?: number;
   pred_n_id?: number;
-  form_status?: string;
+  form_status?: number;
   form_title?: string;
   form_id?: number;
   children_count: number;
@@ -47,5 +47,5 @@ export interface OrganisationData {
   id: number;
   name: string;
   hasChildren: boolean;
-  formData: Map<number, string>;
+  formData: Map<number, number>;
 }

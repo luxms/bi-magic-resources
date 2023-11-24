@@ -52,9 +52,7 @@ const TreeView = (props) => {
 const TreeViewMain = (props) => {
   const [isReloadData, setIsReloadData] = useState(false);
   return (
-    <TreeViewContext.Provider
-      value={{ isReloadData, setIsReloadData, service: props }}
-    >
+    <TreeViewContext.Provider value={{ isReloadData, setIsReloadData }}>
       <TreeView {...props} />
     </TreeViewContext.Provider>
   );
