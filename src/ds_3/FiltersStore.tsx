@@ -222,17 +222,17 @@ const FiltersStore = (props) => {
   return (
     <div style={{ padding: "20px" }}>
       <button disabled={!isFiltersModified} onClick={handleSaveFilters}>
-        Save Filters
+        Сохранить фильтр
       </button>
       <br />
       <br />
       <button disabled={!isFiltersModified} onClick={handleLoadFilters}>
-        Load Filters
+        Загрузить фильтр
       </button>
       <br />
       <br />
       <button disabled={isFiltersEmpty} onClick={handleClearFilters}>
-        Clear Filters
+        Очистить фильтр
       </button>
       <br />
       <br />

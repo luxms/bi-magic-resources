@@ -15,12 +15,14 @@ const authMiddleware = require('./apis/auth-middleware');
 const RtMiddleware = require('./apis/rt-middleware');
 
 // initialize server module
-config.getSUPConfigAndLog();
+
+const ONLINE = !config.getNoLogin()
+if (ONLINE) config.getSUPConfigAndLog();
 const SERVER = config.getServer();
 const PORT = config.getPort();
 
 
-commands.loginWithSpinner().then(() => {
+const startDev = () => {
 
   const options = {
     // publicPath: webpackConfig.output.publicPath,
@@ -327,4 +329,10 @@ commands.loginWithSpinner().then(() => {
     });
     return Object.values(h);
   }
-});
+};
+
+if (ONLINE) {
+  commands.loginWithSpinner().then(startDev);
+} else {
+  startDev();
+}
