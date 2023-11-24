@@ -23,8 +23,6 @@ const TreeView = (props) => {
   useItems({ GR_ID: ["=", 7] }, setItems, props);
   const formColumns = useFaformColumns();
 
-  console.log(items);
-
   return (
     <div style={{ padding: "20px", overflow: "scroll", maxHeight: "400px" }}>
       <table>
