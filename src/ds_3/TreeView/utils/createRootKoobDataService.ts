@@ -55,6 +55,18 @@ export const createRootKoobDataService = (filters: any = {}) => {
         sql: "children_count",
         title: "children_count",
       },
+      {
+        id: "branch",
+        type: "STRING",
+        sql: "branch",
+        title: "branch",
+      },
+      {
+        id: "st_title",
+        type: "STRING",
+        sql: "st_title",
+        title: "st_title",
+      },
     ],
     [],
     filters

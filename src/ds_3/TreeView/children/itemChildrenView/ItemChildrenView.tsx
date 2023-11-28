@@ -1,9 +1,8 @@
-import React, { useState } from "react";
+import React from "react";
 
 import { ItemChildredViewProps } from "./itemChildrenView.interface";
 import { useItems } from "../../utils/hooks";
 import { ItemView } from "../itemView/ItemView";
-import { OrganisationData } from "../../treeView.interface";
 
 /**
  * Компонента отображающая дочерние организации.
@@ -15,8 +14,7 @@ export const ItemChildrenView = ({
   setVisibleContextMenu,
   visibleContextMenu,
 }: ItemChildredViewProps) => {
-  const [items, setItems] = useState<OrganisationData[]>([]);
-  useItems({ PRED_V_ID: ["=", item.id] }, setItems);
+  const { items } = useItems({ PRED_V_ID: ["=", item.id] });
 
   return (
     <>
@@ -28,8 +26,6 @@ export const ItemChildrenView = ({
           formColumns={formColumns}
           setVisibleContextMenu={setVisibleContextMenu}
           visibleContextMenu={visibleContextMenu}
-          setItems={setItems}
-          items={items}
         />
       ))}
     </>

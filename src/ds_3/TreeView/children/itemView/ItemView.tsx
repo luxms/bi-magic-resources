@@ -1,10 +1,11 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 
 import { ItemViewProps } from "./itemView.interface";
 import { Td } from "../td/Td";
 import { ShowChildrenButton } from "../showChildrenButton/ShowChildrenButton";
 import { ContextMenu } from "../contextMenu/ContextMenu";
 import { ItemChildrenView } from "../itemChildrenView/ItemChildrenView";
+import { TreeViewContext } from "../../treeView.context";
 
 /**
  * Компонента отображающая организацию.
@@ -15,8 +16,6 @@ export const ItemView = ({
   formColumns,
   setVisibleContextMenu,
   visibleContextMenu,
-  setItems,
-  items,
 }: ItemViewProps) => {
   const [isOpened, setIsOpened] = useState(false);
 
@@ -44,7 +43,7 @@ export const ItemView = ({
     <>
       <tr>
         <Td>
-          {"----".repeat(depth)}
+          {"----".repeat(depth - 1)}
           {item.hasChildren && (
             <ShowChildrenButton isOpened={isOpened} onClick={setIsOpened} />
           )}
@@ -55,15 +54,14 @@ export const ItemView = ({
           const formStatus = item.formData.get(column.id);
           return (
             <Td key={column.id} onClick={() => onClickTdFormColumn(column.id)}>
-              {formStatus || "No data"}
+              {formStatus?.st_title || "No data"}
               {visibleContextMenu?.pred_id === item.id &&
                 visibleContextMenu?.frm_id === column.id && (
                   <ContextMenu
+                    item={item}
                     frm_id={column.id}
-                    pred_id={item.id}
-                    formStatus={formStatus}
-                    setItems={setItems}
-                    items={items}
+                    formStatus={formStatus?.frm_st}
+                    depth={depth}
                   />
                 )}
             </Td>

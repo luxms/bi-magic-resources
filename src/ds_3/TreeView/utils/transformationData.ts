@@ -1,4 +1,6 @@
 import {
+  FaItemAction,
+  FaItemActionDto,
   FaformColumn,
   FaformDto,
   OrganisationData,
@@ -10,31 +12,42 @@ import {
  */
 export const mapItems = (dtos: OrganisationDataDto[]): OrganisationData[] => {
   const organisationsMap = new Map<OrganisationData["id"], OrganisationData>();
-  dtos.forEach((dto) => {
-    // Если у записи dto поле pred_v_id = какому либо
-    // другому значению predpr_pred_id из dtos, то этой записи не должно быть
-    const isReturn = dtos.find((item) => dto.pred_v_id === item.predpr_pred_id);
-    let organisationData: OrganisationData;
-    if (!isReturn) {
-      organisationData = organisationsMap.has(dto.predpr_pred_id)
-        ? organisationsMap.get(dto.predpr_pred_id)!
-        : {
-            id: dto.predpr_pred_id,
-            name: dto.pname || "",
-            hasChildren: dto.children_count > 0,
-            formData: new Map<number, number>(),
-          };
+  if (dtos) {
+    dtos.forEach((dto) => {
+      // Если у записи dto поле pred_v_id = какому либо
+      // другому значению predpr_pred_id из dtos, то этой записи не должно быть
+      const isReturn = dtos.find(
+        (item) => dto.pred_v_id === item.predpr_pred_id
+      );
+      let organisationData: OrganisationData;
+      if (!isReturn) {
+        organisationData = organisationsMap.has(dto.predpr_pred_id)
+          ? organisationsMap.get(dto.predpr_pred_id)!
+          : {
+              id: dto.predpr_pred_id,
+              name: dto.pname || "",
+              hasChildren: dto.children_count > 0,
+              branch: dto.branch,
+              formData: new Map<
+                number,
+                { frm_st: number; st_title?: string }
+              >(),
+            };
 
-      if (
-        dto.form_id !== undefined &&
-        dto.form_id !== null &&
-        dto.form_status
-      ) {
-        organisationData.formData.set(dto.form_id, dto.form_status);
+        if (
+          dto.form_id !== undefined &&
+          dto.form_id !== null &&
+          dto.form_status
+        ) {
+          organisationData.formData.set(dto.form_id, {
+            frm_st: dto.form_status,
+            st_title: dto.st_title,
+          });
+        }
+        organisationsMap.set(organisationData.id, organisationData);
       }
-      organisationsMap.set(organisationData.id, organisationData);
-    }
-  });
+    });
+  }
   return Array.from(organisationsMap.values());
 };
 
@@ -43,3 +56,34 @@ export const mapItems = (dtos: OrganisationDataDto[]): OrganisationData[] => {
  */
 export const mapColumns = (dtos: FaformDto[]): FaformColumn[] =>
   dtos?.map((dto) => ({ id: dto?.frm_id, title: dto?.title }));
+
+/**
+ * Преобразование сущностей экшенов доп. колонок получаемых из бд к внутреннему формату.
+ */
+export const mapFaItemActions = (dtos: FaItemActionDto[]): FaItemAction[] =>
+  dtos?.map((dto) => ({
+    frm_id: dto.frm_id,
+    frm_st: dto.frm_st_end,
+    title: dto.title,
+    disabled: dto.disabled,
+  }));
+
+/**
+ * Преобразование branch к формату принимаемому бд. c ведущими нулями
+ */
+export const leadingZerosBranch = (
+  branch?: string,
+  lenghtField: number = 10
+) => {
+  const trimBranch = branch?.trim();
+  const lenghtTrimBranch = trimBranch?.length;
+
+  if (lenghtTrimBranch === undefined || lenghtTrimBranch === 0) {
+    return "";
+  } else {
+    let result = trimBranch;
+    for (let i = lenghtField - lenghtTrimBranch; i > 0; i--) {
+      result = `0${result}`;
+    }
+  }
+};

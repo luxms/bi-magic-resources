@@ -21,6 +21,30 @@ export interface OrganisationDataDto {
   form_title?: string;
   form_id?: number;
   children_count: number;
+  branch?: string;
+  st_title?: string;
+}
+
+/**
+ * Интерфейс сущности, которую мы получаем из БД, и описывающей экшены доп колонок.
+ */
+export interface FaItemActionDto {
+  frm_id: number;
+  branch?: string;
+  dashboard_id?: number;
+  dataset_id?: number;
+  disabled: boolean;
+  frm_act: number;
+  frm_bound?: number;
+  frm_bound_st_end?: number;
+  frm_st: number;
+  frm_st_end: number;
+  leaf_hier_level: number;
+  lvl_st_beg?: number;
+  lvl_st_beg_bound?: number;
+  lvl_st_end?: number;
+  lvl_st_end_bound?: number;
+  title: string;
 }
 
 /**
@@ -46,6 +70,25 @@ export interface FaformColumn {
 export interface OrganisationData {
   id: number;
   name: string;
+  branch?: string;
   hasChildren: boolean;
-  formData: Map<number, number>;
+  formData: Map<number, { frm_st: number; st_title?: string }>;
+}
+
+/**
+ * Интерфейс сущности, которую мы используем в наших UI комонентах, и описывающей экшены дополнительных колонок.
+ */
+export interface FaItemAction {
+  frm_id: number;
+  frm_st: number;
+  title: string;
+  disabled: boolean;
+}
+
+/**
+ * Контекст дешборда
+ */
+export interface TreeViewStateContext {
+  isReload: boolean;
+  setIsReload: (value: boolean) => void;
 }
