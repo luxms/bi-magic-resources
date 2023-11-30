@@ -37,20 +37,16 @@ export const useItems = (filters: any = {}, props?: any) => {
 
       const itemDtos = model.values as OrganisationDataDto[];
       setItems(mapItems(itemDtos));
+      if (isReload) {
+        setIsReload(false);
+      }
     },
-    [setItems]
+    [setItems, isReload]
   );
 
   useEffect(() => {
     dataService.subscribeUpdatesAndNotify(handleSataServiceUpdate);
   }, [dataService, handleSataServiceUpdate]);
-
-  useEffect(() => {
-    if (items.length > 0 && isReload) {
-      dataService.subscribeUpdatesAndNotify(handleSataServiceUpdate);
-      setIsReload(false);
-    }
-  }, [isReload]);
 
   return { items, setItems };
 };
@@ -101,7 +97,10 @@ export const useActions = (filters: any = {}) => {
       }
 
       const itemDtos = model.values as FaItemActionDto[];
-
+      if (itemDtos.length === 0) {
+        dataService.setFilter({ ...filters, branch: ["=", ""] });
+        return;
+      }
       setItems(mapFaItemActions(itemDtos));
     },
     [setItems]

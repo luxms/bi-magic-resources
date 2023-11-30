@@ -41,27 +41,3 @@ export const saveItemFaformStatus = async (
     }
   }
 };
-//   const response = await fetch(
-//     `${getEndpoint()}${getUrlFilterChunk({
-//       userName,
-//       dashboardId,
-//       schemaName,
-//     })}`,
-//     {
-//       method: "PUT",
-//       credentials: "same-origin",
-//       headers: { "Content-type": "application/json; charset=utf-8" },
-//       body: JSON.stringify(updateData),
-//     }
-//   try {
-//     const response = await fetch(ENDPOINT_CREATE_FAFORM_STATUS, {
-//       method: "POST",
-//       credentials: "same-origin",
-//       body: JSON.stringify(data),
-//       headers: { "Content-type": "application/json; charset=utf-8" },
-//     });
-//     return response;
-//   } catch (error) {
-//     console.log(error);
-//   }
-// };

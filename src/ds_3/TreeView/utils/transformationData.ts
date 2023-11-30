@@ -67,23 +67,3 @@ export const mapFaItemActions = (dtos: FaItemActionDto[]): FaItemAction[] =>
     title: dto.title,
     disabled: dto.disabled,
   }));
-
-/**
- * Преобразование branch к формату принимаемому бд. c ведущими нулями
- */
-export const leadingZerosBranch = (
-  branch?: string,
-  lenghtField: number = 10
-) => {
-  const trimBranch = branch?.trim();
-  const lenghtTrimBranch = trimBranch?.length;
-
-  if (lenghtTrimBranch === undefined || lenghtTrimBranch === 0) {
-    return "";
-  } else {
-    let result = trimBranch;
-    for (let i = lenghtField - lenghtTrimBranch; i > 0; i--) {
-      result = `0${result}`;
-    }
-  }
-};

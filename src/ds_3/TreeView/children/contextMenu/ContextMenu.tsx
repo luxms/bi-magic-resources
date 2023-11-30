@@ -1,19 +1,12 @@
-import React, { useCallback, useContext, useEffect, useState } from "react";
+import React, { useCallback, useContext } from "react";
 
 import { saveItemFaformStatus } from "../../utils/saveItemFaformStatus";
-import { OrganisationData } from "../../treeView.interface";
 import { useActions } from "../../utils/hooks";
+import { TreeViewContext } from "../../treeView.context";
+import { ContextMenuProps } from "./contextMenu.interface";
 
 import "./styles.scss";
-import { leadingZerosBranch } from "../../utils/transformationData";
-import { TreeViewContext } from "../../treeView.context";
 
-interface ContextMenuProps {
-  item: OrganisationData;
-  frm_id: number;
-  formStatus?: number;
-  depth: number;
-}
 /**
  * Компонента для контекстного меню по клику на статусы дополнительных колонок.
  */
@@ -23,21 +16,16 @@ export const ContextMenu = ({
   frm_id,
   formStatus,
   depth,
+  setScrollId,
 }: ContextMenuProps) => {
-  const [filter, setFilter] = useState({
+  const { setIsReload } = useContext(TreeViewContext);
+
+  const actions = useActions({
     frm_id: ["=", frm_id],
-    branch: ["=", leadingZerosBranch(item.branch)],
+    branch: ["=", item.branch?.trim()],
     frm_st: ["=", formStatus ?? 0],
     leaf_hier_level: ["=", depth, 0],
   });
-  const { setIsReload } = useContext(TreeViewContext);
-  const actions = useActions(filter);
-
-  useEffect(() => {
-    if (actions.length === 0 && item?.branch) {
-      setFilter({ ...filter, branch: ["=", ""] });
-    }
-  }, [actions]);
 
   const onClick = useCallback(
     async (frm_st: number) => {
@@ -54,6 +42,7 @@ export const ContextMenu = ({
       );
 
       if (response?.status === 200) {
+        setScrollId(item.id);
         setIsReload(true);
       }
     },
@@ -80,7 +69,7 @@ export const ContextMenu = ({
         ))}
         <li>
           <button className="context-menu__btn" onClick={() => onClick(10)}>
-            Тестовый экшен
+            Тестовый экшен frm_st = 10
           </button>
         </li>
       </ul>

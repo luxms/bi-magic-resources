@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 
 import { VisibleContextMenuState } from "./children/itemView/itemView.interface";
 import { useFaformColumns, useItems } from "./utils/hooks";
@@ -6,7 +6,8 @@ import { Th } from "./children/th/Th";
 import { Td } from "./children/td/Td";
 import { ItemView } from "./children/itemView/ItemView";
 import { TreeViewContext } from "./treeView.context";
-import { TreeViewStateContext } from "./treeView.interface";
+
+import "./styles.scss";
 
 /**
  * Дерево организаций.
@@ -17,14 +18,29 @@ const TreeView = (props) => {
       pred_id: undefined,
       frm_id: undefined,
     });
+  const [scrollId, setScrollId] = useState<number | undefined>(undefined);
+  const [openedRecords, setOpenedRecords] = useState(new Set<number>());
 
-  // const [openedRecords, setOpenedRecords] = useState(new Set());
+  const addOpenedRecord = useCallback(
+    (value: number) => {
+      setOpenedRecords(new Set<number>(openedRecords.add(value)));
+    },
+    [openedRecords]
+  );
+
+  const deleteOpenedRecord = useCallback((value: number) => {
+    const setCollection = new Set(openedRecords);
+    setCollection.delete(value);
+    setOpenedRecords(new Set(setCollection));
+  }, []);
+
   const { items } = useItems({ GR_ID: ["=", 7] }, props);
   const formColumns = useFaformColumns();
+
   return (
-    <div style={{ padding: "20px", overflow: "scroll", maxHeight: "400px" }}>
+    <div style={{ padding: "20px", overflow: "scroll", maxHeight: "100%" }}>
       <table>
-        <thead>
+        <thead className="tree-view__thead">
           <Th>ID</Th>
           <Th>Наименование</Th>
           {formColumns.map((column) => (
@@ -40,6 +56,11 @@ const TreeView = (props) => {
               formColumns={formColumns}
               visibleContextMenu={visibleContextMenu}
               setVisibleContextMenu={setVisibleContextMenu}
+              openedRecords={openedRecords}
+              addOpenedRecord={addOpenedRecord}
+              deleteOpenedRecord={deleteOpenedRecord}
+              scrollId={scrollId}
+              setScrollId={setScrollId}
             />
           ))}
         </tbody>

@@ -1,11 +1,10 @@
-import React, { useCallback, useContext, useEffect, useState } from "react";
+import React, { useCallback } from "react";
 
 import { ItemViewProps } from "./itemView.interface";
 import { Td } from "../td/Td";
 import { ShowChildrenButton } from "../showChildrenButton/ShowChildrenButton";
 import { ContextMenu } from "../contextMenu/ContextMenu";
 import { ItemChildrenView } from "../itemChildrenView/ItemChildrenView";
-import { TreeViewContext } from "../../treeView.context";
 
 /**
  * Компонента отображающая организацию.
@@ -16,9 +15,13 @@ export const ItemView = ({
   formColumns,
   setVisibleContextMenu,
   visibleContextMenu,
+  addOpenedRecord,
+  deleteOpenedRecord,
+  openedRecords,
+  scrollId,
+  setScrollId,
 }: ItemViewProps) => {
-  const [isOpened, setIsOpened] = useState(false);
-
+  const isOpened = openedRecords?.has(item.id);
   const onClickTdFormColumn = useCallback(
     (frm_id: number) => {
       if (
@@ -39,13 +42,24 @@ export const ItemView = ({
     [item, visibleContextMenu]
   );
 
+  const onClickShowChildrenButton = useCallback(() => {
+    if (isOpened) {
+      deleteOpenedRecord(item.id);
+    } else {
+      addOpenedRecord(item.id);
+    }
+  }, [isOpened]);
+
   return (
     <>
-      <tr>
+      <tr id={item.id?.toString()}>
         <Td>
           {"----".repeat(depth - 1)}
           {item.hasChildren && (
-            <ShowChildrenButton isOpened={isOpened} onClick={setIsOpened} />
+            <ShowChildrenButton
+              isOpened={isOpened}
+              onClick={onClickShowChildrenButton}
+            />
           )}
           {item.id}
         </Td>
@@ -62,6 +76,7 @@ export const ItemView = ({
                     frm_id={column.id}
                     formStatus={formStatus?.frm_st}
                     depth={depth}
+                    setScrollId={setScrollId}
                   />
                 )}
             </Td>
@@ -75,6 +90,11 @@ export const ItemView = ({
           formColumns={formColumns}
           setVisibleContextMenu={setVisibleContextMenu}
           visibleContextMenu={visibleContextMenu}
+          addOpenedRecord={addOpenedRecord}
+          deleteOpenedRecord={deleteOpenedRecord}
+          openedRecords={openedRecords}
+          setScrollId={setScrollId}
+          scrollId={scrollId}
         />
       )}
     </>
