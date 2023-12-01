@@ -18,7 +18,6 @@ const TreeView = (props) => {
       pred_id: undefined,
       frm_id: undefined,
     });
-  const [scrollId, setScrollId] = useState<number | undefined>(undefined);
   const [openedRecords, setOpenedRecords] = useState(new Set<number>());
 
   const addOpenedRecord = useCallback(
@@ -59,8 +58,6 @@ const TreeView = (props) => {
               openedRecords={openedRecords}
               addOpenedRecord={addOpenedRecord}
               deleteOpenedRecord={deleteOpenedRecord}
-              scrollId={scrollId}
-              setScrollId={setScrollId}
             />
           ))}
         </tbody>

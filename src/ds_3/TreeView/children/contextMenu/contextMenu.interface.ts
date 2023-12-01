@@ -5,5 +5,4 @@ export interface ContextMenuProps {
   frm_id: number;
   formStatus?: number;
   depth: number;
-  setScrollId: (value: number | undefined) => void;
 }

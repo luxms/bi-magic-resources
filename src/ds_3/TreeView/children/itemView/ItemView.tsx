@@ -18,8 +18,6 @@ export const ItemView = ({
   addOpenedRecord,
   deleteOpenedRecord,
   openedRecords,
-  scrollId,
-  setScrollId,
 }: ItemViewProps) => {
   const isOpened = openedRecords?.has(item.id);
   const onClickTdFormColumn = useCallback(
@@ -76,7 +74,6 @@ export const ItemView = ({
                     frm_id={column.id}
                     formStatus={formStatus?.frm_st}
                     depth={depth}
-                    setScrollId={setScrollId}
                   />
                 )}
             </Td>
@@ -93,8 +90,6 @@ export const ItemView = ({
           addOpenedRecord={addOpenedRecord}
           deleteOpenedRecord={deleteOpenedRecord}
           openedRecords={openedRecords}
-          setScrollId={setScrollId}
-          scrollId={scrollId}
         />
       )}
     </>

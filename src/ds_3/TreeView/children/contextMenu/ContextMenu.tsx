@@ -16,7 +16,6 @@ export const ContextMenu = ({
   frm_id,
   formStatus,
   depth,
-  setScrollId,
 }: ContextMenuProps) => {
   const { setIsReload } = useContext(TreeViewContext);
 
@@ -42,7 +41,6 @@ export const ContextMenu = ({
       );
 
       if (response?.status === 200) {
-        setScrollId(item.id);
         setIsReload(true);
       }
     },
