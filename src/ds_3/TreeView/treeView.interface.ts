@@ -45,6 +45,7 @@ export interface FaItemActionDto {
   lvl_st_end?: number;
   lvl_st_end_bound?: number;
   title: string;
+  url?: string;
 }
 
 /**
@@ -54,6 +55,7 @@ export interface FaformStatusDto {
   frm_id: number;
   frm_st: number;
   pred_id: number;
+  fa_act: number;
 }
 
 /**
@@ -73,6 +75,7 @@ export interface OrganisationData {
   branch?: string;
   hasChildren: boolean;
   formData: Map<number, { frm_st: number; st_title?: string }>;
+  gr_id?: number;
 }
 
 /**
@@ -83,6 +86,8 @@ export interface FaItemAction {
   frm_st: number;
   title: string;
   disabled: boolean;
+  url?: string;
+  fa_act: number;
 }
 
 /**

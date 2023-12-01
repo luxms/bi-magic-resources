@@ -32,6 +32,7 @@ export const mapItems = (dtos: OrganisationDataDto[]): OrganisationData[] => {
                 number,
                 { frm_st: number; st_title?: string }
               >(),
+              gr_id: dto.gr_id,
             };
 
         if (
@@ -66,4 +67,6 @@ export const mapFaItemActions = (dtos: FaItemActionDto[]): FaItemAction[] =>
     frm_st: dto.frm_st_end,
     title: dto.title,
     disabled: dto.disabled,
+    url: dto.url,
+    fa_act: dto.frm_act,
   }));

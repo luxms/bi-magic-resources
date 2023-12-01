@@ -4,6 +4,7 @@ import { saveItemFaformStatus } from "../../utils/saveItemFaformStatus";
 import { useActions } from "../../utils/hooks";
 import { TreeViewContext } from "../../treeView.context";
 import { ContextMenuProps } from "./contextMenu.interface";
+import { FaItemAction } from "../../treeView.interface";
 
 import "./styles.scss";
 
@@ -18,30 +19,42 @@ export const ContextMenu = ({
   depth,
 }: ContextMenuProps) => {
   const { setIsReload } = useContext(TreeViewContext);
-
-  const actions = useActions({
+  const actionsWithBranch = useActions({
     frm_id: ["=", frm_id],
     branch: ["=", item.branch?.trim()],
     frm_st: ["=", formStatus ?? 0],
-    leaf_hier_level: ["=", depth, 0],
+    gr_id: ["=", ...(item?.gr_id ? [item.gr_id, null] : [null])],
+  });
+  const actionsWithoutBranch = useActions({
+    frm_id: ["=", frm_id],
+    branch: ["=", ""],
+    frm_st: ["=", formStatus ?? 0],
+    gr_id: ["=", ...(item?.gr_id ? [item.gr_id, null] : [null])],
   });
 
-  const onClick = useCallback(
-    async (frm_st: number) => {
-      if (frm_st === 0) {
-        return;
-      }
-      const response = await saveItemFaformStatus(
-        {
-          frm_id: frm_id,
-          pred_id: item.id,
-          frm_st,
-        },
-        formStatus
-      );
+  const actions =
+    actionsWithBranch.length > 0 ? actionsWithBranch : actionsWithoutBranch;
 
-      if (response?.status === 200) {
-        setIsReload(true);
+  const onClick = useCallback(
+    async (action: FaItemAction) => {
+      if (action.frm_st === 0) {
+        if (action.url) {
+          window.location.href = action.url;
+        }
+      } else {
+        const response = await saveItemFaformStatus(
+          {
+            frm_id: frm_id,
+            pred_id: item.id,
+            frm_st: action.frm_st,
+            fa_act: action.fa_act,
+          },
+          formStatus
+        );
+
+        if (response?.status === 200) {
+          setIsReload(true);
+        }
       }
     },
     [frm_id, item]
@@ -58,18 +71,13 @@ export const ContextMenu = ({
           <li>
             <button
               className="context-menu__btn"
-              onClick={() => onClick(action.frm_st)}
+              onClick={() => onClick(action)}
               disabled={action.disabled}
             >
               {action.title}
             </button>
           </li>
         ))}
-        <li>
-          <button className="context-menu__btn" onClick={() => onClick(10)}>
-            Тестовый экшен frm_st = 10
-          </button>
-        </li>
       </ul>
     </div>
   );

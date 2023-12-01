@@ -80,6 +80,12 @@ export const createFaItemActionsKoobDataService = (filters) => {
         sql: "title",
         title: "title",
       },
+      {
+        id: "url",
+        type: "STRING",
+        sql: "url",
+        title: "url",
+      },
     ],
     [],
     filters

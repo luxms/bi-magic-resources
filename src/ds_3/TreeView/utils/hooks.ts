@@ -97,10 +97,7 @@ export const useActions = (filters: any = {}) => {
       }
 
       const itemDtos = model.values as FaItemActionDto[];
-      if (itemDtos.length === 0) {
-        dataService.setFilter({ ...filters, branch: ["=", ""] });
-        return;
-      }
+
       setItems(mapFaItemActions(itemDtos));
     },
     [setItems]
