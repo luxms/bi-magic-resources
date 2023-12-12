@@ -5,6 +5,7 @@ import { Td } from "../td/Td";
 import { ShowChildrenButton } from "../showChildrenButton/ShowChildrenButton";
 import { ContextMenu } from "../contextMenu/ContextMenu";
 import { ItemChildrenView } from "../itemChildrenView/ItemChildrenView";
+import { saveItemFaformStatus } from "../../utils/saveItemFaformStatus";
 
 /**
  * Компонента отображающая организацию.
@@ -46,7 +47,7 @@ export const ItemView = ({
     } else {
       addOpenedRecord(item.id);
     }
-  }, [isOpened]);
+  }, [isOpened, item.id, deleteOpenedRecord, addOpenedRecord]);
 
   return (
     <>

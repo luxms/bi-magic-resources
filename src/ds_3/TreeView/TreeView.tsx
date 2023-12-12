@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 
 import { VisibleContextMenuState } from "./children/itemView/itemView.interface";
 import { useFaformColumns, useItems } from "./utils/hooks";
@@ -8,6 +8,7 @@ import { ItemView } from "./children/itemView/ItemView";
 import { TreeViewContext } from "./treeView.context";
 
 import "./styles.scss";
+import { KoobFiltersService } from "bi-internal/services";
 
 /**
  * Дерево организаций.
@@ -20,20 +21,18 @@ const TreeView = (props) => {
     });
   const [openedRecords, setOpenedRecords] = useState(new Set<number>());
 
-  const addOpenedRecord = useCallback(
-    (value: number) => {
-      setOpenedRecords(new Set<number>(openedRecords.add(value)));
-    },
-    [openedRecords]
-  );
+  const addOpenedRecord = (value: number) => {
+    setOpenedRecords(new Set<number>(openedRecords.add(value)));
+  };
 
-  const deleteOpenedRecord = useCallback((value: number) => {
+  const deleteOpenedRecord = (value: number) => {
     const setCollection = new Set(openedRecords);
     setCollection.delete(value);
     setOpenedRecords(new Set(setCollection));
-  }, []);
+  };
 
   const { items } = useItems({ GR_ID: ["=", 7] }, props);
+
   const formColumns = useFaformColumns();
 
   return (

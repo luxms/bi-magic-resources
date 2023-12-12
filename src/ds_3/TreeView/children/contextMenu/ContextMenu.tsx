@@ -1,4 +1,5 @@
 import React, { useCallback, useContext } from "react";
+import { UrlState, urlState } from "bi-internal/core";
 
 import { saveItemFaformStatus } from "../../utils/saveItemFaformStatus";
 import { useActions } from "../../utils/hooks";
@@ -7,17 +8,11 @@ import { ContextMenuProps } from "./contextMenu.interface";
 import { FaItemAction } from "../../treeView.interface";
 
 import "./styles.scss";
-
 /**
  * Компонента для контекстного меню по клику на статусы дополнительных колонок.
  */
 
-export const ContextMenu = ({
-  item,
-  frm_id,
-  formStatus,
-  depth,
-}: ContextMenuProps) => {
+export const ContextMenu = ({ item, frm_id, formStatus }: ContextMenuProps) => {
   const { setIsReload } = useContext(TreeViewContext);
   const actionsWithBranch = useActions({
     frm_id: ["=", frm_id],
@@ -39,7 +34,11 @@ export const ContextMenu = ({
     async (action: FaItemAction) => {
       if (action.frm_st === 0) {
         if (action.url) {
-          window.location.href = action.url;
+          UrlState.getInstance().updateModel({
+            _pred_id: item.id,
+          });
+          // Хардкод
+          UrlState.navigate({ segment: "ds", segmentId: "ds_3", dboard: "14" });
         }
       } else {
         const response = await saveItemFaformStatus(

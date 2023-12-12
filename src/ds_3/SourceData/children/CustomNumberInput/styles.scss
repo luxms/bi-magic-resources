@@ -1,0 +1,9 @@
+.custom-number-input{    
+    width: -webkit-fill-available;
+    padding: 5px;
+    border: none;
+    outline-color: rgb(132, 203, 241);  
+    &__disabled{
+        background-color: rgb(197, 197, 197);
+    }  
+}

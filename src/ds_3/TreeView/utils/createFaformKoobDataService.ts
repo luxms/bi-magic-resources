@@ -18,6 +18,8 @@ export const createFaformKoobDataService = () => {
       { id: "title", type: "STRING", sql: "title", title: "title" },
     ],
     [],
-    {}
+    {},
+    undefined,
+    ["+frm_id"]
   );
 };
