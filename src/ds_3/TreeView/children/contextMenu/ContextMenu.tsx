@@ -1,5 +1,5 @@
 import React, { useCallback, useContext } from "react";
-import { UrlState, urlState } from "bi-internal/core";
+import { UrlState } from "bi-internal/core";
 
 import { saveItemFaformStatus } from "../../utils/saveItemFaformStatus";
 import { useActions } from "../../utils/hooks";
@@ -36,9 +36,14 @@ export const ContextMenu = ({ item, frm_id, formStatus }: ContextMenuProps) => {
         if (action.url) {
           UrlState.getInstance().updateModel({
             _pred_id: item.id,
+            _fiscper: item.fiscper,
+            _fiscvar: item.fiscvar,
           });
-          // Хардкод
-          UrlState.navigate({ segment: "ds", segmentId: "ds_3", dboard: "14" });
+          UrlState.navigate({
+            segment: "ds",
+            segmentId: `ds_${action.dataset_id}`,
+            dboard: action.dashboard_id,
+          });
         }
       } else {
         const response = await saveItemFaformStatus(

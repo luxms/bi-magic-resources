@@ -12,7 +12,11 @@ import {
 import { mapRows } from "./transformationData";
 import { FainfoAllDto } from "../sourceData.interface";
 
-export const useColumns = ({ setColumns, pred_id }: UseColumnsParams) => {
+export const useColumns = ({
+  setColumns,
+  pred_id,
+  filters = {},
+}: UseColumnsParams) => {
   useEffect(() => {
     setColumns([]);
   }, [pred_id]);
@@ -25,12 +29,7 @@ export const useColumns = ({ setColumns, pred_id }: UseColumnsParams) => {
       KOOB_ID_COLUMNS,
       dimensionsColumnsDataService.map((item) => item.id),
       [],
-      {
-        // Хардкод
-        PRED_IDF: ["=", pred_id],
-        FISCVAR: ["=", "Q4"],
-        FISCPER: ["=", 2023002],
-      }
+      filters
     )
       .then((data) => {
         setColumns(data);
@@ -39,7 +38,7 @@ export const useColumns = ({ setColumns, pred_id }: UseColumnsParams) => {
   }, [pred_id]);
 };
 
-export const useRows = ({ pred_id, setRows }: UseRowsParams) => {
+export const useRows = ({ pred_id, setRows, filters = {} }: UseRowsParams) => {
   useEffect(() => {
     setRows([]);
   }, [pred_id]);
@@ -52,12 +51,7 @@ export const useRows = ({ pred_id, setRows }: UseRowsParams) => {
       KOOB_ID_ROWS,
       dimensionsRowsDataService.map((item) => item.id),
       [],
-      {
-        // Хардкод
-        PRED_IDF: ["=", pred_id],
-        FISCVAR: ["=", "Q4"],
-        FISCPER: ["=", 2023002],
-      }
+      filters
     )
       .then((data) => {
         const rows = mapRows(data as FainfoAllDto[]);

@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect } from "react";
+import React, { useState } from "react";
 
 import { VisibleContextMenuState } from "./children/itemView/itemView.interface";
 import { useFaformColumns, useItems } from "./utils/hooks";
@@ -8,7 +8,6 @@ import { ItemView } from "./children/itemView/ItemView";
 import { TreeViewContext } from "./treeView.context";
 
 import "./styles.scss";
-import { KoobFiltersService } from "bi-internal/services";
 
 /**
  * Дерево организаций.
@@ -32,7 +31,6 @@ const TreeView = (props) => {
   };
 
   const { items } = useItems({ GR_ID: ["=", 7] }, props);
-
   const formColumns = useFaformColumns();
 
   return (

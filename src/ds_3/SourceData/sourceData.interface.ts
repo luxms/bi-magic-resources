@@ -22,7 +22,7 @@ export interface FainfoAllDto {
   fasyst?: string;
   fa_data?: number;
   fiscper: number;
-  fiscvar: number;
+  fiscvar: string;
   disabled: boolean;
 }
 /**
@@ -33,7 +33,7 @@ export interface FadataDto {
   info_id: number;
   fa_data?: number;
   fiscper: number;
-  fiscvar: number;
+  fiscvar: string;
 }
 /**
  * Интерфейс сущности, которую мы используем в наших UI комонентах, и описывающей столбцы.
@@ -45,5 +45,5 @@ export interface FainfoAll {
   ititle?: string;
   fasyst?: string;
   fiscper: number;
-  fiscvar: number;
+  fiscvar: string;
 }

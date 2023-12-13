@@ -27,7 +27,7 @@ export const SourceDataLayout = ({ columns, rows }: SourceDataLayoutProps) => {
             <Th></Th>
             <Th>Структурное подразделение</Th>
             {columns.map((column) => (
-              <Th>
+              <Th key={column.pred_id}>
                 <div className="source-data__th-text" title={column.sname}>
                   {column.sname}
                 </div>
@@ -40,7 +40,7 @@ export const SourceDataLayout = ({ columns, rows }: SourceDataLayoutProps) => {
             <Th></Th>
             <Th></Th>
             {columns.map((column) => (
-              <Th>
+              <Th key={column.pred_id}>
                 <div className="source-data__th-text" title={column.vname}>
                   {column.vname}
                 </div>
@@ -52,8 +52,8 @@ export const SourceDataLayout = ({ columns, rows }: SourceDataLayoutProps) => {
             <Th>Код исходных данных</Th>
             <Th>ИД исходных данных</Th>
             <Th>Исходная система</Th>
-            {columns.map(() => (
-              <Th>Значение исх.данных</Th>
+            {columns.map((column) => (
+              <Th key={column.pred_id}>Значение исх.данных</Th>
             ))}
           </tr>
         </thead>

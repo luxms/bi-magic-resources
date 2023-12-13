@@ -23,6 +23,8 @@ export interface OrganisationDataDto {
   children_count: number;
   branch?: string;
   st_title?: string;
+  fiscper: number;
+  fiscvar: string;
 }
 
 /**
@@ -76,6 +78,8 @@ export interface OrganisationData {
   hasChildren: boolean;
   formData: Map<number, { frm_st: number; st_title?: string }>;
   gr_id?: number;
+  fiscper: number;
+  fiscvar: string;
 }
 
 /**
@@ -88,6 +92,8 @@ export interface FaItemAction {
   disabled: boolean;
   url?: string;
   fa_act: number;
+  dashboard_id?: number;
+  dataset_id?: number;
 }
 
 /**

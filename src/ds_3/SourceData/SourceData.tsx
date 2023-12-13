@@ -12,7 +12,7 @@ import {
 import { useColumns, useRows } from "./utils/hooks";
 import { extractUpdateData, mapRows } from "./utils/transformationData";
 import { updateFadata } from "./utils/updateFadata";
-import { KoobDataService, KoobFiltersService } from "bi-internal/services";
+import { KoobDataService } from "bi-internal/services";
 import {
   KOOB_ID_ROWS,
   dimensionsRowsDataService,
@@ -24,25 +24,30 @@ const SourceData = (props) => {
 
   const url = UrlState.getInstance().getModel();
   // Хардкод
-  const pred_id = url?._pred_id ?? 2176;
+  const pred_id = 2176;
+  // const pred_id = url?._pred_id;
+  const fiscper = url?._fiscper;
+  const fiscvar = url?._fiscvar;
 
-  useColumns({ pred_id, setColumns });
-  useRows({ pred_id, setRows });
+  const filters: { [key: string]: any } = {
+    PRED_IDF: ["=", pred_id],
+    FISCVAR: ["=", fiscvar],
+    FISCPER: ["=", fiscper],
+  };
+
+  useColumns({ pred_id, setColumns, filters });
+  useRows({ pred_id, setRows, filters });
 
   const onSubmit = useCallback(async (values: { rows: FainfoAll[] }) => {
     const updateData = extractUpdateData(values.rows);
     const response = await updateFadata(updateData);
+    setRows([]);
     if (response?.status === 200) {
       KoobDataService.koobDataRequest3(
         KOOB_ID_ROWS,
         dimensionsRowsDataService.map((item) => item.id),
         [],
-        {
-          // Хардкод
-          PRED_IDF: ["=", pred_id],
-          FISCVAR: ["=", "Q4"],
-          FISCPER: ["=", 2023002],
-        }
+        filters
       )
         .then((data) => {
           const rows = mapRows(data as FainfoAllDto[]);
@@ -52,8 +57,8 @@ const SourceData = (props) => {
     }
   }, []);
 
-  if (!pred_id) {
-    return <div>pred_id пустое</div>;
+  if (!pred_id || !fiscper || !fiscvar) {
+    return <div>Переход был осуществлен не из TreeView</div>;
   }
   if (rows.length === 0) {
     return <div>Ничего не найдено</div>;
