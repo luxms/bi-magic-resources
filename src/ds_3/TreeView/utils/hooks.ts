@@ -1,5 +1,6 @@
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 
+import { KoobFiltersService } from "bi-internal/services";
 import { IKoobDataModel } from "bi-internal/services/koob";
 
 import { createRootKoobDataService } from "./createRootKoobDataService";
@@ -22,10 +23,11 @@ import { TreeViewContext } from "../treeView.context";
 export const useItems = (filters: any = {}, props?: any) => {
   const { isReload, setIsReload } = useContext(TreeViewContext);
   const [items, setItems] = useState<OrganisationData[]>([]);
+  const dashFilters = KoobFiltersService.getInstance().getModel().filters;
 
   const dataService = useMemo(
-    () => createRootKoobDataService(filters),
-    [props]
+    () => createRootKoobDataService({ ...filters, ...dashFilters }),
+    [props, dashFilters]
   );
 
   const handleSataServiceUpdate = useCallback(

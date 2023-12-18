@@ -1,0 +1,9 @@
+.source-data-th-custom {
+    padding: 5px;
+    border: 1px solid darkgray;
+    &__text{
+        height: 30px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}

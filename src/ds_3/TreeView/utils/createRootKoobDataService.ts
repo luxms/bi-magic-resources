@@ -67,6 +67,18 @@ export const createRootKoobDataService = (filters: any = {}) => {
         sql: "st_title",
         title: "st_title",
       },
+      {
+        id: "fiscper",
+        type: "INTEGER",
+        sql: "fiscper",
+        title: "fiscper",
+      },
+      {
+        id: "fiscvar",
+        type: "STRING",
+        sql: "fiscvar",
+        title: "fiscvar",
+      },
     ],
     [],
     filters

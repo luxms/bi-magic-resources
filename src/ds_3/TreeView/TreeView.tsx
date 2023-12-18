@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useState } from "react";
 
 import { VisibleContextMenuState } from "./children/itemView/itemView.interface";
 import { useFaformColumns, useItems } from "./utils/hooks";
@@ -20,18 +20,15 @@ const TreeView = (props) => {
     });
   const [openedRecords, setOpenedRecords] = useState(new Set<number>());
 
-  const addOpenedRecord = useCallback(
-    (value: number) => {
-      setOpenedRecords(new Set<number>(openedRecords.add(value)));
-    },
-    [openedRecords]
-  );
+  const addOpenedRecord = (value: number) => {
+    setOpenedRecords(new Set<number>(openedRecords.add(value)));
+  };
 
-  const deleteOpenedRecord = useCallback((value: number) => {
+  const deleteOpenedRecord = (value: number) => {
     const setCollection = new Set(openedRecords);
     setCollection.delete(value);
     setOpenedRecords(new Set(setCollection));
-  }, []);
+  };
 
   const { items } = useItems({ GR_ID: ["=", 7] }, props);
   const formColumns = useFaformColumns();
