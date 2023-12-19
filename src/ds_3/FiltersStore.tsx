@@ -1,7 +1,7 @@
 import React, { useMemo, useEffect, useState } from "react";
 
-import {KoobFiltersService} from "bi-internal/services";
-import {AuthenticationService, repo} from "bi-internal/core";
+import { KoobFiltersService } from "bi-internal/services";
+import { AuthenticationService, repo } from "bi-internal/core";
 
 const EMPTY_FILTERS_STR = "{}";
 const EMPTY_NAME_STR = [];
@@ -35,8 +35,13 @@ const getFiltersString = async (userName: string, schemaName: string, dashboardI
         return records[0].filter_str;
     } catch (error) {
         console.log(error);
+
     }
-    return EMPTY_FILTERS_STR;
+    return records[0].filter_str;
+  } catch (error) {
+    console.log(error);
+  }
+  return EMPTY_FILTERS_STR;
 };
 //----------------------------------------
 const getNameString = async (userName: string, schemaName: string, dashboardId: number, saveName: string): Promise<any[]> => {
@@ -64,6 +69,7 @@ const getNameString = async (userName: string, schemaName: string, dashboardId: 
 /**
  * Сохраняем строку фильтров на сервер.
  */
+
 const saveFiltersString = async (userName: string, schemaName: string, dashboardId: number, saveName: string, filterString: string): Promise<void> => {
     // Пробуем обновить запись с заданными user_name, schema_name и dashboard_id
     const updateData = {filter_str: filterString};
@@ -102,8 +108,13 @@ const saveFiltersString = async (userName: string, schemaName: string, dashboard
             }
         }
     } catch (error) {
+
         console.log(error);
+      }
     }
+  } catch (error) {
+    console.log(error);
+  }
 };
 //=====================================
 const getNamesString = async (userName: string, schemaName: string, dashboardId: number, saveName: string, filterString: string): Promise<void> => {
@@ -129,6 +140,7 @@ const getNamesString = async (userName: string, schemaName: string, dashboardId:
 };
 //=====================================
 const FiltersStore = (props) => {
+
     // конфиг передаваемый нашей компоненте системой
     const {cfg} = props;
     // текущее строковое представление фильтров
@@ -258,27 +270,17 @@ console.log('fetched1 ', fetchedFiltersStr);
         koobFiltersService.setFilters(cfg.dataSource.koob, JSON.parse(fetchedFiltersStr));
     };
 
-    // обработчик клика по кнопке очистки фильтров
-    const handleClearFilters = () => {
-        if (!koobFiltersService || !cfg.dataSource.koob) {
-            return; 
-        }
 
-        const koobFilterModel = koobFiltersService.getModel();
 
-        if (koobFilterModel.loading || koobFilterModel.error) {
-            return;
-        }
-        // берем текущие фильтры и всем ключам задаем значение undefined
-        const newFilters = Object.keys(koobFilterModel.filters).reduce((accumulator, current) => {
-            accumulator[current] = undefined;
-            return accumulator;
-        }, {});
-        // применяем получишийся объект
-        koobFiltersService.setFilters(cfg.dataSource.koob, newFilters);
+    const doWork = async () => {
+      const fetchedFiltersStr = await getFiltersString(
+        username,
+        cfg.dataset.schemaName,
+        Number(cfg.dashId)
+      );
+      setSavedFiltersStr(fetchedFiltersStr);
     };
-
-    //-------------------s
+   //-------------------s
     const [loadName, setLoadName] = useState<any[]>([]);
     const [loadName2, setLoadName2] = useState<string>();
     //console.log(loadName2);
@@ -303,9 +305,35 @@ console.log('fetched1 ', fetchedFiltersStr);
             </label>
 
         </div>
+
     );
+    // применяем получишийся объект
+    koobFiltersService.setFilters(cfg.dataSource.koob, newFilters);
+  };
+
+  return (
+    <div style={{ padding: "20px" }}>
+      <button disabled={!isFiltersModified} onClick={handleSaveFilters}>
+        Сохранить фильтр
+      </button>
+      <br />
+      <br />
+      <button disabled={!isFiltersModified} onClick={handleLoadFilters}>
+        Загрузить фильтр
+      </button>
+      <br />
+      <br />
+      <button disabled={isFiltersEmpty} onClick={handleClearFilters}>
+        Очистить фильтр
+      </button>
+      <br />
+      <br />
+    </div>
+  );
 };
 
 
 
+
 export default FiltersStore;
+
