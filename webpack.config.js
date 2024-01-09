@@ -55,6 +55,7 @@ module.exports = {
   output: {
     publicPath: '',
     path: path.resolve(__dirname, 'dist'),
+    hashFunction: 'xxhash64',
     filename: '[name].js',
     library: pkg.name,
     libraryTarget: 'umd',
@@ -68,7 +69,7 @@ module.exports = {
     'react': 'react',
     'react-dom': 'react-dom',
     'classnames': 'classnames',
-    'jquery': 'jquery',
+    //'jquery': 'jquery',
     'axios': 'axios',
     'three': 'three',
     '@react-three/fiber': '@react-three/fiber',
