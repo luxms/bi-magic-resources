@@ -17,8 +17,9 @@ export const ItemChildrenView = memo(
     addOpenedRecord,
     deleteOpenedRecord,
     openedRecords,
+    props
   }: ItemChildredViewProps) => {
-    const { items } = useItems({ PRED_V_ID: ["=", item.id] });
+    const { items } = useItems({ PRED_V_ID: ["=", item.id] },props );
 
     return (
       <>
@@ -33,6 +34,7 @@ export const ItemChildrenView = memo(
             openedRecords={openedRecords}
             addOpenedRecord={addOpenedRecord}
             deleteOpenedRecord={deleteOpenedRecord}
+            props={props}
           />
         ))}
       </>

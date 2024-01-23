@@ -55,6 +55,7 @@ const TreeView = (props) => {
               openedRecords={openedRecords}
               addOpenedRecord={addOpenedRecord}
               deleteOpenedRecord={deleteOpenedRecord}
+              props={props}
             />
           ))}
         </tbody>

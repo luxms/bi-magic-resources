@@ -10,4 +10,5 @@ export interface ItemChildredViewProps {
   openedRecords: Set<number>;
   addOpenedRecord: (value: number) => void;
   deleteOpenedRecord: (value: number) => void;
+  props: any;
 }

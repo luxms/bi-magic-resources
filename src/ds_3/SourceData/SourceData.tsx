@@ -2,7 +2,6 @@ import React, { useState, useCallback } from "react";
 import { Formik } from "formik";
 
 import { UrlState } from "bi-internal/core";
-
 import { SourceDataLayout } from "./SourceData.layout";
 import {
   FaPredprIerDto,
@@ -12,6 +11,7 @@ import {
 import { useColumns, useRows } from "./utils/hooks";
 import { extractUpdateData, mapRows } from "./utils/transformationData";
 import { updateFadata } from "./utils/updateFadata";
+import { insertFadata } from "./utils/insertFadata";
 import { KoobDataService } from "bi-internal/services";
 import {
   KOOB_ID_ROWS,
@@ -24,8 +24,8 @@ const SourceData = (props) => {
 
   const url = UrlState.getInstance().getModel();
   // Хардкод
-  const pred_id = 2176;
-  // const pred_id = url?._pred_id;
+  //const pred_id = 2176;
+  const pred_id = url?._pred_id;
   const fiscper = url?._fiscper;
   const fiscvar = url?._fiscvar;
 
@@ -38,11 +38,22 @@ const SourceData = (props) => {
   useColumns({ pred_id, setColumns, filters });
   useRows({ pred_id, setRows, filters });
 
+
   const onSubmit = useCallback(async (values: { rows: FainfoAll[] }) => {
     const updateData = extractUpdateData(values.rows);
-    const response = await updateFadata(updateData);
+    for(let key in updateData) {
+      if(updateData[key].fa_data != null){
+        let response = await updateFadata(updateData[key]);
+        if (response?.status != 200) {
+          response = await insertFadata(updateData[key]);
+        };
+      };
+    };
+    //const response = await insertFadata(updateData);
+    //console.log(JSON.stringify(updateData));
+    //const response = await updateFadata(updateData);
     setRows([]);
-    if (response?.status === 200) {
+    //if (response?.status === 200) {
       KoobDataService.koobDataRequest3(
         KOOB_ID_ROWS,
         dimensionsRowsDataService.map((item) => item.id),
@@ -54,7 +65,7 @@ const SourceData = (props) => {
           setRows(rows);
         })
         .catch(() => setRows([]));
-    }
+    //}
   }, []);
 
   if (!pred_id || !fiscper || !fiscvar) {

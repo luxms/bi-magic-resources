@@ -14,19 +14,36 @@ import "./styles.scss";
 
 export const ContextMenu = ({ item, frm_id, formStatus }: ContextMenuProps) => {
   const { setIsReload } = useContext(TreeViewContext);
-  const actionsWithBranch = useActions({
+  const actionsWithBranch1 = useActions({
     frm_id: ["=", frm_id],
     branch: ["=", item.branch?.trim()],
     frm_st: ["=", formStatus ?? 0],
-    gr_id: ["=", ...(item?.gr_id ? [item.gr_id, null] : [null])],
+    gr_id: ["=", item?.gr_id],
   });
-  const actionsWithoutBranch = useActions({
+  const actionsWithBranch2 = useActions({
+    frm_id: ["=", frm_id],
+    branch: ["=", item.branch?.trim()],
+    frm_st: ["=", formStatus ?? 0],
+    gr_id: ["=", null],
+  });
+  const actionsWithBranch =
+  actionsWithBranch1.length > 0 ? actionsWithBranch1 : actionsWithBranch2;
+  
+  const actionsWithoutBranch1 = useActions({
     frm_id: ["=", frm_id],
     branch: ["=", ""],
     frm_st: ["=", formStatus ?? 0],
-    gr_id: ["=", ...(item?.gr_id ? [item.gr_id, null] : [null])],
+    gr_id: ["=", item?.gr_id ],
   });
-
+  const actionsWithoutBranch2 = useActions({
+    frm_id: ["=", frm_id],
+    branch: ["=", ""],
+    frm_st: ["=", formStatus ?? 0],
+    gr_id: ["=", null ],
+  });
+  const actionsWithoutBranch =
+  actionsWithoutBranch1.length > 0 ? actionsWithoutBranch1 : actionsWithoutBranch2;
+//...(item?.gr_id ? [item.gr_id, null] : [null])
   const actions =
     actionsWithBranch.length > 0 ? actionsWithBranch : actionsWithoutBranch;
 

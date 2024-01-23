@@ -1,7 +1,8 @@
-import { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useState} from "react";
 
-import { KoobFiltersService } from "bi-internal/services";
+import { KoobFiltersService, useService, KoobService } from "bi-internal/services";
 import { IKoobDataModel } from "bi-internal/services/koob";
+import {$eid} from "bi-internal/utils";
 
 import { createRootKoobDataService } from "./createRootKoobDataService";
 import { createFaformKoobDataService } from "./createFaformKoobDataService";
@@ -20,14 +21,32 @@ import { TreeViewContext } from "../treeView.context";
 /**
  * Хук загрузки орагнизаций.
  */
+const pickExisting = (obj, keys) =>Object.fromEntries(keys.filter(n => n in obj).map(n => [ n, obj[n] ]));
+
 export const useItems = (filters: any = {}, props?: any) => {
+  const { cfg } = props;
+
+  const koobModel =   useService<KoobService>(KoobService, cfg.getRaw().dataSource.koob);
   const { isReload, setIsReload } = useContext(TreeViewContext);
   const [items, setItems] = useState<OrganisationData[]>([]);
+
   const dashFilters = KoobFiltersService.getInstance().getModel().filters;
 
+  const fFilters = useMemo(() => pickExisting(dashFilters,cfg.dataSource.dimensions),[dashFilters]);
+ // if (Object.entries(fFilters).length === 0) {
+  //значения фильтров по умолчанию из настроек куба
+  for(let key in cfg.dataSource.dimensions) {
+    const column = $eid(koobModel.dimensions, cfg.dataSource.dimensions[key]);
+    if (column?.config?.defaultValue && !fFilters.hasOwnProperty(cfg.dataSource.dimensions[key])){
+      fFilters[cfg.dataSource.dimensions[key]] = column?.config?.defaultValue;
+    }
+  };
+//};
+//console.log(fFilters);
+
   const dataService = useMemo(
-    () => createRootKoobDataService({ ...filters, ...dashFilters }),
-    [props, dashFilters]
+    () => createRootKoobDataService({ ...filters, ...fFilters }),
+    [fFilters]
   );
 
   const handleSataServiceUpdate = useCallback(
@@ -57,8 +76,10 @@ export const useItems = (filters: any = {}, props?: any) => {
  * Хук загрузки доп. колонок.
  */
 export const useFaformColumns = () => {
-  const dataService = useMemo(createFaformKoobDataService, []);
+ 
   const [items, setItems] = useState<FaformColumn[]>([]);
+
+  const dataService = useMemo( createFaformKoobDataService, []);
 
   const handleSataServiceUpdate = useCallback(
     (model: IKoobDataModel) => {

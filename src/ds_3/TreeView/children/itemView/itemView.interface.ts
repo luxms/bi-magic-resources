@@ -9,6 +9,7 @@ export interface ItemViewProps {
   openedRecords: Set<number>;
   addOpenedRecord: (value: number) => void;
   deleteOpenedRecord: (value: number) => void;
+  props: any;
 }
 
 export interface VisibleContextMenuState {
