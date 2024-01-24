@@ -3,6 +3,8 @@ import React, { useMemo, useEffect, useState } from "react";
 import {KoobFiltersService} from "bi-internal/services";
 import {AuthenticationService, repo} from "bi-internal/core";
 
+import "./FiltersStore.scss"
+
 const EMPTY_FILTERS_STR = "{}";
 const EMPTY_NAME_STR = [];
 
@@ -235,6 +237,7 @@ const FiltersStore = (props) => {
         );
         // обновляем строковое представление фильтров загруженное с сервера
         setSavedFiltersStr(currentFiltersStr);
+        alert('Фильтр сохранен');
     };
     // обработчик клика по кнопке применения ранее сохраненных фильтров
     const handleLoadFilters = async() => {
@@ -283,8 +286,12 @@ console.log('fetched1 ', fetchedFiltersStr);
     const [loadName2, setLoadName2] = useState<string>();
     //console.log(loadName2);
     //=======================
+
+    /*
     return (
         <div style={{padding: "10px"}}>
+  
+  
             <label>
             Введите имя сохранения
             <h1>
@@ -304,6 +311,40 @@ console.log('fetched1 ', fetchedFiltersStr);
 
         </div>
     );
+    */
+    return (
+        <div className="row">
+            <div className="column" style={{padding: "10px"}}>
+  
+            
+            Введите имя сохранения
+            <h1>
+            <input value={SavName} onChange={handleChange} defaultValue="Вариант 1" /> 
+            <p><button  onClick={handleSaveFilters}>Сохранить фильтр</button></p>
+            </h1>
+           
+            </div>
+
+<div className="column" style={{padding: "10px"}}>
+            Загрузить
+            <h1>
+            <select value={loadName2} onChange={e => setLoadName2(e.target.value)}>
+            {loadName.map(item => {return (<option>{item}</option>);
+            })}
+            </select>
+            <p><button onClick={handleLoadFilters}> Загрузить фильтр </button></p>
+            </h1>
+           
+
+
+            <button disabled={isFiltersEmpty} onClick={handleClearFilters}>Очистить фильтр</button><br />
+            
+            </div>
+            </div>
+        
+    );
+
+
 };
 
 
