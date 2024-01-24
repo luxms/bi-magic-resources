@@ -100,18 +100,6 @@ export const KOOB_ID_COLUMNS = "luxmsbi.fa_predpr_ier";
  */
 export const dimensionsRowsDataService: IKoobDimension[] = [
   {
-    id: "disabled",
-    type: "BOOLEAN",
-    sql: "disabled",
-    title: "disabled",
-  },
-  {
-    id: "fa_data",
-    type: "NUMERIC (17,3)",
-    sql: "fa_data",
-    title: "fa_data",
-  },
-  {
     id: "fasyst",
     type: "STRING",
     sql: "fasyst",
@@ -158,6 +146,18 @@ export const dimensionsRowsDataService: IKoobDimension[] = [
     type: "INTEGER",
     sql: "pred_idf",
     title: "pred_idf",
+  },
+  {
+    id: "disabled",
+    type: "BOOLEAN",
+    sql: "disabled",
+    title: "disabled",
+  },
+  {
+    id: "fa_data",
+    type: "NUMERIC (17,3)",
+    sql: "fa_data",
+    title: "fa_data",
   },
 ];
 /**
