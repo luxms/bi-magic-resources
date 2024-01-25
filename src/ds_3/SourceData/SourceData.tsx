@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
 import { Formik } from "formik";
 
 import { UrlState } from "bi-internal/core";
@@ -21,6 +21,14 @@ import {
 const SourceData = (props) => {
   const [columns, setColumns] = useState<FaPredprIerDto[]>([]);
   const [rows, setRows] = useState<FainfoAll[]>([]);
+  const [changedData, setChangedData] = useState(new Set<string>());
+
+  const addChangedData = useCallback(
+    (value: string) => {
+      setChangedData(new Set<string>(changedData.add(value)));
+    },
+    [changedData, setChangedData]
+  );
 
   const url = UrlState.getInstance().getModel();
   // Хардкод
@@ -38,22 +46,28 @@ const SourceData = (props) => {
   useColumns({ pred_id, setColumns, filters });
   useRows({ pred_id, setRows, filters });
 
+  const onSubmit = useCallback(
+    async (values: { rows: FainfoAll[] }) => {
+      const updateData = extractUpdateData(
+        values.rows,
+        Array.from(changedData)
+      );
+      for (let i = 0; i < updateData.length; i++) {
+        const element = updateData[i];
+        if (element?.fa_data != null) {
+          let response = await updateFadata(element);
+          if (response?.status != 200) {
+            response = await insertFadata(element);
+          }
+        }
+      }
 
-  const onSubmit = useCallback(async (values: { rows: FainfoAll[] }) => {
-    const updateData = extractUpdateData(values.rows);
-    for(let key in updateData) {
-      if(updateData[key].fa_data != null){
-        let response = await updateFadata(updateData[key]);
-        if (response?.status != 200) {
-          response = await insertFadata(updateData[key]);
-        };
-      };
-    };
-    //const response = await insertFadata(updateData);
-    //console.log(JSON.stringify(updateData));
-    //const response = await updateFadata(updateData);
-    setRows([]);
-    //if (response?.status === 200) {
+      //const response = await insertFadata(updateData);
+      //console.log(JSON.stringify(updateData));
+      //const response = await updateFadata(updateData);
+      setRows([]);
+      setChangedData(new Set<string>());
+      //if (response?.status === 200) {
       KoobDataService.koobDataRequest3(
         KOOB_ID_ROWS,
         dimensionsRowsDataService.map((item) => item.id),
@@ -65,8 +79,14 @@ const SourceData = (props) => {
           setRows(rows);
         })
         .catch(() => setRows([]));
-    //}
-  }, []);
+      //}
+    },
+    [changedData]
+  );
+
+  useEffect(() => {
+    setChangedData(new Set<string>());
+  }, [pred_id, fiscper, fiscvar]);
 
   if (!pred_id || !fiscper || !fiscvar) {
     return <div>Переход был осуществлен не из TreeView</div>;
@@ -78,7 +98,11 @@ const SourceData = (props) => {
   return (
     <div style={{ padding: "20px", overflow: "scroll", maxHeight: "80vh" }}>
       <Formik initialValues={{ rows }} onSubmit={onSubmit}>
-        <SourceDataLayout columns={columns} rows={rows} />
+        <SourceDataLayout
+          columns={columns}
+          rows={rows}
+          addChangedData={addChangedData}
+        />
       </Formik>
     </div>
   );

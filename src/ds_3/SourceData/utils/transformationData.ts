@@ -29,17 +29,21 @@ export const mapRows = (dtos: FainfoAllDto[]): FainfoAll[] => {
   return Array.from(fainfoMap.values());
 };
 
-export const extractUpdateData = (fainfoAll: FainfoAll[]): FadataDto[] => {
+export const extractUpdateData = (
+  fainfoAll: FainfoAll[],
+  changedData: string[]
+): FadataDto[] => {
   const updateData: FadataDto[] = [];
-  fainfoAll.forEach((fainfoItem) => {
-    fainfoItem.data.forEach((dataItem) => {
-      updateData.push({
-        info_id: fainfoItem.info_id,
-        fiscper: fainfoItem.fiscper,
-        fiscvar: fainfoItem.fiscvar,
-        pred_id: dataItem.pred_id,
-        fa_data: dataItem.fa_data,
-      });
+  changedData.forEach((item) => {
+    const [rowIndex, columnIndex] = item.split("-");
+    const fainfoItem = fainfoAll[rowIndex];
+    const dataItem = fainfoItem.data[columnIndex];
+    updateData.push({
+      info_id: fainfoItem.info_id,
+      fiscper: fainfoItem.fiscper,
+      fiscvar: fainfoItem.fiscvar,
+      pred_id: dataItem.pred_id,
+      fa_data: dataItem.fa_data,
     });
   });
   return updateData;
