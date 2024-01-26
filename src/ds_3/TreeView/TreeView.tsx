@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 import { VisibleContextMenuState } from "./children/itemView/itemView.interface";
 import { useFaformColumns, useItems } from "./utils/hooks";
@@ -30,8 +30,26 @@ const TreeView = (props) => {
     setOpenedRecords(new Set(setCollection));
   };
 
-  const { items } = useItems({ GR_ID: ["=", 7] }, props);
+  const { items, pickFilters } = useItems({ GR_ID: ["=", 7] }, props);
   const formColumns = useFaformColumns();
+
+  const onClickWindow = useCallback(
+    (e: any) => {
+      if (!e.target?.dataset?.status) {
+        setVisibleContextMenu({
+          pred_id: undefined,
+          frm_id: undefined,
+        });
+      }
+    },
+    [setVisibleContextMenu]
+  );
+  useEffect(() => {
+    window.addEventListener("click", onClickWindow);
+    return () => {
+      window.removeEventListener("click", onClickWindow);
+    };
+  }, []);
 
   return (
     <div style={{ padding: "20px", overflow: "scroll", maxHeight: "100%" }}>

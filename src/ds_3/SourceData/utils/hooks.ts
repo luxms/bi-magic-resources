@@ -47,6 +47,15 @@ export const useRows = ({ pred_id, setRows, filters = {} }: UseRowsParams) => {
     if (!pred_id) {
       return;
     }
+    console.log(
+      KoobDataService.koobDataRequest3(
+        KOOB_ID_ROWS,
+        dimensionsRowsDataService.map((item) => item.id),
+        [],
+        filters
+      )
+    );
+
     KoobDataService.koobDataRequest3(
       KOOB_ID_ROWS,
       dimensionsRowsDataService.map((item) => item.id),

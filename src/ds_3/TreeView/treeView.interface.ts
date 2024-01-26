@@ -58,6 +58,10 @@ export interface FaformStatusDto {
   frm_st: number;
   pred_id: number;
   fa_act: number;
+  fiscper: number;
+  fiscvar: string;
+  user_id?: number;
+  ir_flag: number;
 }
 
 /**
