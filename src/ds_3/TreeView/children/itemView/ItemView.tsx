@@ -1,11 +1,10 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback } from "react";
 
-import { ItemViewProps, VisibleContextMenuState } from "./itemView.interface";
+import { ItemViewProps } from "./itemView.interface";
 import { Td } from "../td/Td";
 import { ShowChildrenButton } from "../showChildrenButton/ShowChildrenButton";
 import { ContextMenu } from "../contextMenu/ContextMenu";
 import { ItemChildrenView } from "../itemChildrenView/ItemChildrenView";
-import { saveItemFaformStatus } from "../../utils/saveItemFaformStatus";
 
 /**
  * Компонента отображающая организацию.

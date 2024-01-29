@@ -33,6 +33,8 @@ export const ContextMenu = ({
     KoobService,
     cfg.getRaw().dataSource.koob
   );
+  const irFlagDefValue = $eid(koobModel.dimensions, "ir_flag")?.config
+    ?.defaultValue;
 
   const actionsWithBranch1 = useActions({
     frm_id: ["=", frm_id],
@@ -65,7 +67,7 @@ export const ContextMenu = ({
     actionsWithoutBranch1.length > 0
       ? actionsWithoutBranch1
       : actionsWithoutBranch2;
-  //...(item?.gr_id ? [item.gr_id, null] : [null])
+
   const actions =
     actionsWithBranch.length > 0 ? actionsWithBranch : actionsWithoutBranch;
 
@@ -79,6 +81,10 @@ export const ContextMenu = ({
             _pred_id: item.id,
             _fiscper: item.fiscper,
             _fiscvar: item.fiscvar,
+            _ir_flag: Array.isArray(dashFilters?.ir_flag)
+              ? dashFilters?.ir_flag[1]
+              : irFlagDefValue,
+            _user_id: userId,
           });
           UrlState.navigate({
             segment: "ds",
@@ -87,8 +93,6 @@ export const ContextMenu = ({
           });
         }
       } else {
-        const irFlagDefValue = $eid(koobModel.dimensions, "ir_flag")?.config
-          ?.defaultValue;
         const response = await saveItemFaformStatus(
           {
             frm_id: frm_id,

@@ -2,6 +2,11 @@ export interface SourceDataLayoutProps {
   columns: FaPredprIerDto[];
   rows: FainfoAll[];
   addChangedData: (value: string) => void;
+  isEditing: boolean;
+  setIsEditing: (value: boolean) => void;
+  setIsReload: (value: boolean) => void;
+  lock: () => void;
+  unlock: () => void;
 }
 /**
  * Интерфейс БД получения динамических заголовков

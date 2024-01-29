@@ -1,27 +1,34 @@
-import React, { useState, useCallback, useMemo, useEffect } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { Formik } from "formik";
 
 import { UrlState } from "bi-internal/core";
+import { KoobDataService } from "bi-internal/services";
+
+import {
+  KOOB_ID_ROWS,
+  dimensionsRowsDataService,
+} from "./sourceData.constants";
 import { SourceDataLayout } from "./SourceData.layout";
 import {
   FaPredprIerDto,
   FainfoAll,
   FainfoAllDto,
 } from "./sourceData.interface";
-import { useColumns, useRows } from "./utils/hooks";
+import { useColumns, useLockAndUnLock, useRows } from "./utils/hooks";
 import { extractUpdateData, mapRows } from "./utils/transformationData";
 import { updateFadata } from "./utils/updateFadata";
 import { insertFadata } from "./utils/insertFadata";
-import { KoobDataService } from "bi-internal/services";
-import {
-  KOOB_ID_ROWS,
-  dimensionsRowsDataService,
-} from "./sourceData.constants";
 
 const SourceData = (props) => {
   const [columns, setColumns] = useState<FaPredprIerDto[]>([]);
   const [rows, setRows] = useState<FainfoAll[]>([]);
   const [changedData, setChangedData] = useState(new Set<string>());
+  // Флаг открытия закрытия редактирования. Выставляется после блокировки
+  const [isEditing, setIsEditing] = useState(false);
+  // Флаг отвечает за перезагрузку данных, если открыли на редактирование.
+  const [isReload, setIsReload] = useState(false);
+
+  const { lock, unlock } = useLockAndUnLock({ setIsEditing });
 
   const addChangedData = useCallback(
     (value: string) => {
@@ -31,11 +38,11 @@ const SourceData = (props) => {
   );
 
   const url = UrlState.getInstance().getModel();
-  // Хардкод
-  //const pred_id = 2176;
   const pred_id = url?._pred_id;
   const fiscper = url?._fiscper;
   const fiscvar = url?._fiscvar;
+  const user_id = url?._user_id;
+  const ir_flag = Number(url?._ir_flag);
 
   const filters: { [key: string]: any } = {
     PRED_IDF: ["=", pred_id],
@@ -44,7 +51,13 @@ const SourceData = (props) => {
   };
 
   useColumns({ pred_id, setColumns, filters });
-  useRows({ pred_id, setRows, filters });
+  useRows({
+    pred_id,
+    setRows,
+    filters: { ...filters, IR_FLAG: ["=", ir_flag, null] },
+    isReload,
+    setIsReload,
+  });
 
   const onSubmit = useCallback(
     async (values: { rows: FainfoAll[] }) => {
@@ -62,12 +75,8 @@ const SourceData = (props) => {
         }
       }
 
-      //const response = await insertFadata(updateData);
-      //console.log(JSON.stringify(updateData));
-      //const response = await updateFadata(updateData);
       setRows([]);
       setChangedData(new Set<string>());
-      //if (response?.status === 200) {
       KoobDataService.koobDataRequest3(
         KOOB_ID_ROWS,
         dimensionsRowsDataService.map((item) => item.id),
@@ -79,7 +88,6 @@ const SourceData = (props) => {
           setRows(rows);
         })
         .catch(() => setRows([]));
-      //}
     },
     [changedData]
   );
@@ -88,7 +96,35 @@ const SourceData = (props) => {
     setChangedData(new Set<string>());
   }, [pred_id, fiscper, fiscvar]);
 
-  if (!pred_id || !fiscper || !fiscvar) {
+  // Если пользователь закрыл вкладку на которой была установлена блокировка
+  useEffect(() => {
+    window.addEventListener("beforeunload", unlock);
+    return () => {
+      window.removeEventListener("beforeunload", unlock);
+    };
+  }, [pred_id]);
+
+  const onPopState = useCallback(() => {
+    if (isEditing) {
+      unlock();
+    }
+  }, [isEditing, pred_id, unlock]);
+
+  // Если пользователь нажал назад будучи на вкладке на которой была установлена блокировка
+  useEffect(() => {
+    window.addEventListener("popstate", onPopState);
+    return () => {
+      window.removeEventListener("popstate", onPopState);
+    };
+  }, [pred_id, onPopState]);
+
+  if (
+    pred_id === undefined ||
+    fiscper === undefined ||
+    fiscvar === undefined ||
+    user_id === undefined ||
+    ir_flag === undefined
+  ) {
     return <div>Переход был осуществлен не из TreeView</div>;
   }
   if (rows.length === 0) {
@@ -102,6 +138,11 @@ const SourceData = (props) => {
           columns={columns}
           rows={rows}
           addChangedData={addChangedData}
+          isEditing={isEditing}
+          setIsEditing={setIsEditing}
+          setIsReload={setIsReload}
+          lock={lock}
+          unlock={unlock}
         />
       </Formik>
     </div>

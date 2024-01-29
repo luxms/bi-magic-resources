@@ -95,14 +95,11 @@ export const useItems = (filters: any = {}, props?: any) => {
       (pickFilters?.ir_flag !== null || pickFilters?.ir_flag !== undefined)
         ? { ir_flag: ["=", null, pickFilters.ir_flag] }
         : {};
-    // Если переключили на 0
-    if (Array.isArray(pickFilters?.ir_flag) && pickFilters?.ir_flag[1] === 0) {
+
+    if (Array.isArray(pickFilters?.ir_flag)) {
       filterIrFlag.ir_flag = [...pickFilters.ir_flag, null];
     }
-    // Если переключили на 1
-    if (Array.isArray(pickFilters?.ir_flag) && pickFilters?.ir_flag[1] === 1) {
-      filterIrFlag.ir_flag = pickFilters?.ir_flag;
-    }
+
     KoobDataService.koobDataRequest3(
       ROOT_KOOB_ID,
       demensionsRootKoob.map((item) => item.id),
@@ -117,7 +114,7 @@ export const useItems = (filters: any = {}, props?: any) => {
     setIsReload(false);
   }, [pickFilters, isReload]);
 
-  return { items, setItems, pickFilters };
+  return { items, setItems };
 };
 
 /**

@@ -25,6 +25,7 @@ export interface OrganisationDataDto {
   st_title?: string;
   fiscper: number;
   fiscvar: string;
+  ir_flag: number;
 }
 
 /**
@@ -84,6 +85,7 @@ export interface OrganisationData {
   gr_id?: number;
   fiscper: number;
   fiscvar: string;
+  ir_flag: number;
 }
 
 /**

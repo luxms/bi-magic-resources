@@ -30,7 +30,7 @@ const TreeView = (props) => {
     setOpenedRecords(new Set(setCollection));
   };
 
-  const { items, pickFilters } = useItems({ GR_ID: ["=", 7] }, props);
+  const { items } = useItems({ GR_ID: ["=", 7] }, props);
   const formColumns = useFaformColumns();
 
   const onClickWindow = useCallback(
