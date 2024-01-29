@@ -54,12 +54,6 @@ export const dimensionsColumnsDataService: IKoobDimension[] = [
     title: "nom",
   },
   {
-    id: "path",
-    type: "STRING",
-    sql: "path",
-    title: "path",
-  },
-  {
     id: "pred_id",
     type: "INTEGER",
     sql: "pred_id",
@@ -159,6 +153,108 @@ export const dimensionsRowsDataService: IKoobDimension[] = [
     sql: "fa_data",
     title: "fa_data",
   },
+  {
+    id: "ir_flag",
+    type: "INTEGER",
+    sql: "ir_flag",
+    title: "ir_flag",
+  },
+];
+
+export const dimensionsLock = [
+  {
+    id: "fiscper",
+    type: "INTEGER",
+    sql: "fiscper",
+    title: "fiscper",
+  },
+  {
+    id: "fiscvar",
+    type: "STRING",
+    sql: "fiscvar",
+    title: "fiscvar",
+  },
+  {
+    id: "pred_id",
+    type: "INTEGER",
+    sql: "pred_id",
+    title: "pred_id",
+  },
+  {
+    id: "pred_idf",
+    type: "INTEGER",
+    sql: "pred_idf",
+    title: "pred_idf",
+  },
+  {
+    id: "locks",
+    type: "BOOLEAN",
+    sql: "locks",
+    title: "locks",
+  },
+  {
+    id: "usr_id",
+    type: "INTEGER",
+    sql: "usr_id",
+    title: "usr_id",
+  },
+  {
+    id: "ir_flag",
+    type: "INTEGER",
+    sql: "ir_flag",
+    title: "ir_flag",
+  },
+  {
+    id: "frm_id",
+    type: "INTEGER",
+    sql: "frm_id",
+    title: "frm_id",
+  },
+];
+
+export const dimensionsUnLock = [
+  {
+    id: "fiscper",
+    type: "INTEGER",
+    sql: "fiscper",
+    title: "fiscper",
+  },
+  {
+    id: "fiscvar",
+    type: "STRING",
+    sql: "fiscvar",
+    title: "fiscvar",
+  },
+  {
+    id: "pred_id",
+    type: "INTEGER",
+    sql: "pred_id",
+    title: "pred_id",
+  },
+  {
+    id: "pred_idf",
+    type: "INTEGER",
+    sql: "pred_idf",
+    title: "pred_idf",
+  },
+  {
+    id: "unlocks",
+    type: "BOOLEAN",
+    sql: "unlocks",
+    title: "unlocks",
+  },
+  {
+    id: "ir_flag",
+    type: "INTEGER",
+    sql: "ir_flag",
+    title: "ir_flag",
+  },
+  {
+    id: "frm_id",
+    type: "INTEGER",
+    sql: "frm_id",
+    title: "frm_id",
+  },
 ];
 /**
  * Название куба на получение строк.
@@ -169,3 +265,13 @@ export const KOOB_ID_ROWS = "luxmsbi.public_fainfo_all";
  * Название таблицы для update.
  */
 export const ENDPOINT_UPDATE_FADATA = "/api/db/public.fadata";
+
+/**
+ * Название куба для блокирования редактирования.
+ */
+export const KOOB_ID_LOCK = "luxmsbi.public_fainfo_lock";
+
+/**
+ * Название куба для разблокирования редактирования.
+ */
+export const KOOB_ID_UNLOCK = "luxmsbi.public_fainfo_unlock";

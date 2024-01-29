@@ -5,7 +5,6 @@ import { Td } from "../td/Td";
 import { ShowChildrenButton } from "../showChildrenButton/ShowChildrenButton";
 import { ContextMenu } from "../contextMenu/ContextMenu";
 import { ItemChildrenView } from "../itemChildrenView/ItemChildrenView";
-import { saveItemFaformStatus } from "../../utils/saveItemFaformStatus";
 
 /**
  * Компонента отображающая организацию.
@@ -67,7 +66,12 @@ export const ItemView = ({
         {formColumns.map((column) => {
           const formStatus = item.formData.get(column.id);
           return (
-            <Td key={column.id} onClick={() => onClickTdFormColumn(column.id)}>
+            <td
+              key={column.id}
+              className="td-custom"
+              onClick={() => onClickTdFormColumn(column.id)}
+              data-status
+            >
               {formStatus?.st_title || "No data"}
               {visibleContextMenu?.pred_id === item.id &&
                 visibleContextMenu?.frm_id === column.id && (
@@ -76,9 +80,10 @@ export const ItemView = ({
                     frm_id={column.id}
                     formStatus={formStatus?.frm_st}
                     depth={depth}
+                    props={props}
                   />
                 )}
-            </Td>
+            </td>
           );
         })}
       </tr>

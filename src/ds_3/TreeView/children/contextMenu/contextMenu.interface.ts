@@ -5,4 +5,5 @@ export interface ContextMenuProps {
   frm_id: number;
   formStatus?: number;
   depth: number;
+  props: any;
 }

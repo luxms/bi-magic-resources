@@ -25,6 +25,7 @@ export interface OrganisationDataDto {
   st_title?: string;
   fiscper: number;
   fiscvar: string;
+  ir_flag: number;
 }
 
 /**
@@ -58,6 +59,10 @@ export interface FaformStatusDto {
   frm_st: number;
   pred_id: number;
   fa_act: number;
+  fiscper: number;
+  fiscvar: string;
+  user_id?: number;
+  ir_flag: number;
 }
 
 /**
@@ -80,6 +85,7 @@ export interface OrganisationData {
   gr_id?: number;
   fiscper: number;
   fiscvar: string;
+  ir_flag: number;
 }
 
 /**

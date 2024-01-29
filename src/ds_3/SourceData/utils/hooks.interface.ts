@@ -10,4 +10,10 @@ export interface UseRowsParams {
   pred_id: number;
   setRows: React.Dispatch<React.SetStateAction<FainfoAll[]>>;
   filters: any;
+  isReload: boolean;
+  setIsReload: (value: boolean) => void;
+}
+
+export interface UseLockAndUnlock {
+  setIsEditing: (value: boolean) => void;
 }
