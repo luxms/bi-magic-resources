@@ -1,6 +1,12 @@
 export interface SourceDataLayoutProps {
   columns: FaPredprIerDto[];
   rows: FainfoAll[];
+  addChangedData: (value: string) => void;
+  isEditing: boolean;
+  setIsEditing: (value: boolean) => void;
+  setIsReload: (value: boolean) => void;
+  lock: () => void;
+  unlock: () => void;
 }
 /**
  * Интерфейс БД получения динамических заголовков
@@ -38,6 +44,7 @@ export interface FadataDto {
 /**
  * Интерфейс сущности, которую мы используем в наших UI комонентах, и описывающей столбцы.
  */
+
 export interface FainfoAll {
   info_id: number;
   data: { pred_id: number; fa_data?: number; disabled: boolean }[];
@@ -46,4 +53,9 @@ export interface FainfoAll {
   fasyst?: string;
   fiscper: number;
   fiscvar: string;
+}
+export interface FainfoAllData {
+  pred_id: number;
+  fa_data?: number;
+  disabled: boolean;
 }

@@ -1,5 +1,5 @@
 import React, { useCallback, useContext } from "react";
-import { UrlState } from "bi-internal/core";
+import { AuthenticationService, UrlState } from "bi-internal/core";
 
 import { saveItemFaformStatus } from "../../utils/saveItemFaformStatus";
 import { useActions } from "../../utils/hooks";
@@ -8,12 +8,34 @@ import { ContextMenuProps } from "./contextMenu.interface";
 import { FaItemAction } from "../../treeView.interface";
 
 import "./styles.scss";
+import {
+  KoobFiltersService,
+  KoobService,
+  useService,
+} from "bi-internal/services";
+import { $eid } from "bi-internal/utils";
 /**
  * Компонента для контекстного меню по клику на статусы дополнительных колонок.
  */
 
-export const ContextMenu = ({ item, frm_id, formStatus }: ContextMenuProps) => {
+export const ContextMenu = ({
+  item,
+  frm_id,
+  formStatus,
+  props,
+}: ContextMenuProps) => {
+  const { cfg } = props;
   const { setIsReload } = useContext(TreeViewContext);
+
+  const { userId } = AuthenticationService.getInstance().getModel();
+
+  const koobModel = useService<KoobService>(
+    KoobService,
+    cfg.getRaw().dataSource.koob
+  );
+  const irFlagDefValue = $eid(koobModel.dimensions, "ir_flag")?.config
+    ?.defaultValue;
+
   const actionsWithBranch1 = useActions({
     frm_id: ["=", frm_id],
     branch: ["=", item.branch?.trim()],
@@ -27,25 +49,29 @@ export const ContextMenu = ({ item, frm_id, formStatus }: ContextMenuProps) => {
     gr_id: ["=", null],
   });
   const actionsWithBranch =
-  actionsWithBranch1.length > 0 ? actionsWithBranch1 : actionsWithBranch2;
-  
+    actionsWithBranch1.length > 0 ? actionsWithBranch1 : actionsWithBranch2;
+
   const actionsWithoutBranch1 = useActions({
     frm_id: ["=", frm_id],
     branch: ["=", ""],
     frm_st: ["=", formStatus ?? 0],
-    gr_id: ["=", item?.gr_id ],
+    gr_id: ["=", item?.gr_id],
   });
   const actionsWithoutBranch2 = useActions({
     frm_id: ["=", frm_id],
     branch: ["=", ""],
     frm_st: ["=", formStatus ?? 0],
-    gr_id: ["=", null ],
+    gr_id: ["=", null],
   });
   const actionsWithoutBranch =
-  actionsWithoutBranch1.length > 0 ? actionsWithoutBranch1 : actionsWithoutBranch2;
-//...(item?.gr_id ? [item.gr_id, null] : [null])
+    actionsWithoutBranch1.length > 0
+      ? actionsWithoutBranch1
+      : actionsWithoutBranch2;
+
   const actions =
     actionsWithBranch.length > 0 ? actionsWithBranch : actionsWithoutBranch;
+
+  const dashFilters = KoobFiltersService.getInstance().getModel().filters;
 
   const onClick = useCallback(
     async (action: FaItemAction) => {
@@ -55,6 +81,10 @@ export const ContextMenu = ({ item, frm_id, formStatus }: ContextMenuProps) => {
             _pred_id: item.id,
             _fiscper: item.fiscper,
             _fiscvar: item.fiscvar,
+            _ir_flag: Array.isArray(dashFilters?.ir_flag)
+              ? dashFilters?.ir_flag[1]
+              : irFlagDefValue,
+            _user_id: userId,
           });
           UrlState.navigate({
             segment: "ds",
@@ -69,6 +99,12 @@ export const ContextMenu = ({ item, frm_id, formStatus }: ContextMenuProps) => {
             pred_id: item.id,
             frm_st: action.frm_st,
             fa_act: action.fa_act,
+            fiscper: item.fiscper,
+            fiscvar: item.fiscvar,
+            user_id: userId,
+            ir_flag: Array.isArray(dashFilters?.ir_flag)
+              ? dashFilters?.ir_flag[1]
+              : irFlagDefValue,
           },
           formStatus
         );
@@ -86,7 +122,7 @@ export const ContextMenu = ({ item, frm_id, formStatus }: ContextMenuProps) => {
   }
 
   return (
-    <div className="context-menu">
+    <div id="context-menu" className="context-menu">
       <ul>
         {actions.map((action) => (
           <li>
@@ -99,6 +135,25 @@ export const ContextMenu = ({ item, frm_id, formStatus }: ContextMenuProps) => {
             </button>
           </li>
         ))}
+        <li>
+          <button
+            className="context-menu__btn"
+            onClick={() =>
+              onClick({
+                dashboard_id: 0,
+                dataset_id: 0,
+                disabled: false,
+                fa_act: 9,
+                frm_id: 1,
+                frm_st: 30,
+                title: "Просмотр",
+              })
+            }
+            disabled={false}
+          >
+            ччч
+          </button>
+        </li>
       </ul>
     </div>
   );

@@ -35,6 +35,7 @@ export const mapItems = (dtos: OrganisationDataDto[]): OrganisationData[] => {
               gr_id: dto.gr_id,
               fiscper: dto.fiscper,
               fiscvar: dto.fiscvar,
+              ir_flag: dto.ir_flag,
             };
 
         if (
