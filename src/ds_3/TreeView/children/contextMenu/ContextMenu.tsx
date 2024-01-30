@@ -135,25 +135,6 @@ export const ContextMenu = ({
             </button>
           </li>
         ))}
-        <li>
-          <button
-            className="context-menu__btn"
-            onClick={() =>
-              onClick({
-                dashboard_id: 0,
-                dataset_id: 0,
-                disabled: false,
-                fa_act: 9,
-                frm_id: 1,
-                frm_st: 30,
-                title: "Просмотр",
-              })
-            }
-            disabled={false}
-          >
-            ччч
-          </button>
-        </li>
       </ul>
     </div>
   );
