@@ -2,9 +2,14 @@
     position: absolute;
     border: 1px solid black;
     &__btn{
-        width: 200px;
+        width: 250px;
         border: none;
         background-color: inherit;
         text-wrap: wrap;
     }
 }
+.context-menu ul > li {
+
+    white-space: initial;
+
+  }
