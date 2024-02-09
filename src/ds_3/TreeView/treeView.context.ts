@@ -1,6 +1,6 @@
 import { createContext } from "react";
 
-import type { TreeViewStateContext } from "./treeView.interface";
+import type { TreeViewStateContext, FaConfigs } from "./treeView.interface";
 
 export const TreeViewContext = createContext<TreeViewStateContext>({
   isReload: false,

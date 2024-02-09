@@ -19,6 +19,7 @@ export const ItemView = ({
   deleteOpenedRecord,
   openedRecords,
   props,
+  filterClear,
 }: ItemViewProps) => {
   const isOpened = openedRecords?.has(item.id);
   const onClickTdFormColumn = useCallback(
@@ -81,6 +82,7 @@ export const ItemView = ({
                     formStatus={formStatus?.frm_st}
                     depth={depth}
                     props={props}
+                    filterClear={filterClear}
                   />
                 )}
             </td>
@@ -98,6 +100,7 @@ export const ItemView = ({
           deleteOpenedRecord={deleteOpenedRecord}
           openedRecords={openedRecords}
           props={props}
+          filterClear={filterClear}
         />
       )}
     </>
