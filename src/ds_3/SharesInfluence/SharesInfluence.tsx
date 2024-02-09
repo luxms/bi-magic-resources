@@ -1,27 +1,25 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Formik } from "formik";
 
 import { UrlState } from "bi-internal/core";
+
+import {
+  useLockAndUnLock,
+  useRowsAndColumnsFapart,
+  extractUpdateData,
+  mapColumns,
+  mapRows,
+  insertFapart,
+  updateFapart,
+} from "./utils";
+import { SharesInfluenceLayout } from "./SharesInfluence.layout";
+import { Column, FapartDto, Row } from "./sharesInfluence.interface";
 import { KoobDataService } from "bi-internal/services";
+import { KOOB_ID_FAPART, dimensionsFapart } from "./sharesInfluence.constants";
 
-import {
-  KOOB_ID_ROWS,
-  dimensionsRowsDataService,
-} from "./sourceData.constants";
-import { SourceDataLayout } from "./SourceData.layout";
-import {
-  FaPredprIerDto,
-  FainfoAll,
-  FainfoAllDto,
-} from "./sourceData.interface";
-import { useColumns, useLockAndUnLock, useRows } from "./utils/hooks";
-import { extractUpdateData, mapRows } from "./utils/transformationData";
-import { updateFadata } from "./utils/updateFadata";
-import { insertFadata } from "./utils/insertFadata";
-
-const SourceData = (props) => {
-  const [columns, setColumns] = useState<FaPredprIerDto[]>([]);
-  const [rows, setRows] = useState<FainfoAll[]>([]);
+const SharesInfluence = () => {
+  const [rows, setRows] = useState<Row[]>([]);
+  const [columns, setColumns] = useState<Column[]>([]);
   const [changedData, setChangedData] = useState(new Set<string>());
   // Флаг открытия закрытия редактирования. Выставляется после блокировки
   const [isEditing, setIsEditing] = useState(false);
@@ -43,24 +41,33 @@ const SourceData = (props) => {
   const fiscvar = url?._fiscvar;
   const user_id = url?._user_id;
   const ir_flag = Number(url?._ir_flag);
+  const branch = url?._branch;
+  const farm = url?._farm;
 
   const filters: { [key: string]: any } = {
-    PRED_IDF: ["=", pred_id],
     FISCVAR: ["=", fiscvar],
     FISCPER: ["=", fiscper],
+    BRANCH: ["=", branch],
+    FARM: ["=", farm],
+    IR_FLAG: ["=", ir_flag],
+    TOTAL: ["=", null, "0"],
   };
-
-  useColumns({ pred_id, setColumns, filters });
-  useRows({
+  useRowsAndColumnsFapart({
     pred_id,
+    filters,
     setRows,
-    filters: { ...filters, IR_FLAG: ["=", ir_flag, null] },
+    setColumns,
     isReload,
     setIsReload,
+    fiscper,
+    fiscvar,
+    ir_flag,
+    branch,
+    farm,
   });
 
   const onSubmit = useCallback(
-    async (values: { rows: FainfoAll[] }) => {
+    async (values: { rows: Row[] }) => {
       const updateData = extractUpdateData(
         values.rows,
         Array.from(changedData)
@@ -68,28 +75,31 @@ const SourceData = (props) => {
       let isError = false;
       for (let i = 0; i < updateData.length; i++) {
         const element = updateData[i];
-        if (element?.fa_data != null) {
-          let response = await updateFadata(element);
+        if (element?.fashare != null) {
+          let response = await updateFapart(element);
           if (response?.status !== 200) {
-            response = await insertFadata(element);
+            response = await insertFapart(element);
             isError = response?.status !== 200;
           }
         }
       }
-
       setRows([]);
       setChangedData(new Set<string>());
+
       KoobDataService.koobDataRequest3(
-        KOOB_ID_ROWS,
-        dimensionsRowsDataService.map((item) => item.id),
+        KOOB_ID_FAPART,
+        dimensionsFapart,
         [],
         filters
       )
-        .then((data) => {
-          const rows = mapRows(data as FainfoAllDto[]);
-          setRows(rows);
+        .then((data: FapartDto[]) => {
+          setRows(mapRows(data));
+          setColumns(mapColumns(data));
         })
-        .catch(() => setRows([]));
+        .catch(() => {
+          setRows([]);
+          setColumns([]);
+        });
       if (isError) {
         alert("Ошибка при сохранении записей");
       }
@@ -128,18 +138,21 @@ const SourceData = (props) => {
     fiscper === undefined ||
     fiscvar === undefined ||
     user_id === undefined ||
-    ir_flag === undefined
+    ir_flag === undefined ||
+    branch === undefined ||
+    farm === undefined
   ) {
     return <div>Переход был осуществлен не из TreeView</div>;
   }
-  if (rows.length === 0) {
+
+  if (columns.length === 0 && rows.length === 0) {
     return <div>Ничего не найдено</div>;
   }
 
   return (
     <div style={{ padding: "20px", overflow: "scroll", maxHeight: "80vh" }}>
-      <Formik initialValues={{ rows }} onSubmit={onSubmit}>
-        <SourceDataLayout
+      <Formik initialValues={{ rows }} onSubmit={onSubmit} enableReinitialize>
+        <SharesInfluenceLayout
           columns={columns}
           rows={rows}
           addChangedData={addChangedData}
@@ -154,4 +167,4 @@ const SourceData = (props) => {
   );
 };
 
-export default SourceData;
+export default SharesInfluence;

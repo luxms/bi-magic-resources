@@ -85,6 +85,8 @@ export const ContextMenu = ({
               ? dashFilters?.ir_flag[1]
               : irFlagDefValue,
             _user_id: userId,
+            _branch: item.branch,
+            _farm: item.farm,
           });
           UrlState.navigate({
             segment: "ds",
