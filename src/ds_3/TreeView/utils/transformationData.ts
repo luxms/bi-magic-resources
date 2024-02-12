@@ -5,6 +5,8 @@ import {
   FaformDto,
   OrganisationData,
   OrganisationDataDto,
+  FaConfigs,
+  FaConfigsDto,
 } from "../treeView.interface";
 
 /**
@@ -28,6 +30,7 @@ export const mapItems = (dtos: OrganisationDataDto[]): OrganisationData[] => {
               name: dto.pname || "",
               hasChildren: dto.children_count > 0,
               branch: dto.branch,
+              farm: dto.farm,
               formData: new Map<
                 number,
                 { frm_st: number; st_title?: string }
@@ -63,6 +66,12 @@ export const mapColumns = (dtos: FaformDto[]): FaformColumn[] =>
   dtos?.map((dto) => ({ id: dto?.frm_id, title: dto?.title }));
 
 /**
+ * Преобразование сущностей пармаетров ФА получаемых из бд к внутреннему формату.
+ */
+export const mapFaConfigs = (dtos: FaConfigsDto[]): FaConfigs[] =>
+  dtos?.map((dto) => ({ cfg_key: dto?.cfg_key, cfg_val: dto?.cfg_val }));
+
+/**
  * Преобразование сущностей экшенов доп. колонок получаемых из бд к внутреннему формату.
  */
 export const mapFaItemActions = (dtos: FaItemActionDto[]): FaItemAction[] =>
@@ -75,4 +84,5 @@ export const mapFaItemActions = (dtos: FaItemActionDto[]): FaItemAction[] =>
     fa_act: dto.frm_act,
     dashboard_id: dto.dashboard_id,
     dataset_id: dto.dataset_id,
+    filters: dto.filters,
   }));

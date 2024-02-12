@@ -18,11 +18,20 @@ import {
   FaformDto,
   OrganisationData,
   OrganisationDataDto,
+  FaConfigs,
+  FaConfigsDto,
 } from "../treeView.interface";
-import { mapColumns, mapFaItemActions, mapItems } from "./transformationData";
+import {
+  mapColumns,
+  mapFaItemActions,
+  mapItems,
+  mapFaConfigs,
+} from "./transformationData";
 import { createFaItemActionsKoobDataService } from "./createFaItemActionsKoobDataService";
+import { demensionsFaConfigsKoob } from "./createFaConfigsKoobDataService";
+
 import { TreeViewContext } from "../treeView.context";
-import { ROOT_KOOB_ID } from "../treeView.constants";
+import { ROOT_KOOB_ID, FACONFIGS } from "../treeView.constants";
 
 /**
  * Хук загрузки орагнизаций.
@@ -50,7 +59,6 @@ export const useItems = (filters: any = {}, props?: any) => {
     () => KoobFiltersService.getInstance().getModel().filters,
     [props]
   );
-
   useEffect(() => {
     const pickFilters = pickExisting(dashFilters, cfg.dataSource.dimensions);
 
@@ -61,7 +69,14 @@ export const useItems = (filters: any = {}, props?: any) => {
         184,
       ]);
       pickFilters["branch"] = ["=", "184"];
+    } else {
+      KoobFiltersService.getInstance().setFilter(
+        ROOT_KOOB_ID,
+        "branch",
+        undefined
+      );
     }
+
     //значения фильтров по умолчанию из настроек куба
     cfg.dataSource.dimensions.forEach((dimension) => {
       const column = $eid(koobModel.dimensions, dimension);
@@ -173,6 +188,28 @@ export const useActions = (filters: any = {}) => {
   useEffect(() => {
     dataService.subscribeUpdatesAndNotify(handleSataServiceUpdate);
   }, [dataService, handleSataServiceUpdate]);
+
+  return items;
+};
+
+/**
+ * Хук загрузки параметров ФА.
+ */
+export const useFaConfigs = (filters: any = {}) => {
+  const [items, setItems] = useState<FaConfigs[]>([]);
+
+  useEffect(() => {
+    KoobDataService.koobDataRequest3(
+      FACONFIGS,
+      demensionsFaConfigsKoob.map((item) => item.id),
+      [],
+      filters
+    )
+      .then((data) => {
+        setItems(mapFaConfigs(data as FaConfigsDto[]));
+      })
+      .catch(() => setItems([]));
+  }, []);
 
   return items;
 };
