@@ -5,7 +5,22 @@ export interface FaformDto {
   frm_id: number;
   title: string;
 }
+/**
+ * Интерфейс сущности, которую мы получаем из БД, и описывающей параметры ФА.
+ */
+export interface FaConfigsDto {
+  cfg_key: string;
+  cfg_val: string;
+}
 
+/**
+ * Интерфейс сущности, которую мы используем в наших UI комонентах, и описывающей параметры ФА.
+ */
+
+export interface FaConfigs {
+  cfg_key: string;
+  cfg_val: string;
+}
 /**
  * Интерфейс сущности, которую мы получаем из БД, и описывающей организацию.
  */
@@ -22,6 +37,7 @@ export interface OrganisationDataDto {
   form_id?: number;
   children_count: number;
   branch?: string;
+  farm?: string;
   st_title?: string;
   fiscper: number;
   fiscvar: string;
@@ -49,6 +65,7 @@ export interface FaItemActionDto {
   lvl_st_end_bound?: number;
   title: string;
   url?: string;
+  filters: string;
 }
 
 /**
@@ -80,6 +97,7 @@ export interface OrganisationData {
   id: number;
   name: string;
   branch?: string;
+  farm?: string;
   hasChildren: boolean;
   formData: Map<number, { frm_st: number; st_title?: string }>;
   gr_id?: number;
@@ -100,6 +118,7 @@ export interface FaItemAction {
   fa_act: number;
   dashboard_id?: number;
   dataset_id?: number;
+  filters: string;
 }
 
 /**

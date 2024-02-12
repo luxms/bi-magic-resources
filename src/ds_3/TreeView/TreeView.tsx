@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 
 import { VisibleContextMenuState } from "./children/itemView/itemView.interface";
-import { useFaformColumns, useItems } from "./utils/hooks";
+import { useFaformColumns, useItems, useFaConfigs } from "./utils/hooks";
 import { Th } from "./children/th/Th";
 import { Td } from "./children/td/Td";
 import { ItemView } from "./children/itemView/ItemView";
@@ -32,7 +32,7 @@ const TreeView = (props) => {
 
   const { items } = useItems({ GR_ID: ["=", 7] }, props);
   const formColumns = useFaformColumns();
-
+  const clearFilter = useFaConfigs({ CFG_KEY: ["=", "FA_FILTERS_CLEAR"] });
   const onClickWindow = useCallback(
     (e: any) => {
       if (!e.target?.dataset?.status) {
@@ -74,6 +74,7 @@ const TreeView = (props) => {
               addOpenedRecord={addOpenedRecord}
               deleteOpenedRecord={deleteOpenedRecord}
               props={props}
+              filterClear={clearFilter}
             />
           ))}
         </tbody>

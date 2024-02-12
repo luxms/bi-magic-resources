@@ -1,4 +1,4 @@
-import { OrganisationData } from "../../treeView.interface";
+import { OrganisationData, FaConfigs } from "../../treeView.interface";
 
 export interface ContextMenuProps {
   item: OrganisationData;
@@ -6,4 +6,5 @@ export interface ContextMenuProps {
   formStatus?: number;
   depth: number;
   props: any;
+  filterClear: FaConfigs[];
 }

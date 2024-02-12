@@ -1,4 +1,4 @@
-import { FaformColumn, OrganisationData } from "../../treeView.interface";
+import { FaformColumn, OrganisationData, FaConfigs } from "../../treeView.interface";
 
 export interface ItemViewProps {
   item: OrganisationData;
@@ -10,6 +10,7 @@ export interface ItemViewProps {
   addOpenedRecord: (value: number) => void;
   deleteOpenedRecord: (value: number) => void;
   props: any;
+  filterClear: FaConfigs[];
 }
 
 export interface VisibleContextMenuState {

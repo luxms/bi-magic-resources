@@ -86,4 +86,10 @@ export const demensionsRootKoob = [
     sql: "ir_flag",
     title: "ir_flag",
   },
+  {
+    id: "farm",
+    type: "STRING",
+    sql: "farm",
+    title: "farm",
+  },
 ];

@@ -6,6 +6,7 @@ import { useActions } from "../../utils/hooks";
 import { TreeViewContext } from "../../treeView.context";
 import { ContextMenuProps } from "./contextMenu.interface";
 import { FaItemAction } from "../../treeView.interface";
+import { clearFilterService } from "../../utils/clearFilterService";
 
 import "./styles.scss";
 import {
@@ -23,6 +24,7 @@ export const ContextMenu = ({
   frm_id,
   formStatus,
   props,
+  filterClear,
 }: ContextMenuProps) => {
   const { cfg } = props;
   const { setIsReload } = useContext(TreeViewContext);
@@ -72,11 +74,45 @@ export const ContextMenu = ({
     actionsWithBranch.length > 0 ? actionsWithBranch : actionsWithoutBranch;
 
   const dashFilters = KoobFiltersService.getInstance().getModel().filters;
-
   const onClick = useCallback(
     async (action: FaItemAction) => {
       if (action.frm_st === 0) {
         if (action.url) {
+          clearFilterService(filterClear[0]);
+          const setFilters = action.filters?.split(",");
+          setFilters?.forEach((filter) => {
+            switch (filter) {
+              case "pred_idf":
+                KoobFiltersService.getInstance().setFilter("", filter, [
+                  "=",
+                  item.id,
+                ]);
+                break;
+              case "frm_id":
+                KoobFiltersService.getInstance().setFilter("", filter, [
+                  "=",
+                  frm_id,
+                ]);
+                break;
+              case "ir_flag":
+                KoobFiltersService.getInstance().setFilter(
+                  "",
+                  filter,
+                  Array.isArray(dashFilters?.ir_flag)
+                    ? dashFilters?.ir_flag
+                    : ["=", irFlagDefValue]
+                );
+                break;
+
+              default:
+                if (item.hasOwnProperty(filter)) {
+                  KoobFiltersService.getInstance().setFilter("", filter, [
+                    "=",
+                    item[filter],
+                  ]);
+                }
+            }
+          });
           UrlState.getInstance().updateModel({
             _pred_id: item.id,
             _fiscper: item.fiscper,
@@ -85,6 +121,8 @@ export const ContextMenu = ({
               ? dashFilters?.ir_flag[1]
               : irFlagDefValue,
             _user_id: userId,
+            _branch: item.branch,
+            _farm: item.farm,
           });
           UrlState.navigate({
             segment: "ds",
@@ -114,7 +152,7 @@ export const ContextMenu = ({
         }
       }
     },
-    [frm_id, item]
+    [frm_id, item, filterClear]
   );
 
   if (actions.length === 0) {
