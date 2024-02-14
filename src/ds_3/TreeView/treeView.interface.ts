@@ -42,6 +42,7 @@ export interface OrganisationDataDto {
   fiscper: number;
   fiscvar: string;
   ir_flag: number;
+  farm: string;
 }
 
 /**
@@ -104,6 +105,7 @@ export interface OrganisationData {
   fiscper: number;
   fiscvar: string;
   ir_flag: number;
+  farm: string;
 }
 
 /**
