@@ -5,20 +5,24 @@ import { UrlState } from "bi-internal/core";
 
 import {
   UseLockAndUnlockParams,
-  UseRowsAndColumnsFapartParams,
+  UseRowsAndColumnsFaintervalParams,
 } from "./hooks.interface";
 import {
-  KOOB_ID_FAPART,
+  KOOB_ID_FAINTERVAL,
   KOOB_ID_LOCK,
   KOOB_ID_UNLOCK,
-  dimensionsFapart,
+  dimensionsFainterval,
   dimensionsLock,
   dimensionsUnLock,
-} from "../sharesInfluence.constants";
-import { FapartDto, LockDto, UnlockDto } from "../sharesInfluence.interface";
+} from "../AssessmentIntervals.constants";
+import {
+  FaintervalDto,
+  LockDto,
+  UnlockDto,
+} from "../AssessmentIntervals.interface";
 import { mapColumns, mapRows } from "./transformationData";
 
-export const useRowsAndColumnsFapart = ({
+export const useRowsAndColumnsFainterval = ({
   filters,
   pred_id,
   setColumns,
@@ -30,20 +34,21 @@ export const useRowsAndColumnsFapart = ({
   fiscper,
   fiscvar,
   ir_flag,
-}: UseRowsAndColumnsFapartParams) => {
+  dor_kod,
+}: UseRowsAndColumnsFaintervalParams) => {
   useEffect(() => {
     setRows([]);
     setColumns([]);
-  }, [pred_id, branch, farm, fiscper, fiscvar, ir_flag]);
+  }, [pred_id, branch, farm, fiscper, fiscvar, ir_flag, dor_kod]);
 
   useEffect(() => {
     KoobDataService.koobDataRequest3(
-      KOOB_ID_FAPART,
-      dimensionsFapart,
+      KOOB_ID_FAINTERVAL,
+      dimensionsFainterval,
       [],
       filters
     )
-      .then((data: FapartDto[]) => {
+      .then((data: FaintervalDto[]) => {
         setRows(mapRows(data));
         setColumns(mapColumns(data));
       })
@@ -52,7 +57,7 @@ export const useRowsAndColumnsFapart = ({
         setColumns([]);
       });
     setIsReload(false);
-  }, [pred_id, branch, farm, fiscper, fiscvar, ir_flag, isReload]);
+  }, [pred_id, branch, farm, fiscper, fiscvar, ir_flag, isReload, dor_kod]);
 };
 
 export const useLockAndUnLock = ({ setIsEditing }: UseLockAndUnlockParams) => {
@@ -67,7 +72,7 @@ export const useLockAndUnLock = ({ setIsEditing }: UseLockAndUnlockParams) => {
     PRED_IDF: ["=", pred_id],
     FISCVAR: ["=", fiscvar],
     FISCPER: ["=", fiscper],
-    FRM_ID: ["=", 5],
+    FRM_ID: ["=", 2],
     IR_FLAG: ["=", ir_flag, null],
   };
   const lock = useCallback(() => {

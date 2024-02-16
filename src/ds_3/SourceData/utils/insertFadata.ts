@@ -7,7 +7,10 @@ export const insertFadata = async (data: FadataDto) => {
       method: "POST",
       credentials: "same-origin",
       headers: { "Content-type": "application/json; charset=utf-8" },
-      body: JSON.stringify(data),
+      body: JSON.stringify(data, (key, value) => {
+        if (value !== "") return value;
+        else return null;
+      }),
     });
     return response;
   } catch (error) {

@@ -1,0 +1,8 @@
+.assessment-intervals-td-custom {
+    border: 1px solid darkgray;
+    padding: 0;
+    position: relative;
+    &__disabled{
+        background-color: rgb(197, 197, 197);
+    }
+}

@@ -52,7 +52,7 @@ const TreeView = (props) => {
   }, []);
 
   return (
-    <div style={{ padding: "20px", overflow: "scroll", maxHeight: "100%" }}>
+    <div style={{ padding: "20px", overflow: "scroll", height: "100%" }}>
       <table>
         <thead className="tree-view__thead">
           <Th>ID</Th>

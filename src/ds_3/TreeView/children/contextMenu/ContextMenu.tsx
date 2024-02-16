@@ -123,6 +123,8 @@ export const ContextMenu = ({
             _user_id: userId,
             _branch: item.branch,
             _farm: item.farm,
+            _dor_kod:
+              item.branch == "189" && item.farm == "800" ? item.dor_kod : 0,
           });
           UrlState.navigate({
             segment: "ds",

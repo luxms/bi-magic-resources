@@ -17,7 +17,10 @@ export const insertFapart = async (data: FapartDto) => {
       method: "POST",
       credentials: "same-origin",
       headers: { "Content-type": "application/json; charset=utf-8" },
-      body: JSON.stringify(createData),
+      body: JSON.stringify(createData, (key, value) => {
+        if (value !== "") return value;
+        else return null;
+      }),
     });
     return response;
   } catch (error) {

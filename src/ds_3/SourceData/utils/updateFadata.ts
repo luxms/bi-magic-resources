@@ -18,7 +18,10 @@ export const updateFadata = async (data: FadataDto) => {
         method: "PUT",
         credentials: "same-origin",
         headers: { "Content-type": "application/json; charset=utf-8" },
-        body: JSON.stringify(updateData),
+        body: JSON.stringify(updateData, (key, value) => {
+          if (value !== "") return value;
+          else return null;
+        }),
       }
     );
     return response;

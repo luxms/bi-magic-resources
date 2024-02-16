@@ -38,11 +38,11 @@ export interface OrganisationDataDto {
   children_count: number;
   branch?: string;
   farm?: string;
+  dor_kod?: number;
   st_title?: string;
   fiscper: number;
   fiscvar: string;
   ir_flag: number;
-  farm: string;
 }
 
 /**
@@ -99,13 +99,13 @@ export interface OrganisationData {
   name: string;
   branch?: string;
   farm?: string;
+  dor_kod?: number;
   hasChildren: boolean;
   formData: Map<number, { frm_st: number; st_title?: string }>;
   gr_id?: number;
   fiscper: number;
   fiscvar: string;
   ir_flag: number;
-  farm: string;
 }
 
 /**

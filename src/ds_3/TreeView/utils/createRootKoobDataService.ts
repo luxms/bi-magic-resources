@@ -63,6 +63,12 @@ export const demensionsRootKoob = [
     title: "branch",
   },
   {
+    id: "dor_kod",
+    type: "INTEGER",
+    sql: "dor_kod",
+    title: "dor_kod",
+  },
+  {
     id: "st_title",
     type: "STRING",
     sql: "st_title",

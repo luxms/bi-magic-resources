@@ -18,21 +18,20 @@ export interface UnlockDto {
   unlocks: boolean;
   frm_id: number;
 }
-export interface FapartDto {
-  risk_id: number;
+export interface FaintervalDto {
   factor_id: number;
   branch: string;
+  dor_kod: number;
   f_group_text: string;
   f_text: string;
   farm: string;
-  fashare: number;
   fiscper: number;
   fiscper_text: string;
   fiscvar: string;
   ir_flag: number;
-  obj_text: string;
-  r_group_text: string | null;
-  r_text: string;
+  faidval: number;
+  min_border: number;
+  max_border: number;
 }
 
 export interface SharesInfluenceLayoutProps {
@@ -47,26 +46,22 @@ export interface SharesInfluenceLayoutProps {
 }
 
 export interface Column {
-  obj_text: string;
-  colspan?: number;
-  data: {
-    f_group_text: string;
-    colspan?: number;
-    data: { f_text: string }[];
-  }[];
+  faidval: number;
 }
 
-export interface Row extends FapartDto {
-  data: FapartDto[];
+export interface Row extends FaintervalDto {
+  data: FaintervalDto[];
 }
 
-export interface DataInsertFapart {
-  risk_id: number;
+export interface DataInsertFainterval {
   factor_id: number;
-  branch: string;
   farm: string;
-  fiscvar: string;
+  branch: string;
   fiscper: number;
-  fashare: number;
+  fiscvar: string;
+  faidval: number;
+  min_border: number;
+  max_border: number;
   ir_flag: number;
+  dor_kod: number;
 }

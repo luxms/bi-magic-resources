@@ -75,13 +75,13 @@ const SharesInfluence = () => {
       let isError = false;
       for (let i = 0; i < updateData.length; i++) {
         const element = updateData[i];
-        if (element?.fashare != null) {
-          let response = await updateFapart(element);
-          if (response?.status !== 200) {
-            response = await insertFapart(element);
-            isError = response?.status !== 200;
-          }
+        //if (element?.fashare != null) {
+        let response = await updateFapart(element);
+        if (response?.status !== 200) {
+          response = await insertFapart(element);
+          isError = response?.status !== 200;
         }
+        //}
       }
       setRows([]);
       setChangedData(new Set<string>());

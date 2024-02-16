@@ -12,8 +12,8 @@ export const Td = ({
 }: PropsWithChildren<{ disabled?: boolean }>) => (
   <td
     className={classNames([
-      "source-data-td-custom",
-      { "source-data-td-custom__disabled": disabled },
+      "assessment-intervals-td-custom",
+      { "assessment-intervals-td-custom__disabled": disabled },
     ])}
   >
     {children}
