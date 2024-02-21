@@ -5,4 +5,23 @@
     &__disabled{
         background-color: rgb(197, 197, 197);
     }
+    &__head{
+        position: -webkit-sticky;
+        position: sticky;
+        background-color: rgb(241, 241, 241);
+        border-right: 1px solid darkgray;
+        border-bottom: 1px solid darkgray;
+    }
+    &__first{
+        width: 100px;
+        min-width: 100px;
+        max-width: 100px;
+        left: 0px;
+    }
+    &__second{
+        width: 100px;
+        min-width: 100px;
+        max-width: 100px;
+        left: 100px;
+    }
 }

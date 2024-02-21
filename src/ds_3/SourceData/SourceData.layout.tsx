@@ -103,8 +103,12 @@ export const SourceDataLayout = ({
           {rows.map((row, rowIndex) => {
             return (
               <tr key={row.info_id}>
-                <Td>{row.grtitle}</Td>
-                <Td>{row.info_id}</Td>
+                <Td className="source-data-td-custom__head source-data-td-custom__first">
+                  {row.grtitle}
+                </Td>
+                <Td className="source-data-td-custom__head source-data-td-custom__second">
+                  {row.info_id}
+                </Td>
                 <Td>{row.ititle}</Td>
                 <Td>{row.fasyst}</Td>
                 {row.data.map((item, columnIndex) => (

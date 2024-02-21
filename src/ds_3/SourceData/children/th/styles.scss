@@ -6,4 +6,23 @@
         overflow: hidden;
         text-overflow: ellipsis;
     }
+    &__head{
+        position: -webkit-sticky;
+        position: sticky;
+        background-color: white;
+    }
+    &__first{
+        width: 100px;
+        min-width: 100px;
+        max-width: 100px;
+        left: 0px;
+    }
+    &__second{
+        width: 100px;
+        min-width: 100px;
+        max-width: 100px;
+        left: 100px;
+    }
+    
+
 }

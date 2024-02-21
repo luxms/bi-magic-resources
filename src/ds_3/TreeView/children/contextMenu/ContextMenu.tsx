@@ -82,6 +82,12 @@ export const ContextMenu = ({
           const setFilters = action.filters?.split(",");
           setFilters?.forEach((filter) => {
             switch (filter) {
+              case "pred_id":
+                KoobFiltersService.getInstance().setFilter("", filter, [
+                  "=",
+                  item.id,
+                ]);
+                break;
               case "pred_idf":
                 KoobFiltersService.getInstance().setFilter("", filter, [
                   "=",

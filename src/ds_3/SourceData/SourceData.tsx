@@ -137,7 +137,7 @@ const SourceData = (props) => {
   }
 
   return (
-    <div style={{ padding: "20px", overflow: "scroll", maxHeight: "80vh" }}>
+    <div style={{ padding: "20px", overflow: "scroll", maxHeight: "100%" }}>
       <Formik initialValues={{ rows }} onSubmit={onSubmit}>
         <SourceDataLayout
           columns={columns}

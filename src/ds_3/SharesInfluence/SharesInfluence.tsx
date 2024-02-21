@@ -150,7 +150,7 @@ const SharesInfluence = () => {
   }
 
   return (
-    <div style={{ padding: "20px", overflow: "scroll", maxHeight: "80vh" }}>
+    <div style={{ padding: "20px", overflow: "scroll", maxHeight: "100%" }}>
       <Formik initialValues={{ rows }} onSubmit={onSubmit} enableReinitialize>
         <SharesInfluenceLayout
           columns={columns}

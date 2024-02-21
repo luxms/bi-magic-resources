@@ -9,12 +9,16 @@ import "./styles.scss";
 export const Td = ({
   children,
   disabled,
-}: PropsWithChildren<{ disabled?: boolean }>) => (
+  className,
+}: PropsWithChildren<{ disabled?: boolean; className?: string }>) => (
   <td
-    className={classNames([
-      "source-data-td-custom",
-      { "source-data-td-custom__disabled": disabled },
-    ])}
+    className={classNames(
+      [
+        "source-data-td-custom",
+        { "source-data-td-custom__disabled": disabled },
+      ],
+      className
+    )}
   >
     {children}
   </td>

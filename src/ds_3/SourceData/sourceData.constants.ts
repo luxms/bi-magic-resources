@@ -6,30 +6,6 @@ import { KoobDataService, KoobFiltersService } from "bi-internal/services";
  */
 export const dimensionsColumnsDataService: IKoobDimension[] = [
   {
-    id: "date_kd_pd",
-    type: "STRING",
-    sql: "date_kd_pd",
-    title: "date_kd_pd",
-  },
-  {
-    id: "date_kd_v",
-    type: "STRING",
-    sql: "date_kd_v",
-    title: "date_kd_v",
-  },
-  {
-    id: "date_nd_pd",
-    type: "STRING",
-    sql: "date_nd_pd",
-    title: "date_nd_pd",
-  },
-  {
-    id: "date_nd_v",
-    type: "STRING",
-    sql: "date_nd_v",
-    title: "date_nd_v",
-  },
-  {
     id: "fiscper",
     type: "INTEGER",
     sql: "fiscper",
@@ -83,6 +59,30 @@ export const dimensionsColumnsDataService: IKoobDimension[] = [
     sql: "vname",
     title: "vname",
   },
+  {
+    id: "date_kd_pd",
+    type: "STRING",
+    sql: "date_kd_pd",
+    title: "date_kd_pd",
+  },
+  {
+    id: "date_kd_v",
+    type: "STRING",
+    sql: "date_kd_v",
+    title: "date_kd_v",
+  },
+  {
+    id: "date_nd_pd",
+    type: "STRING",
+    sql: "date_nd_pd",
+    title: "date_nd_pd",
+  },
+  {
+    id: "date_nd_v",
+    type: "STRING",
+    sql: "date_nd_v",
+    title: "date_nd_v",
+  },
 ];
 /**
  * Название куба на получение динамических столбцов.
@@ -128,6 +128,18 @@ export const dimensionsRowsDataService: IKoobDimension[] = [
     type: "STRING",
     sql: "ititle",
     title: "ititle",
+  },
+  {
+    id: "level",
+    type: "INTEGER",
+    sql: "level",
+    title: "level",
+  },
+  {
+    id: "nom",
+    type: "INTEGER",
+    sql: "nom",
+    title: "nom",
   },
   {
     id: "pred_id",
