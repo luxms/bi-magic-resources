@@ -101,7 +101,7 @@ const SourceData = (props) => {
         KOOB_ID_ROWS,
         dimensionsRowsDataService.map((item) => item.id),
         [],
-        filters
+        { ...filters, IR_FLAG: ["=", ir_flag, null] }
       )
         .then((data) => {
           const rows = mapRows(data as FainfoAllDto[]);
