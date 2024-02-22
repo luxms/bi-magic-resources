@@ -13,12 +13,14 @@ import {
   FaPredprIerDto,
   FainfoAll,
   FainfoAllDto,
+  StatusDto,
 } from "./sourceData.interface";
 import { useColumns, useLockAndUnLock, useRows } from "./utils/hooks";
 import { extractUpdateData, mapRows } from "./utils/transformationData";
 import { updateFadata } from "./utils/updateFadata";
 import { insertFadata } from "./utils/insertFadata";
-
+import { updateStatus } from "./utils/updateStatus";
+import { insertStatus } from "./utils/insertStatus";
 const SourceData = (props) => {
   const [columns, setColumns] = useState<FaPredprIerDto[]>([]);
   const [rows, setRows] = useState<FainfoAll[]>([]);
@@ -49,7 +51,16 @@ const SourceData = (props) => {
     FISCVAR: ["=", fiscvar],
     FISCPER: ["=", fiscper],
   };
-
+  const insStatus: StatusDto = {
+    pred_id: pred_id,
+    frm_id: 1,
+    fiscper: fiscper,
+    fiscvar: fiscvar,
+    ir_flag: ir_flag,
+    frm_st: 10,
+    fa_act: 32,
+    user_id: user_id,
+  };
   useColumns({ pred_id, setColumns, filters });
   useRows({
     pred_id,
@@ -73,6 +84,13 @@ const SourceData = (props) => {
         if (response?.status !== 200) {
           response = await insertFadata(element);
           isError = response?.status !== 200;
+        }
+
+        if (i == updateData.length - 1) {
+          response = await insertStatus(insStatus);
+          if (response?.status !== 200) {
+            response = await updateStatus({ ...insStatus, frm_st: 20 });
+          }
         }
         //}
       }
@@ -137,7 +155,7 @@ const SourceData = (props) => {
   }
 
   return (
-    <div style={{ padding: "20px", overflow: "scroll", maxHeight: "100%" }}>
+    <div style={{ padding: "20px", height: "100%", width: "100%" }}>
       <Formik initialValues={{ rows }} onSubmit={onSubmit}>
         <SourceDataLayout
           columns={columns}

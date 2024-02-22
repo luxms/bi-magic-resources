@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState, useContext } from "react";
 
 import { VisibleContextMenuState } from "./children/itemView/itemView.interface";
 import { useFaformColumns, useItems, useFaConfigs } from "./utils/hooks";
@@ -50,6 +50,18 @@ const TreeView = (props) => {
       window.removeEventListener("click", onClickWindow);
     };
   }, []);
+  const { setIsReload } = useContext(TreeViewContext);
+  const onPopState = useCallback(() => {
+    setIsReload(true);
+  }, []);
+
+  // Обновляем если пользователь нажал назад в формах ввода
+  useEffect(() => {
+    window.addEventListener("popstate", onPopState);
+    return () => {
+      window.removeEventListener("popstate", onPopState);
+    };
+  }, [onPopState]);
 
   return (
     <div style={{ padding: "20px", overflow: "scroll", height: "100%" }}>

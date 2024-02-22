@@ -61,79 +61,98 @@ export const SourceDataLayout = ({
       >
         {!isEditing ? "Открыть редактирование" : "Закрыть редактирование"}
       </button>
-      <table>
-        <thead>
-          <tr>
-            <Th></Th>
-            <Th></Th>
-            <Th></Th>
-            <Th>Структурное подразделение</Th>
-            {columns.map((column) => (
-              <Th key={column.pred_id}>
-                <div className="source-data__th-text" title={column.sname}>
-                  {column.sname}
-                </div>
+      <div style={{ overflow: "scroll", height: "97%", width: "100%" }}>
+        <table>
+          <thead className="source-data-th-custom__head">
+            <tr>
+              <Th className="source-data-td-custom__head source-data-td-custom__first"></Th>
+              <Th className="source-data-td-custom__head source-data-td-custom__second"></Th>
+              <Th className="source-data-td-custom__head source-data-td-custom__third"></Th>
+              <Th className="source-data-td-custom__head source-data-td-custom__fourth">
+                Структурное подразделение
               </Th>
-            ))}
-          </tr>
-          <tr>
-            <Th></Th>
-            <Th></Th>
-            <Th></Th>
-            <Th></Th>
-            {columns.map((column) => (
-              <Th key={column.pred_id}>
-                <div className="source-data__th-text" title={column.vname}>
-                  {column.vname}
-                </div>
+              {columns.map((column) => (
+                <Th key={column.pred_id}>
+                  <div className="source-data__th-text" title={column.sname}>
+                    {column.sname}
+                  </div>
+                </Th>
+              ))}
+            </tr>
+            <tr>
+              <Th className="source-data-td-custom__head source-data-td-custom__first"></Th>
+              <Th className="source-data-td-custom__head source-data-td-custom__second"></Th>
+              <Th className="source-data-td-custom__head source-data-td-custom__third"></Th>
+              <Th className="source-data-td-custom__head source-data-td-custom__fourth"></Th>
+              {columns.map((column) => (
+                <Th key={column.pred_id}>
+                  <div className="source-data__th-text" title={column.vname}>
+                    {column.vname}
+                  </div>
+                </Th>
+              ))}
+            </tr>
+            <tr>
+              <Th className="source-data-td-custom__head source-data-td-custom__first">
+                Группа исходных данных
               </Th>
-            ))}
-          </tr>
-          <tr>
-            <Th>Группа исходных данных</Th>
-            <Th>Код исходных данных</Th>
-            <Th>ИД исходных данных</Th>
-            <Th>Исходная система</Th>
-            {columns.map((column) => (
-              <Th key={column.pred_id}>Значение исх.данных</Th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row, rowIndex) => {
-            return (
-              <tr key={row.info_id}>
-                <Td className="source-data-td-custom__head source-data-td-custom__first">
-                  {row.grtitle}
-                </Td>
-                <Td className="source-data-td-custom__head source-data-td-custom__second">
-                  {row.info_id}
-                </Td>
-                <Td>{row.ititle}</Td>
-                <Td>{row.fasyst}</Td>
-                {row.data.map((item, columnIndex) => (
-                  <Td key={item.pred_id} disabled={item.disabled || !isEditing}>
-                    <Field
-                      name={`rows[${rowIndex}]data.${columnIndex}.fa_data`}
-                    >
-                      {(fieldApi: FieldProps<number>) => (
-                        <CustomNumberInput
-                          name={fieldApi.field.name}
-                          onChange={(e) =>
-                            onChangeItem(e, rowIndex, columnIndex)
-                          }
-                          value={fieldApi.field.value}
-                          disabled={item.disabled || !isEditing}
-                        />
-                      )}
-                    </Field>
+              <Th className="source-data-td-custom__head source-data-td-custom__second">
+                Код исходных данных
+              </Th>
+              <Th className="source-data-td-custom__head source-data-td-custom__third">
+                ИД исходных данных
+              </Th>
+              <Th className="source-data-td-custom__head source-data-td-custom__fourth">
+                Исходная система
+              </Th>
+              {columns.map((column) => (
+                <Th key={column.pred_id}>Значение исх.данных</Th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row, rowIndex) => {
+              return (
+                <tr key={row.info_id}>
+                  <Td className="source-data-td-custom__head source-data-td-custom__first">
+                    {row.grtitle}
                   </Td>
-                ))}
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+                  <Td className="source-data-td-custom__head source-data-td-custom__second">
+                    {row.info_id}
+                  </Td>
+                  <Td className="source-data-td-custom__head source-data-td-custom__third">
+                    {row.ititle}
+                  </Td>
+                  <Td className="source-data-td-custom__head source-data-td-custom__fourth">
+                    {row.fasyst}
+                  </Td>
+                  {row.data.map((item, columnIndex) => (
+                    <Td
+                      key={item.pred_id}
+                      disabled={item.disabled || !isEditing}
+                    >
+                      <Field
+                        name={`rows[${rowIndex}]data.${columnIndex}.fa_data`}
+                      >
+                        {(fieldApi: FieldProps<number>) => (
+                          <CustomNumberInput
+                            name={fieldApi.field.name}
+                            onChange={(e) =>
+                              onChangeItem(e, rowIndex, columnIndex)
+                            }
+                            value={fieldApi.field.value}
+                            disabled={item.disabled || !isEditing}
+                          />
+                        )}
+                      </Field>
+                    </Td>
+                  ))}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </>
   );
 };

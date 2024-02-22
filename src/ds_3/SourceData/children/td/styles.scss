@@ -8,20 +8,37 @@
     &__head{
         position: -webkit-sticky;
         position: sticky;
-        background-color: rgb(241, 241, 241);
+        background-color: white;
         border-right: 1px solid darkgray;
         border-bottom: 1px solid darkgray;
+        box-shadow: inset -1px 0 0 0 darkgray!important;
     }
     &__first{
-        width: 100px;
-        min-width: 100px;
-        max-width: 100px;
+        width: 150px;
+        min-width: 150px;
+        max-width: 150px;
         left: 0px;
+        z-index: 100;
     }
     &__second{
         width: 100px;
         min-width: 100px;
         max-width: 100px;
-        left: 100px;
+        left: 150px;
+        z-index: 100;
+    }
+    &__third{
+        width: 150px;
+        min-width: 150px;
+        max-width: 150px;
+        left: 250px;
+        z-index: 100;
+    }
+    &__fourth{
+        width: 125px;
+        min-width: 125px;
+        max-width: 125px;
+        left: 400px;
+        z-index: 100;
     }
 }

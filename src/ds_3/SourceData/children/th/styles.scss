@@ -10,19 +10,14 @@
         position: -webkit-sticky;
         position: sticky;
         background-color: white;
-    }
-    &__first{
-        width: 100px;
-        min-width: 100px;
-        max-width: 100px;
-        left: 0px;
-    }
-    &__second{
-        width: 100px;
-        min-width: 100px;
-        max-width: 100px;
-        left: 100px;
+        border-bottom: 2px solid darkgray;
+        border-top: 2px solid darkgray;
+        box-shadow: inset 0px -1px 0 0 darkgray!important;
+        height: 30px;
+        min-height: 30px;
+        max-height: 30px;
+        top: 1px;
+        z-index: 101;
     }
     
-
 }

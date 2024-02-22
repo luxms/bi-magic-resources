@@ -41,6 +41,20 @@ export interface FadataDto {
   fiscper: number;
   fiscvar: string;
 }
+
+/**
+ * Интерфейс БД таблицы public.faform_status
+ */
+export interface StatusDto {
+  pred_id: number;
+  frm_id: number;
+  fiscper: number;
+  fiscvar: string;
+  ir_flag: number;
+  frm_st: number;
+  fa_act: number;
+  user_id: number;
+}
 /**
  * Интерфейс сущности, которую мы используем в наших UI комонентах, и описывающей столбцы.
  */
