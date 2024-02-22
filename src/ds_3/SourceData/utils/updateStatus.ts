@@ -15,7 +15,6 @@ export const updateStatus = async (data: StatusDto) => {
       fa_act: fa_act,
       user_id: user_id,
     };
-    console.log(data);
     const response = await fetch(`${ENDPOINT_STATUS}${getUrlChunk(data)}`, {
       method: "PUT",
       credentials: "same-origin",
