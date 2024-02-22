@@ -90,9 +90,11 @@ export const useLockAndUnLock = ({ setIsEditing }: UseLockAndUnlock) => {
     FISCVAR: ["=", fiscvar],
     FISCPER: ["=", fiscper],
     FRM_ID: ["=", 1],
-    IR_FLAG: ["=", ir_flag, null],
+    IR_FLAG: ["=", ir_flag],
   };
+
   const lock = useCallback(() => {
+    console.log(filters);
     KoobDataService.koobDataRequest3(
       KOOB_ID_LOCK,
       dimensionsLock.map((item) => item.id),
@@ -110,9 +112,10 @@ export const useLockAndUnLock = ({ setIsEditing }: UseLockAndUnlock) => {
         }
       })
       .catch(() => setIsEditing(false));
-  }, [pred_id, fiscper, fiscvar, ir_flag]);
+  }, [user_id, ir_flag, filters]);
 
   const unlock = useCallback(() => {
+    console.log(filters);
     KoobDataService.koobDataRequest3(
       KOOB_ID_UNLOCK,
       dimensionsUnLock.map((item) => item.id),
@@ -128,7 +131,7 @@ export const useLockAndUnLock = ({ setIsEditing }: UseLockAndUnlock) => {
         }
       }
     });
-  }, [pred_id, fiscper, fiscvar, ir_flag]);
+  }, [user_id, ir_flag, filters]);
   return {
     lock,
     unlock,
