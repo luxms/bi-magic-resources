@@ -53,7 +53,7 @@ export const ItemView = ({
   return (
     <>
       <tr id={item.id?.toString()}>
-        <Td>
+        <Td className="td-custom__child">
           {"----".repeat(depth - 1)}
           {item.hasChildren && (
             <ShowChildrenButton
@@ -63,7 +63,7 @@ export const ItemView = ({
           )}
           {item.id}
         </Td>
-        <Td>{item.name}</Td>
+        <Td className="td-custom__child">{item.name}</Td>
         {formColumns.map((column) => {
           const formStatus = item.formData.get(column.id);
           return (
@@ -73,7 +73,7 @@ export const ItemView = ({
               onClick={() => onClickTdFormColumn(column.id)}
               data-status
             >
-              {formStatus?.st_title || "No data"}
+              {formStatus?.st_title || "-"}
               {visibleContextMenu?.pred_id === item.id &&
                 visibleContextMenu?.frm_id === column.id && (
                   <ContextMenu

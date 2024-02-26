@@ -1,4 +1,5 @@
 import React, { PropsWithChildren } from "react";
+import classNames from "classnames";
 
 import "./styles.scss";
 
@@ -7,9 +8,10 @@ import "./styles.scss";
  */
 export const Td = ({
   children,
+  className,
   onClick,
-}: PropsWithChildren<{ onClick?: () => void }>) => (
-  <td className="td-custom" onClick={onClick}>
+}: PropsWithChildren<{ className?: string; onClick?: () => void }>) => (
+  <td className={classNames("td-custom", className)} onClick={onClick}>
     {children}
   </td>
 );

@@ -5,8 +5,8 @@ export interface SourceDataLayoutProps {
   isEditing: boolean;
   setIsEditing: (value: boolean) => void;
   setIsReload: (value: boolean) => void;
-  lock: () => void;
-  unlock: () => void;
+  lock: (value: any) => void;
+  unlock: (value: any) => void;
 }
 /**
  * Интерфейс БД получения динамических заголовков

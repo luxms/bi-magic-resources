@@ -1,6 +1,8 @@
 import React, { ChangeEvent, useCallback, useEffect } from "react";
 import { Field, FieldProps, useFormikContext } from "formik";
 
+import { UrlState } from "bi-internal/core";
+
 import { FainfoAll, SourceDataLayoutProps } from "./sourceData.interface";
 import { Th } from "./children/th/Th";
 import { Td } from "./children/td/Td";
@@ -34,11 +36,12 @@ export const SourceDataLayout = ({
   );
 
   const onClickEdit = useCallback(() => {
+    const url = UrlState.getInstance().getModel();
     if (!isEditing) {
-      lock();
+      lock(url);
       setIsReload(true);
     } else {
-      unlock();
+      unlock(url);
     }
   }, [isEditing, setIsEditing, setIsReload]);
 

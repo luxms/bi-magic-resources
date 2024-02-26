@@ -1,6 +1,16 @@
 .td-custom {
-    min-width: 200px;
+    text-align: center;
+    min-width: 100px;
+    max-width: 150px;
     border-right: 1px solid darkgray;
     padding: 5px;
     position: relative;
+    &__child{
+        text-align: left;
+        min-width: 150px;
+        max-width: 300px;
+        border-right: 1px solid darkgray;
+        padding: 5px;
+        position: relative;
+    }
 }

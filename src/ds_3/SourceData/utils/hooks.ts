@@ -93,45 +93,64 @@ export const useLockAndUnLock = ({ setIsEditing }: UseLockAndUnlock) => {
     IR_FLAG: ["=", ir_flag],
   };
 
-  const lock = useCallback(() => {
-    console.log(filters);
-    KoobDataService.koobDataRequest3(
-      KOOB_ID_LOCK,
-      dimensionsLock.map((item) => item.id),
-      [],
-      { ...filters, USR_ID: ["=", user_id] }
-    )
-      .then((data) => {
-        if (Array.isArray(data) && data.length > 0) {
-          if (data[0].locks === true) {
-            setIsEditing(true);
+  const lock = useCallback(
+    (value: any) => {
+      const filters: { [key: string]: any } = {
+        PRED_IDF: ["=", value._pred_id],
+        FISCVAR: ["=", value._fiscvar],
+        FISCPER: ["=", value._fiscper],
+        FRM_ID: ["=", 1],
+        IR_FLAG: ["=", value._ir_flag],
+        USR_ID: ["=", value._user_id],
+      };
+      KoobDataService.koobDataRequest3(
+        KOOB_ID_LOCK,
+        dimensionsLock.map((item) => item.id),
+        [],
+        filters
+      )
+        .then((data) => {
+          if (Array.isArray(data) && data.length > 0) {
+            if (data[0].locks === true) {
+              setIsEditing(true);
+            }
+            if (data[0].locks === false) {
+              alert("Не удается заблокировать");
+            }
           }
-          if (data[0].locks === false) {
-            alert("Не удается заблокировать");
-          }
-        }
-      })
-      .catch(() => setIsEditing(false));
-  }, [user_id, ir_flag, filters]);
+        })
+        .catch(() => setIsEditing(false));
+    },
+    [user_id, ir_flag, filters]
+  );
 
-  const unlock = useCallback(() => {
-    console.log(filters);
-    KoobDataService.koobDataRequest3(
-      KOOB_ID_UNLOCK,
-      dimensionsUnLock.map((item) => item.id),
-      [],
-      filters
-    ).then((data) => {
-      if (Array.isArray(data) && data.length > 0) {
-        if (data[0].unlocks === true) {
-          setIsEditing(false);
+  const unlock = useCallback(
+    (value: any) => {
+      const filters: { [key: string]: any } = {
+        PRED_IDF: ["=", value._pred_id],
+        FISCVAR: ["=", value._fiscvar],
+        FISCPER: ["=", value._fiscper],
+        FRM_ID: ["=", 1],
+        IR_FLAG: ["=", value._ir_flag],
+      };
+      KoobDataService.koobDataRequest3(
+        KOOB_ID_UNLOCK,
+        dimensionsUnLock.map((item) => item.id),
+        [],
+        filters
+      ).then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          if (data[0].unlocks === true) {
+            setIsEditing(false);
+          }
+          if (data[0].unlocks === false) {
+            alert("Не удается разблокировать.");
+          }
         }
-        if (data[0].unlocks === false) {
-          alert("Не удается разблокировать.");
-        }
-      }
-    });
-  }, [user_id, ir_flag, filters]);
+      });
+    },
+    [user_id, ir_flag, filters]
+  );
   return {
     lock,
     unlock,

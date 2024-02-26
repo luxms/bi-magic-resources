@@ -129,7 +129,8 @@ const SourceData = (props) => {
 
   const onPopState = useCallback(() => {
     if (isEditing) {
-      unlock();
+      const url = UrlState.getInstance().getModel();
+      unlock(url);
     }
   }, [isEditing, pred_id, unlock]);
 
