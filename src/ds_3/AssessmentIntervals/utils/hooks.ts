@@ -35,11 +35,12 @@ export const useRowsAndColumnsFainterval = ({
   fiscvar,
   ir_flag,
   dor_kod,
+  cash,
 }: UseRowsAndColumnsFaintervalParams) => {
   useEffect(() => {
     setRows([]);
     setColumns([]);
-  }, [pred_id, branch, farm, fiscper, fiscvar, ir_flag, dor_kod]);
+  }, [pred_id, branch, farm, fiscper, fiscvar, ir_flag, dor_kod, cash]);
 
   useEffect(() => {
     KoobDataService.koobDataRequest3(
@@ -57,7 +58,17 @@ export const useRowsAndColumnsFainterval = ({
         setColumns([]);
       });
     setIsReload(false);
-  }, [pred_id, branch, farm, fiscper, fiscvar, ir_flag, isReload, dor_kod]);
+  }, [
+    pred_id,
+    branch,
+    farm,
+    fiscper,
+    fiscvar,
+    ir_flag,
+    isReload,
+    dor_kod,
+    cash,
+  ]);
 };
 
 export const useLockAndUnLock = ({ setIsEditing }: UseLockAndUnlockParams) => {

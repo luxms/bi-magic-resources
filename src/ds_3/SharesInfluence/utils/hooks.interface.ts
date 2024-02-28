@@ -15,4 +15,5 @@ export interface UseRowsAndColumnsFapartParams {
   ir_flag: number;
   branch: string;
   farm: string;
+  cash: number;
 }

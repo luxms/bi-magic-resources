@@ -16,4 +16,5 @@ export interface UseRowsAndColumnsFaintervalParams {
   branch: string;
   farm: string;
   dor_kod: number;
+  cash: number;
 }

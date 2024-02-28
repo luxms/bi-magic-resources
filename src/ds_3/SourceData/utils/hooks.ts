@@ -53,10 +53,14 @@ export const useRows = ({
   filters = {},
   isReload,
   setIsReload,
+  fiscper,
+  fiscvar,
+  ir_flag,
+  cash,
 }: UseRowsParams) => {
   useEffect(() => {
     setRows([]);
-  }, [pred_id, isReload]);
+  }, [pred_id, isReload, fiscper, fiscvar, ir_flag, cash]);
 
   useEffect(() => {
     if (!pred_id) {
@@ -74,7 +78,7 @@ export const useRows = ({
       })
       .catch(() => setRows([]));
     setIsReload(false);
-  }, [pred_id, isReload]);
+  }, [pred_id, isReload, fiscper, fiscvar, ir_flag, cash]);
 };
 
 export const useLockAndUnLock = ({ setIsEditing }: UseLockAndUnlock) => {

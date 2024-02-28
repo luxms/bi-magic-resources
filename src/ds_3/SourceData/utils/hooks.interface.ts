@@ -12,6 +12,10 @@ export interface UseRowsParams {
   filters: any;
   isReload: boolean;
   setIsReload: (value: boolean) => void;
+  fiscper: number;
+  fiscvar: string;
+  ir_flag: number;
+  cash: number;
 }
 
 export interface UseLockAndUnlock {

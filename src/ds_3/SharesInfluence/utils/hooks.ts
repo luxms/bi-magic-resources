@@ -30,11 +30,12 @@ export const useRowsAndColumnsFapart = ({
   fiscper,
   fiscvar,
   ir_flag,
+  cash,
 }: UseRowsAndColumnsFapartParams) => {
   useEffect(() => {
     setRows([]);
     setColumns([]);
-  }, [pred_id, branch, farm, fiscper, fiscvar, ir_flag]);
+  }, [pred_id, branch, farm, fiscper, fiscvar, ir_flag, cash]);
 
   useEffect(() => {
     KoobDataService.koobDataRequest3(
@@ -52,7 +53,7 @@ export const useRowsAndColumnsFapart = ({
         setColumns([]);
       });
     setIsReload(false);
-  }, [pred_id, branch, farm, fiscper, fiscvar, ir_flag, isReload]);
+  }, [pred_id, branch, farm, fiscper, fiscvar, ir_flag, isReload, cash]);
 };
 
 export const useLockAndUnLock = ({ setIsEditing }: UseLockAndUnlockParams) => {

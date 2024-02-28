@@ -131,6 +131,7 @@ export const ContextMenu = ({
             _farm: item.farm,
             _dor_kod:
               item.branch == "189" && item.farm == "800" ? item.dor_kod : 0,
+            _cash: Math.random(),
           });
           UrlState.navigate({
             segment: "ds",

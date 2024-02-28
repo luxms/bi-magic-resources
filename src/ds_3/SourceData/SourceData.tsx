@@ -45,6 +45,7 @@ const SourceData = (props) => {
   const fiscvar = url?._fiscvar;
   const user_id = url?._user_id;
   const ir_flag = Number(url?._ir_flag);
+  const cash = url?._cash;
 
   const filters: { [key: string]: any } = {
     PRED_IDF: ["=", pred_id],
@@ -68,6 +69,10 @@ const SourceData = (props) => {
     filters: { ...filters, IR_FLAG: ["=", ir_flag, null] },
     isReload,
     setIsReload,
+    fiscper,
+    fiscvar,
+    ir_flag,
+    cash,
   });
 
   const onSubmit = useCallback(
@@ -132,7 +137,8 @@ const SourceData = (props) => {
       const url = UrlState.getInstance().getModel();
       unlock(url);
     }
-  }, [isEditing, pred_id, unlock]);
+    setRows([]);
+  }, [isEditing, pred_id, unlock, isReload]);
 
   // Если пользователь нажал назад будучи на вкладке на которой была установлена блокировка
   useEffect(() => {

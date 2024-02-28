@@ -43,6 +43,7 @@ const SharesInfluence = () => {
   const ir_flag = Number(url?._ir_flag);
   const branch = url?._branch;
   const farm = url?._farm;
+  const cash = url?._cash;
 
   const filters: { [key: string]: any } = {
     FISCVAR: ["=", fiscvar],
@@ -64,6 +65,7 @@ const SharesInfluence = () => {
     ir_flag,
     branch,
     farm,
+    cash,
   });
 
   const onSubmit = useCallback(
@@ -123,6 +125,7 @@ const SharesInfluence = () => {
     if (isEditing) {
       unlock();
     }
+    setRows([]);
   }, [isEditing, pred_id, unlock]);
 
   // Если пользователь нажал назад будучи на вкладке на которой была установлена блокировка
