@@ -119,6 +119,8 @@ export const ContextMenu = ({
                 }
             }
           });
+          console.log(item.dor_kod);
+
           UrlState.getInstance().updateModel({
             _pred_id: item.id,
             _fiscper: item.fiscper,
@@ -130,7 +132,9 @@ export const ContextMenu = ({
             _branch: item.branch,
             _farm: item.farm,
             _dor_kod:
-              item.branch == "189" && item.farm == "800" ? item.dor_kod : 0,
+              Number(item.branch) == 189 && Number(item.farm) == 800
+                ? item.dor_kod ?? 0
+                : 0,
             _cash: Math.random(),
           });
           UrlState.navigate({

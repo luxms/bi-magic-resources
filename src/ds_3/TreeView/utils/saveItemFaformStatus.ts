@@ -11,15 +11,20 @@ export const saveItemFaformStatus = async (
 ) => {
   if (oldFrmSt !== undefined) {
     // UPDATE
+    const updateData = {
+      fa_act: data.fa_act,
+      frm_st: data.frm_st,
+      user_id: data.user_id,
+    };
     try {
       const response = await fetch(
         ENDPOINT_CREATE_FAFORM_STATUS +
-          `/.filter(frm_id='${data.frm_id}' && pred_id='${data.pred_id}' && frm_st = ${oldFrmSt})`,
+          `/.filter(frm_id='${data.frm_id}'&& pred_id='${data.pred_id}'&&fiscper=${data.fiscper}&&fiscvar='${data.fiscvar}'&&ir_flag=${data.ir_flag})`,
         {
           method: "PUT",
           credentials: "same-origin",
           headers: { "Content-type": "application/json; charset=utf-8" },
-          body: JSON.stringify(data),
+          body: JSON.stringify(updateData),
         }
       );
       return response;
