@@ -88,7 +88,7 @@ module.exports = {
     'bi-internal/ui': 'bi-internal/ui',
     'bi-internal/_internal': 'bi-internal/_internal',
   },
-  optimization:{
+  optimization: {
     minimize: false,                                                                                // disables uglify
   },
   module: {
@@ -108,8 +108,8 @@ module.exports = {
             options: {
               insert: function insertToHead(element, options) {
                 document.head.appendChild(element);
-                var utils = require('bi-internal/utils');
-                if (utils._registerStyleElement) utils._registerStyleElement(element);
+                var internalModule = require('bi-internal/_internal');
+                if (internalModule._registerStyleElement) internalModule._registerStyleElement(element);
               },
             },
           },
