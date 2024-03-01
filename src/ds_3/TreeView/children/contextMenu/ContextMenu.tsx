@@ -81,45 +81,53 @@ export const ContextMenu = ({
           clearFilterService(filterClear[0]);
           const setFilters = action.filters?.split(",");
           setFilters?.forEach((filter) => {
-            switch (filter) {
-              case "pred_id":
-                KoobFiltersService.getInstance().setFilter("", filter, [
-                  "=",
-                  item.id,
-                ]);
-                break;
-              case "pred_idf":
-                KoobFiltersService.getInstance().setFilter("", filter, [
-                  "=",
-                  item.id,
-                ]);
-                break;
-              case "frm_id":
-                KoobFiltersService.getInstance().setFilter("", filter, [
-                  "=",
-                  frm_id,
-                ]);
-                break;
-              case "ir_flag":
-                KoobFiltersService.getInstance().setFilter(
-                  "",
-                  filter,
-                  Array.isArray(dashFilters?.ir_flag)
-                    ? dashFilters?.ir_flag
-                    : ["=", irFlagDefValue]
-                );
-                break;
-
-              default:
-                if (item.hasOwnProperty(filter)) {
+            if (filter.indexOf("=") > 0) {
+              const valFilters = filter.split("=");
+              valFilters[1].replace(/;/g, ",");
+              KoobFiltersService.getInstance().setFilter("", valFilters[0], [
+                "=",
+                valFilters[1],
+              ]);
+            } else
+              switch (filter) {
+                case "pred_id":
                   KoobFiltersService.getInstance().setFilter("", filter, [
                     "=",
-                    item[filter],
+                    item.id,
                   ]);
-                }
-            }
+                  break;
+                case "pred_idf":
+                  KoobFiltersService.getInstance().setFilter("", filter, [
+                    "=",
+                    item.id,
+                  ]);
+                  break;
+                case "frm_id":
+                  KoobFiltersService.getInstance().setFilter("", filter, [
+                    "=",
+                    frm_id,
+                  ]);
+                  break;
+                case "ir_flag":
+                  KoobFiltersService.getInstance().setFilter(
+                    "",
+                    filter,
+                    Array.isArray(dashFilters?.ir_flag)
+                      ? dashFilters?.ir_flag
+                      : ["=", irFlagDefValue]
+                  );
+                  break;
+
+                default:
+                  if (item.hasOwnProperty(filter)) {
+                    //console.log(filter + item[filter]);
+                    KoobFiltersService.getInstance().setFilter("", filter, [
+                      "=",
+                      item[filter],
+                    ]);
+                  }
+              }
           });
-          console.log(item.dor_kod);
 
           UrlState.getInstance().updateModel({
             _pred_id: item.id,
