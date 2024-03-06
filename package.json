@@ -7,7 +7,7 @@
     "pull": "node scripts/pull.js",
     "push": "yon build && yon _push",
     "start": "node scripts/start.js",
-    "test": "./node_modules/.bin/jest --passWithNoTests",
+    "test": "jest --passWithNoTests",
     "build": "rimraf dist && webpack --env build",
     "_push": "node scripts/push.js",
     "//dev": "webpack --progress --watch --env dev",
@@ -23,10 +23,6 @@
   "files": [
     "/dist/**/*"
   ],
-  "publishConfig": {
-    "access": "public",
-    "registry": "https://download.luxms.com/repository/npm-luxms/"
-  },
   "repository": {
     "type": "git",
     "url": "git@gito.luxms.com:luxmsbi/luxmsbi-web-resources.git"
