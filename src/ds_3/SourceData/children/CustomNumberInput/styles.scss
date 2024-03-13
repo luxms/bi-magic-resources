@@ -1,9 +1,21 @@
 .custom-number-input{    
+    text-align: right;
     width: -webkit-fill-available;
     padding: 5px;
+    height: 100%;
     border: none;
     outline-color: rgb(132, 203, 241);  
     &__disabled{
         background-color: rgb(197, 197, 197);
     }  
+}
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button{
+    -webkit-appearance: none;
+    margin: 0;}
+input[type='number'],
+input[type="number"]:hover,
+input[type="number"]:focus {
+    appearance: none;
+    -moz-appearance: textfield;
 }

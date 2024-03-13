@@ -59,7 +59,7 @@ export const SharesInfluenceLayout = ({
       >
         {!isEditing ? "Открыть редактирование" : "Закрыть редактирование"}
       </button>
-      <table>
+      <table style={{ height: "100%", width: "100%" }}>
         <thead>
           <tr>
             <Th></Th>
@@ -114,10 +114,10 @@ export const SharesInfluenceLayout = ({
             )}
           </tr>
         </thead>
-        <tbody>
+        <tbody style={{ height: "100%", width: "100%" }}>
           {rows.map((row, rowIndex) => {
             return (
-              <tr key={row.r_text}>
+              <tr key={row.r_text} style={{ height: "100%", width: "100%" }}>
                 <Td>{row.r_group_text ?? ""}</Td>
                 <Td>{rowIndex + 1}</Td>
                 <Td>{row.r_text}</Td>

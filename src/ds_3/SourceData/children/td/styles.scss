@@ -1,9 +1,11 @@
 .source-data-td-custom {
     border: 1px solid darkgray;
-    padding: 0;
+    padding: 5px;
     position: relative;
+    height: 100%;
     &__disabled{
         background-color: rgb(197, 197, 197);
+        height: 100%;
     }
     &__head{
         position: -webkit-sticky;

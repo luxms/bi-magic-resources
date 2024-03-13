@@ -1,4 +1,7 @@
-import { ENDPOINT_UPDATE_FADATA } from "../sourceData.constants";
+import {
+  ENDPOINT_UPDATE_FADATA,
+  ENDPOINT_UPDATE_FADATA_MASS,
+} from "../sourceData.constants";
 import { FadataDto } from "../sourceData.interface";
 
 const getUrlChunk = (props: FadataDto) => {
@@ -24,6 +27,29 @@ export const updateFadata = async (data: FadataDto) => {
         }),
       }
     );
+    return response;
+  } catch (error) {
+    console.log(error);
+  }
+};
+export const updateFadataMass = async (data: FadataDto[]) => {
+  try {
+    const updateObj: {
+      update: FadataDto;
+    }[] = [];
+    data.forEach((element) => {
+      updateObj.push({ update: element });
+    });
+
+    const response = await fetch(ENDPOINT_UPDATE_FADATA_MASS, {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-type": "application/json; charset=utf-8" },
+      body: JSON.stringify(updateObj, (key, value) => {
+        if (value !== "") return value;
+        else return null;
+      }),
+    });
     return response;
   } catch (error) {
     console.log(error);

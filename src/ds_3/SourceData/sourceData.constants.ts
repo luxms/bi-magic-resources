@@ -277,6 +277,13 @@ export const KOOB_ID_ROWS = "luxmsbi.public_fainfo_all";
  * Название таблицы для update.
  */
 export const ENDPOINT_UPDATE_FADATA = "/api/db/public.fadata";
+
+/**
+ * Название таблицы для update.
+ */
+export const ENDPOINT_UPDATE_FADATA_MASS =
+  "/api/v3/writeback/batch/ds_3/luxmsbi.fadata";
+
 /**
  * Название таблицы для статуса.
  */

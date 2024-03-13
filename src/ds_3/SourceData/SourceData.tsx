@@ -14,10 +14,11 @@ import {
   FainfoAll,
   FainfoAllDto,
   StatusDto,
+  FadataDto,
 } from "./sourceData.interface";
 import { useColumns, useLockAndUnLock, useRows } from "./utils/hooks";
 import { extractUpdateData, mapRows } from "./utils/transformationData";
-import { updateFadata } from "./utils/updateFadata";
+import { updateFadata, updateFadataMass } from "./utils/updateFadata";
 import { insertFadata } from "./utils/insertFadata";
 import { updateStatus } from "./utils/updateStatus";
 import { insertStatus } from "./utils/insertStatus";
@@ -81,6 +82,7 @@ const SourceData = (props) => {
         values.rows,
         Array.from(changedData)
       );
+      //let response = await updateFadataMass(updateData);
       let isError = false;
       for (let i = 0; i < updateData.length; i++) {
         const element = updateData[i];

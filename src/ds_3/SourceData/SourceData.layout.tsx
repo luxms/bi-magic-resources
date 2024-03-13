@@ -65,7 +65,7 @@ export const SourceDataLayout = ({
         {!isEditing ? "Открыть редактирование" : "Закрыть редактирование"}
       </button>
       <div style={{ overflow: "scroll", height: "97%", width: "100%" }}>
-        <table>
+        <table style={{ height: "100%", width: "100%" }}>
           <thead className="source-data-th-custom__head">
             <tr>
               <Th className="source-data-td-custom__head source-data-td-custom__first"></Th>
@@ -113,10 +113,10 @@ export const SourceDataLayout = ({
               ))}
             </tr>
           </thead>
-          <tbody>
+          <tbody style={{ height: "100%", width: "100%" }}>
             {rows.map((row, rowIndex) => {
               return (
-                <tr key={row.info_id}>
+                <tr key={row.info_id} style={{ height: "100%", width: "100%" }}>
                   <Td className="source-data-td-custom__head source-data-td-custom__first">
                     {row.grtitle}
                   </Td>

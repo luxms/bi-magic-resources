@@ -50,8 +50,6 @@ export const ContextMenu = ({
     frm_st: ["=", formStatus ?? 0],
     gr_id: ["=", null],
   });
-  const actionsWithBranch =
-    actionsWithBranch1.length > 0 ? actionsWithBranch1 : actionsWithBranch2;
 
   const actionsWithoutBranch1 = useActions({
     frm_id: ["=", frm_id],
@@ -65,13 +63,15 @@ export const ContextMenu = ({
     frm_st: ["=", formStatus ?? 0],
     gr_id: ["=", null],
   });
-  const actionsWithoutBranch =
-    actionsWithoutBranch1.length > 0
-      ? actionsWithoutBranch1
-      : actionsWithoutBranch2;
 
   const actions =
-    actionsWithBranch.length > 0 ? actionsWithBranch : actionsWithoutBranch;
+    actionsWithBranch1.length > 0
+      ? actionsWithBranch1
+      : actionsWithBranch2.length > 0
+      ? actionsWithBranch2
+      : actionsWithoutBranch1.length > 0
+      ? actionsWithoutBranch1
+      : actionsWithoutBranch2;
 
   const dashFilters = KoobFiltersService.getInstance().getModel().filters;
   const onClick = useCallback(
