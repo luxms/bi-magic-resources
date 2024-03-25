@@ -6,39 +6,48 @@ import { FaformStatusDto } from "../treeView.interface";
  * @param data Данные для запроса.
  */
 export const saveItemFaformStatus = async (
-  data: FaformStatusDto,
+  data: FaformStatusDto[],
   oldFrmSt?: number
 ) => {
   if (oldFrmSt !== undefined) {
     // UPDATE
-    const updateData = {
-      fa_act: data.fa_act,
-      frm_st: data.frm_st,
-      user_id: data.user_id,
-    };
+    const updateData: {
+      update: FaformStatusDto;
+    }[] = [];
+    data.forEach((element) => {
+      updateData.push({ update: element });
+    });
     try {
-      const response = await fetch(
-        ENDPOINT_CREATE_FAFORM_STATUS +
-          `/.filter(frm_id='${data.frm_id}'&& pred_id='${data.pred_id}'&&fiscper=${data.fiscper}&&fiscvar='${data.fiscvar}'&&ir_flag=${data.ir_flag})`,
-        {
-          method: "PUT",
-          credentials: "same-origin",
-          headers: { "Content-type": "application/json; charset=utf-8" },
-          body: JSON.stringify(updateData),
-        }
-      );
+      const response = await fetch(ENDPOINT_CREATE_FAFORM_STATUS, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-type": "application/json; charset=utf-8" },
+        body: JSON.stringify(updateData, (key, value) => {
+          if (value !== "") return value;
+          else return null;
+        }),
+      });
       return response;
     } catch (error) {
       console.log(error);
     }
   } else {
     // INSERT
+    const insertData: {
+      insert: FaformStatusDto;
+    }[] = [];
+    data.forEach((element) => {
+      insertData.push({ insert: element });
+    });
     try {
       const response = await await fetch(ENDPOINT_CREATE_FAFORM_STATUS, {
         method: "POST",
         credentials: "same-origin",
-        body: JSON.stringify(data),
         headers: { "Content-type": "application/json; charset=utf-8" },
+        body: JSON.stringify(insertData, (key, value) => {
+          if (value !== "") return value;
+          else return null;
+        }),
       });
       return response;
     } catch (error) {

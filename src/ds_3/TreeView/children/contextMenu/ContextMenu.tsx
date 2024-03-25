@@ -37,18 +37,25 @@ export const ContextMenu = ({
   );
   const irFlagDefValue = $eid(koobModel.dimensions, "ir_flag")?.config
     ?.defaultValue;
+  const dashFilters = KoobFiltersService.getInstance().getModel().filters;
 
   const actionsWithBranch1 = useActions({
     frm_id: ["=", frm_id],
     branch: ["=", item.branch?.trim()],
     frm_st: ["=", formStatus ?? 0],
     gr_id: ["=", item?.gr_id],
+    ir_flag: Array.isArray(dashFilters?.ir_flag)
+      ? dashFilters?.ir_flag
+      : ["=", irFlagDefValue],
   });
   const actionsWithBranch2 = useActions({
     frm_id: ["=", frm_id],
     branch: ["=", item.branch?.trim()],
     frm_st: ["=", formStatus ?? 0],
     gr_id: ["=", null],
+    ir_flag: Array.isArray(dashFilters?.ir_flag)
+      ? dashFilters?.ir_flag
+      : ["=", irFlagDefValue],
   });
 
   const actionsWithoutBranch1 = useActions({
@@ -56,12 +63,18 @@ export const ContextMenu = ({
     branch: ["=", ""],
     frm_st: ["=", formStatus ?? 0],
     gr_id: ["=", item?.gr_id],
+    ir_flag: Array.isArray(dashFilters?.ir_flag)
+      ? dashFilters?.ir_flag
+      : ["=", irFlagDefValue],
   });
   const actionsWithoutBranch2 = useActions({
     frm_id: ["=", frm_id],
     branch: ["=", ""],
     frm_st: ["=", formStatus ?? 0],
     gr_id: ["=", null],
+    ir_flag: Array.isArray(dashFilters?.ir_flag)
+      ? dashFilters?.ir_flag
+      : ["=", irFlagDefValue],
   });
 
   const actions =
@@ -73,7 +86,6 @@ export const ContextMenu = ({
       ? actionsWithoutBranch1
       : actionsWithoutBranch2;
 
-  const dashFilters = KoobFiltersService.getInstance().getModel().filters;
   const onClick = useCallback(
     async (action: FaItemAction) => {
       if (action.frm_st === 0) {
@@ -143,6 +155,7 @@ export const ContextMenu = ({
               Number(item.branch) == 189 && Number(item.farm) == 800
                 ? item.dor_kod ?? 0
                 : 0,
+            _fa_act: action.fa_act,
             _cash: Math.random(),
           });
           UrlState.navigate({
@@ -153,18 +166,20 @@ export const ContextMenu = ({
         }
       } else {
         const response = await saveItemFaformStatus(
-          {
-            frm_id: frm_id,
-            pred_id: item.id,
-            frm_st: action.frm_st,
-            fa_act: action.fa_act,
-            fiscper: item.fiscper,
-            fiscvar: item.fiscvar,
-            user_id: userId,
-            ir_flag: Array.isArray(dashFilters?.ir_flag)
-              ? dashFilters?.ir_flag[1]
-              : irFlagDefValue,
-          },
+          [
+            {
+              frm_id: frm_id,
+              pred_id: item.id,
+              frm_st: action.frm_st,
+              fa_act: action.fa_act,
+              fiscper: item.fiscper,
+              fiscvar: item.fiscvar,
+              user_id: userId,
+              ir_flag: Array.isArray(dashFilters?.ir_flag)
+                ? dashFilters?.ir_flag[1]
+                : irFlagDefValue,
+            },
+          ],
           formStatus
         );
 

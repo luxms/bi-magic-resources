@@ -47,22 +47,25 @@ const SourceData = (props) => {
   const user_id = url?._user_id;
   const ir_flag = Number(url?._ir_flag);
   const cash = url?._cash;
+  const isView = url._fa_act === 34 ? true : false;
 
   const filters: { [key: string]: any } = {
     PRED_IDF: ["=", pred_id],
     FISCVAR: ["=", fiscvar],
     FISCPER: ["=", fiscper],
   };
-  const insStatus: StatusDto = {
-    pred_id: pred_id,
-    frm_id: 1,
-    fiscper: fiscper,
-    fiscvar: fiscvar,
-    ir_flag: ir_flag,
-    frm_st: 10,
-    fa_act: 32,
-    user_id: user_id,
-  };
+  const insStatus: StatusDto[] = [
+    {
+      pred_id: pred_id,
+      frm_id: 1,
+      fiscper: fiscper,
+      fiscvar: fiscvar,
+      ir_flag: ir_flag,
+      frm_st: 10,
+      fa_act: 32,
+      user_id: user_id,
+    },
+  ];
   useColumns({ pred_id, setColumns, filters });
   useRows({
     pred_id,
@@ -82,9 +85,12 @@ const SourceData = (props) => {
         values.rows,
         Array.from(changedData)
       );
-      //let response = await updateFadataMass(updateData);
-      let isError = false;
-      for (let i = 0; i < updateData.length; i++) {
+      let response = await updateFadataMass(updateData);
+      let isError = response?.status !== 200;
+      if (updateData.length > 0 && !isError) {
+        response = await insertStatus(insStatus);
+      }
+      /* for (let i = 0; i < updateData.length; i++) {
         const element = updateData[i];
         //if (element?.fa_data != null) {
         let response = await updateFadata(element);
@@ -100,7 +106,7 @@ const SourceData = (props) => {
           }
         }
         //}
-      }
+      }*/
 
       setRows([]);
       setChangedData(new Set<string>());
@@ -171,6 +177,7 @@ const SourceData = (props) => {
           rows={rows}
           addChangedData={addChangedData}
           isEditing={isEditing}
+          isView={isView}
           setIsEditing={setIsEditing}
           setIsReload={setIsReload}
           lock={lock}

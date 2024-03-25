@@ -121,6 +121,7 @@ export interface FaItemAction {
   dashboard_id?: number;
   dataset_id?: number;
   filters: string;
+  ir_flag: number;
 }
 
 /**

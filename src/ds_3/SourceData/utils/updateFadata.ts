@@ -34,23 +34,50 @@ export const updateFadata = async (data: FadataDto) => {
 };
 export const updateFadataMass = async (data: FadataDto[]) => {
   try {
-    const updateObj: {
+    const updateData: {
       update: FadataDto;
     }[] = [];
     data.forEach((element) => {
-      updateObj.push({ update: element });
+      updateData.push({ update: element });
     });
 
     const response = await fetch(ENDPOINT_UPDATE_FADATA_MASS, {
       method: "POST",
       credentials: "same-origin",
       headers: { "Content-type": "application/json; charset=utf-8" },
-      body: JSON.stringify(updateObj, (key, value) => {
+      body: JSON.stringify(updateData, (key, value) => {
         if (value !== "") return value;
         else return null;
       }),
     });
-    return response;
+    if (response?.status !== 200) {
+      return response;
+    } else {
+      let parsed = await response?.json();
+      const insertData: {
+        insert: FadataDto;
+      }[] = [];
+      parsed.forEach((element) => {
+        if (element.count[0] === 0) {
+          insertData.push({ insert: element.update });
+        }
+      });
+
+      if (insertData.length > 0) {
+        const response1 = await fetch(ENDPOINT_UPDATE_FADATA_MASS, {
+          method: "POST",
+          credentials: "same-origin",
+          headers: { "Content-type": "application/json; charset=utf-8" },
+          body: JSON.stringify(insertData, (key, value) => {
+            if (value !== "") return value;
+            else return null;
+          }),
+        });
+        return response1;
+      } else {
+        return response;
+      }
+    }
   } catch (error) {
     console.log(error);
   }

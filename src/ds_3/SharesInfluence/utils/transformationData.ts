@@ -1,4 +1,9 @@
-import { Column, FapartDto, Row } from "../sharesInfluence.interface";
+import {
+  Column,
+  FapartDto,
+  DataInsertFapart,
+  Row,
+} from "../sharesInfluence.interface";
 
 export const mapRows = (data: FapartDto[]) => {
   const rowsMap = new Map<string | null, Row>();
@@ -102,13 +107,22 @@ export const mapColumns = (data: FapartDto[]) => {
 export const extractUpdateData = (
   rows: Row[],
   changedData: string[]
-): FapartDto[] => {
-  const updateData: FapartDto[] = [];
+): DataInsertFapart[] => {
+  const updateData: DataInsertFapart[] = [];
   changedData.forEach((item) => {
     const [rowIndex, columnIndex] = item.split("-");
     const fainfoItem = rows[rowIndex];
     const dataItem = fainfoItem.data[columnIndex];
-    updateData.push({ ...dataItem, fashare: Number(dataItem.fashare) });
+    updateData.push({
+      branch: dataItem.branch,
+      factor_id: dataItem.factor_id,
+      farm: dataItem.farm,
+      fashare: dataItem.fashare,
+      fiscper: dataItem.fiscper,
+      fiscvar: dataItem.fiscvar,
+      ir_flag: dataItem.ir_flag,
+      risk_id: dataItem.risk_id,
+    });
   });
   return updateData;
 };

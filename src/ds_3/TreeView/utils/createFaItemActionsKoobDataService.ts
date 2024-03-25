@@ -92,6 +92,12 @@ export const createFaItemActionsKoobDataService = (filters) => {
         sql: "filters",
         title: "filters",
       },
+      {
+        id: "ir_flag",
+        type: "INTEGER",
+        sql: "ir_flag",
+        title: "ir_flag",
+      },
     ],
     [],
     filters

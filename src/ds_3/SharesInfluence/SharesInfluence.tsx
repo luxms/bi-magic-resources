@@ -12,8 +12,14 @@ import {
   insertFapart,
   updateFapart,
 } from "./utils";
+import { updateFapartMass } from "./utils/updateFapart";
 import { SharesInfluenceLayout } from "./SharesInfluence.layout";
-import { Column, FapartDto, Row } from "./sharesInfluence.interface";
+import {
+  Column,
+  FapartDto,
+  Row,
+  DataInsertFapart,
+} from "./sharesInfluence.interface";
 import { KoobDataService } from "bi-internal/services";
 import { KOOB_ID_FAPART, dimensionsFapart } from "./sharesInfluence.constants";
 
@@ -74,7 +80,10 @@ const SharesInfluence = () => {
         values.rows,
         Array.from(changedData)
       );
-      let isError = false;
+
+      let response = await updateFapartMass(updateData);
+      let isError = response?.status !== 200;
+      /*let isError = false;
       for (let i = 0; i < updateData.length; i++) {
         const element = updateData[i];
         //if (element?.fashare != null) {
@@ -84,7 +93,7 @@ const SharesInfluence = () => {
           isError = response?.status !== 200;
         }
         //}
-      }
+      }*/
       setRows([]);
       setChangedData(new Set<string>());
 

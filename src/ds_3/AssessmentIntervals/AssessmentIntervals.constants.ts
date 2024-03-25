@@ -60,3 +60,5 @@ export const dimensionsFainterval = [
 ];
 
 export const ENDPOINT_MODIFY_FAINTERVAL = "/api/db/public.fainterval";
+export const ENDPOINT_MODIFY_FAINTERVAL_MASS =
+  "/api/v3/writeback/batch/koob/luxmsbi.fainterval";

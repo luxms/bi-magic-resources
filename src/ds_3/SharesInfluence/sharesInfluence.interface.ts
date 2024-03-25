@@ -25,7 +25,7 @@ export interface FapartDto {
   f_group_text: string;
   f_text: string;
   farm: string;
-  fashare: number;
+  fashare?: number;
   fiscper: number;
   fiscper_text: string;
   fiscvar: string;
@@ -67,6 +67,6 @@ export interface DataInsertFapart {
   farm: string;
   fiscvar: string;
   fiscper: number;
-  fashare: number;
+  fashare?: number;
   ir_flag: number;
 }

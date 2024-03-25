@@ -1,4 +1,9 @@
-import { Column, FaintervalDto, Row } from "../AssessmentIntervals.interface";
+import {
+  Column,
+  FaintervalDto,
+  DataInsertFainterval,
+  Row,
+} from "../AssessmentIntervals.interface";
 
 export const mapRows = (data: FaintervalDto[]) => {
   const rowsMap = new Map<string | null, Row>();
@@ -32,13 +37,24 @@ export const mapColumns = (data: FaintervalDto[]): Column[] => {
 export const extractUpdateData = (
   rows: Row[],
   changedData: string[]
-): FaintervalDto[] => {
-  const updateData: FaintervalDto[] = [];
+): DataInsertFainterval[] => {
+  const updateData: DataInsertFainterval[] = [];
   changedData.forEach((item) => {
     const [rowIndex, columnIndex] = item.split("-");
     const fainfoItem = rows[rowIndex];
     const dataItem = fainfoItem.data[columnIndex];
-    updateData.push({ ...dataItem, fashare: Number(dataItem.fashare) });
+    updateData.push({
+      factor_id: dataItem.factor_id,
+      farm: dataItem.farm,
+      branch: dataItem.branch,
+      fiscper: dataItem.fiscper,
+      fiscvar: dataItem.fiscvar,
+      faidval: dataItem.faidval,
+      min_border: dataItem.min_border,
+      max_border: dataItem.max_border,
+      ir_flag: dataItem.ir_flag,
+      dor_kod: dataItem.dor_kod,
+    });
   });
   return updateData;
 };

@@ -25,4 +25,5 @@ export const FACONFIGS = "luxmsbi.public_faconfigs";
 /**
  * ENDPOINT для создания записи в таблице public.faform_status.
  */
-export const ENDPOINT_CREATE_FAFORM_STATUS = "/api/db/public.faform_status";
+export const ENDPOINT_CREATE_FAFORM_STATUS =
+  "/api/v3/writeback/batch/koob/luxmsbi.faform_status";

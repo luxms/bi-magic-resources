@@ -1,8 +1,11 @@
+import { boolean } from "yargs";
+
 export interface SourceDataLayoutProps {
   columns: FaPredprIerDto[];
   rows: FainfoAll[];
   addChangedData: (value: string) => void;
   isEditing: boolean;
+  isView: boolean;
   setIsEditing: (value: boolean) => void;
   setIsReload: (value: boolean) => void;
   lock: (value: any) => void;

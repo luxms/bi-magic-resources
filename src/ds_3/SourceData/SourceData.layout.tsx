@@ -15,6 +15,7 @@ export const SourceDataLayout = ({
   rows,
   addChangedData,
   isEditing,
+  isView,
   setIsEditing,
   setIsReload,
   lock,
@@ -61,6 +62,7 @@ export const SourceDataLayout = ({
           // Отправка запроса на проверку блокировки
           onClickEdit();
         }}
+        disabled={isView}
       >
         {!isEditing ? "Открыть редактирование" : "Закрыть редактирование"}
       </button>

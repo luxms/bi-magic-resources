@@ -13,7 +13,13 @@ import {
   updateFainterval,
 } from "./utils";
 import { SharesInfluenceLayout } from "./AssessmentIntervals.layout";
-import { Column, FaintervalDto, Row } from "./AssessmentIntervals.interface";
+import { updateFaintervalMass } from "./utils/updateFainterval";
+import {
+  Column,
+  FaintervalDto,
+  DataInsertFainterval,
+  Row,
+} from "./AssessmentIntervals.interface";
 import { KoobDataService } from "bi-internal/services";
 import {
   KOOB_ID_FAINTERVAL,
@@ -80,7 +86,11 @@ const SharesInfluence = () => {
         values.rows,
         Array.from(changedData)
       );
-      let isError = false;
+
+      let response = await updateFaintervalMass(updateData);
+      let isError = response?.status !== 200;
+
+      /*let isError = false;
       for (let i = 0; i < updateData.length; i++) {
         const element = updateData[i];
         // if (element?.min_border != null || element?.max_border != null) {
@@ -90,7 +100,7 @@ const SharesInfluence = () => {
           isError = response?.status !== 200;
         }
         // }
-      }
+      }*/
       setRows([]);
       setChangedData(new Set<string>());
 

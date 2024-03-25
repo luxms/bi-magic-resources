@@ -282,12 +282,13 @@ export const ENDPOINT_UPDATE_FADATA = "/api/db/public.fadata";
  * Название таблицы для update.
  */
 export const ENDPOINT_UPDATE_FADATA_MASS =
-  "/api/v3/writeback/batch/ds_3/luxmsbi.fadata";
+  "/api/v3/writeback/batch/koob/luxmsbi.fadata";
 
 /**
  * Название таблицы для статуса.
  */
-export const ENDPOINT_STATUS = "/api/db/public.faform_status";
+export const ENDPOINT_STATUS =
+  "/api/v3/writeback/batch/koob/luxmsbi.faform_status";
 
 /**
  * Название куба для блокирования редактирования.

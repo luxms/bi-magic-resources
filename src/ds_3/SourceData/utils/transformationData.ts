@@ -38,6 +38,7 @@ export const extractUpdateData = (
     const [rowIndex, columnIndex] = item.split("-");
     const fainfoItem = fainfoAll[rowIndex];
     const dataItem = fainfoItem.data[columnIndex];
+
     updateData.push({
       info_id: fainfoItem.info_id,
       fiscper: fainfoItem.fiscper,

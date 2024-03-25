@@ -60,3 +60,5 @@ export const dimensionsFapart = [
 ];
 
 export const ENDPOINT_MODIFY_FAPART = "/api/db/public.fapart";
+export const ENDPOINT_MODIFY_FAPART_MASS =
+  "/api/v3/writeback/batch/koob/luxmsbi.fapart";

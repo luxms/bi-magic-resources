@@ -1,13 +1,19 @@
 import { ENDPOINT_STATUS } from "../sourceData.constants";
 import { StatusDto } from "../sourceData.interface";
 
-export const insertStatus = async (data: StatusDto) => {
+export const insertStatus = async (data: StatusDto[]) => {
   try {
+    const insertData: {
+      insert: StatusDto;
+    }[] = [];
+    data.forEach((element) => {
+      insertData.push({ insert: element });
+    });
     const response = await fetch(ENDPOINT_STATUS, {
       method: "POST",
       credentials: "same-origin",
       headers: { "Content-type": "application/json; charset=utf-8" },
-      body: JSON.stringify(data, (key, value) => {
+      body: JSON.stringify(insertData, (key, value) => {
         if (value !== "") return value;
         else return null;
       }),
