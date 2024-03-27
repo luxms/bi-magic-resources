@@ -66,15 +66,15 @@ export const useItems = (filters: any = {}, props?: any) => {
     if (dashFilters?.ir_flag && dashFilters?.ir_flag[1] === 1) {
       KoobFiltersService.getInstance().setFilter(ROOT_KOOB_ID, "branch", [
         "=",
-        184,
+        "184",
       ]);
       pickFilters["branch"] = ["=", "184"];
     } else {
-      KoobFiltersService.getInstance().setFilter(
+      /*KoobFiltersService.getInstance().setFilter(
         ROOT_KOOB_ID,
         "branch",
         undefined
-      );
+      );*/
     }
 
     //значения фильтров по умолчанию из настроек куба
