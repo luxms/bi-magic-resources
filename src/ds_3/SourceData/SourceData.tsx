@@ -50,9 +50,9 @@ const SourceData = (props) => {
   const isView = url._fa_act === 34 ? true : false;
 
   const filters: { [key: string]: any } = {
-    PRED_IDF: ["=", pred_id],
-    FISCVAR: ["=", fiscvar],
-    FISCPER: ["=", fiscper],
+    pred_idf: ["=", pred_id],
+    fiscvar: ["=", fiscvar],
+    fiscper: ["=", fiscper],
   };
   const insStatus: StatusDto[] = [
     {
@@ -70,7 +70,7 @@ const SourceData = (props) => {
   useRows({
     pred_id,
     setRows,
-    filters: { ...filters, IR_FLAG: ["=", ir_flag, null] },
+    filters: { ...filters, ir_flag: ["=", ir_flag, null] },
     isReload,
     setIsReload,
     fiscper,
@@ -114,7 +114,7 @@ const SourceData = (props) => {
         KOOB_ID_ROWS,
         dimensionsRowsDataService.map((item) => item.id),
         [],
-        { ...filters, IR_FLAG: ["=", ir_flag, null] }
+        { ...filters, ir_flag: ["=", ir_flag, null] }
       )
         .then((data) => {
           const rows = mapRows(data as FainfoAllDto[]);

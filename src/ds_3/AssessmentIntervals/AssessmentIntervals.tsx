@@ -56,13 +56,13 @@ const SharesInfluence = () => {
   const cash = url?._cash;
 
   const filters: { [key: string]: any } = {
-    FISCVAR: ["=", fiscvar],
-    FISCPER: ["=", fiscper],
-    BRANCH: ["=", branch],
-    FARM: ["=", farm],
-    IR_FLAG: ["=", ir_flag],
-    TOTAL: ["=", "0"],
-    DOR_KOD: ["=", dor_kod],
+    fiscvar: ["=", fiscvar],
+    fiscper: ["=", fiscper],
+    branch: ["=", branch],
+    farm: ["=", farm],
+    ir_flag: ["=", ir_flag],
+    total: ["=", 0],
+    dor_kod: ["=", dor_kod],
   };
   useRowsAndColumnsFainterval({
     pred_id,

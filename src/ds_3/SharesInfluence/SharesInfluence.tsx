@@ -52,13 +52,14 @@ const SharesInfluence = () => {
   const cash = url?._cash;
 
   const filters: { [key: string]: any } = {
-    FISCVAR: ["=", fiscvar],
-    FISCPER: ["=", fiscper],
-    BRANCH: ["=", branch],
-    FARM: ["=", farm],
-    IR_FLAG: ["=", ir_flag],
-    TOTAL: ["=", null, "0"],
+    fiscvar: ["=", fiscvar],
+    fiscper: ["=", fiscper],
+    branch: ["=", branch],
+    farm: ["=", farm],
+    ir_flag: ["=", ir_flag],
+    total: ["=", 0],
   };
+
   useRowsAndColumnsFapart({
     pred_id,
     filters,
