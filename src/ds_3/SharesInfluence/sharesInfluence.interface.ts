@@ -70,3 +70,17 @@ export interface DataInsertFapart {
   fashare?: number;
   ir_flag: number;
 }
+
+/**
+ * Интерфейс БД таблицы public.faform_status
+ */
+export interface StatusDto {
+  pred_id: number;
+  frm_id: number;
+  fiscper: number;
+  fiscvar: string;
+  ir_flag: number;
+  frm_st: number;
+  fa_act: number;
+  user_id: number;
+}

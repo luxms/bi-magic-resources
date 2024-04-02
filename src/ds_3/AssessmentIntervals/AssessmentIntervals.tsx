@@ -63,6 +63,7 @@ const SharesInfluence = () => {
     ir_flag: ["=", ir_flag],
     total: ["=", 0],
     dor_kod: ["=", dor_kod],
+    pred_id: ["=", pred_id],
   };
   useRowsAndColumnsFainterval({
     pred_id,

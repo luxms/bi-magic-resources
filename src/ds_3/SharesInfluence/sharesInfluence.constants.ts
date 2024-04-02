@@ -58,6 +58,11 @@ export const dimensionsFapart = [
   "risk_id",
   "fashare",
 ];
+/**
+ * Название таблицы для статуса.
+ */
+export const ENDPOINT_STATUS =
+  "/api/v3/writeback/batch/koob/luxmsbi.faform_status";
 
 export const ENDPOINT_MODIFY_FAPART = "/api/db/public.fapart";
 export const ENDPOINT_MODIFY_FAPART_MASS =

@@ -19,7 +19,9 @@ import {
   FapartDto,
   Row,
   DataInsertFapart,
+  StatusDto,
 } from "./sharesInfluence.interface";
+import { insertStatus } from "./utils/insertStatus";
 import { KoobDataService } from "bi-internal/services";
 import { KOOB_ID_FAPART, dimensionsFapart } from "./sharesInfluence.constants";
 
@@ -60,6 +62,19 @@ const SharesInfluence = () => {
     total: ["=", 0],
   };
 
+  const insStatus: StatusDto[] = [
+    {
+      pred_id: pred_id,
+      frm_id: 2,
+      fiscper: fiscper,
+      fiscvar: fiscvar,
+      ir_flag: ir_flag,
+      frm_st: 11,
+      fa_act: 40,
+      user_id: user_id,
+    },
+  ];
+
   useRowsAndColumnsFapart({
     pred_id,
     filters,
@@ -84,6 +99,9 @@ const SharesInfluence = () => {
 
       let response = await updateFapartMass(updateData);
       let isError = response?.status !== 200;
+      if (updateData.length > 0 && !isError) {
+        response = await insertStatus(insStatus);
+      }
       /*let isError = false;
       for (let i = 0; i < updateData.length; i++) {
         const element = updateData[i];

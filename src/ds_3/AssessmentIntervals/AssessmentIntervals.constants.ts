@@ -49,6 +49,7 @@ export const dimensionsFainterval = [
   "branch",
   "farm",
   "dor_kod",
+  "pred_id",
   "fiscper",
   "fiscper_text",
   "fiscvar",
@@ -57,6 +58,7 @@ export const dimensionsFainterval = [
   "faidval",
   "min_border",
   "max_border",
+  "disabled",
 ];
 
 export const ENDPOINT_MODIFY_FAINTERVAL = "/api/db/public.fainterval";

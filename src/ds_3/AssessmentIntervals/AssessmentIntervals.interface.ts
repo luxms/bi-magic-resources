@@ -21,6 +21,7 @@ export interface UnlockDto {
 export interface FaintervalDto {
   factor_id: number;
   branch: string;
+  pred_id: number;
   dor_kod: number;
   f_group_text: string;
   f_text: string;
@@ -32,6 +33,7 @@ export interface FaintervalDto {
   faidval: number;
   min_border: number;
   max_border: number;
+  disabled: boolean;
 }
 
 export interface SharesInfluenceLayoutProps {

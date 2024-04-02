@@ -104,7 +104,7 @@ export const SharesInfluenceLayout = ({
                 <Td>{row.f_group_text ?? ""}</Td>
                 <Td>{row.f_text}</Td>
                 {row.data.map((item, columnIndex) => (
-                  <Td key={item.f_text} disabled={!isEditing}>
+                  <Td key={item.f_text} disabled={item.disabled || !isEditing}>
                     <>
                       <Field
                         name={`rows[${rowIndex}].data[${columnIndex}].min_border`}
@@ -116,7 +116,7 @@ export const SharesInfluenceLayout = ({
                               onChangeItemMin(e, rowIndex, columnIndex)
                             }
                             value={fieldApi.field.value}
-                            disabled={!isEditing}
+                            disabled={item.disabled || !isEditing}
                           />
                         )}
                       </Field>
@@ -130,7 +130,7 @@ export const SharesInfluenceLayout = ({
                               onChangeItemMax(e, rowIndex, columnIndex)
                             }
                             value={fieldApi.field.value}
-                            disabled={!isEditing}
+                            disabled={item.disabled || !isEditing}
                           />
                         )}
                       </Field>
