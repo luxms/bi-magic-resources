@@ -130,7 +130,7 @@ export const ContextMenu = ({
                   ]);
                   break;
                 case "farm":
-                  if (item[filter] != "null") {
+                  if (item[filter] != null) {
                     KoobFiltersService.getInstance().setFilter("", filter, [
                       "=",
                       item[filter],
