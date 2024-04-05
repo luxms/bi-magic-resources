@@ -48,6 +48,7 @@ const SourceData = (props) => {
   const ir_flag = Number(url?._ir_flag);
   const cash = url?._cash;
   const isView = url._fa_act === 34 ? true : false;
+  const caption = url?._caption;
 
   const filters: { [key: string]: any } = {
     pred_idf: ["=", pred_id],
@@ -237,6 +238,7 @@ const SourceData = (props) => {
           setIsReload={setIsReload}
           lock={lock}
           unlock={unlock}
+          tcaption={caption}
         />
       </Formik>
     </div>

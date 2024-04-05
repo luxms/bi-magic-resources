@@ -54,6 +54,7 @@ const SharesInfluence = () => {
   const farm = url?._farm;
   const dor_kod = url?._dor_kod;
   const cash = url?._cash;
+  const caption = url?._caption;
 
   const filters: { [key: string]: any } = {
     fiscvar: ["=", fiscvar],
@@ -231,6 +232,7 @@ const SharesInfluence = () => {
           setIsReload={setIsReload}
           lock={lock}
           unlock={unlock}
+          tcaption={caption}
         />
       </Formik>
     </div>

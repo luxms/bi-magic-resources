@@ -45,6 +45,7 @@ export interface SharesInfluenceLayoutProps {
   setIsReload: (value: boolean) => void;
   lock: () => void;
   unlock: () => void;
+  tcaption: string;
 }
 
 export interface Column {

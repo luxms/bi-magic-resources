@@ -94,12 +94,21 @@ export const ContextMenu = ({
           const setFilters = action.filters?.split(",");
           setFilters?.forEach((filter) => {
             if (filter.indexOf("=") > 0) {
-              const valFilters = filter.split("=");
-              valFilters[1].replace(/;/g, ",");
-              KoobFiltersService.getInstance().setFilter("", valFilters[0], [
-                "=",
-                valFilters[1],
-              ]);
+              if (filter.indexOf("!=") > 0) {
+                const valFilters = filter.split("!=");
+                let val = valFilters[1].split(";");
+                KoobFiltersService.getInstance().setFilter("", valFilters[0], [
+                  "!=",
+                  ...val,
+                ]);
+              } else {
+                const valFilters = filter.split("=");
+                let val = valFilters[1].split(";");
+                KoobFiltersService.getInstance().setFilter("", valFilters[0], [
+                  "=",
+                  ...val,
+                ]);
+              }
             } else
               switch (filter) {
                 case "pred_id":
@@ -151,6 +160,7 @@ export const ContextMenu = ({
 
           UrlState.getInstance().updateModel({
             _pred_id: item.id,
+            _caption: item.name + " " + item.fiscper_text,
             _fiscper: item.fiscper,
             _fiscvar: item.fiscvar,
             _ir_flag: Array.isArray(dashFilters?.ir_flag)

@@ -20,6 +20,7 @@ export const SourceDataLayout = ({
   setIsReload,
   lock,
   unlock,
+  tcaption,
 }: SourceDataLayoutProps) => {
   const formApi = useFormikContext<FainfoAll[]>();
 
@@ -48,6 +49,7 @@ export const SourceDataLayout = ({
 
   return (
     <>
+      <div style={{ padding: "10px" }}>{tcaption}</div>
       <button
         type="submit"
         style={{ marginBottom: "10px" }}

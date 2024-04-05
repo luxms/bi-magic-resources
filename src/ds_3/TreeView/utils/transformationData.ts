@@ -40,6 +40,7 @@ export const mapItems = (dtos: OrganisationDataDto[]): OrganisationData[] => {
               fiscvar: dto.fiscvar,
               ir_flag: dto.ir_flag,
               dor_kod: dto.dor_kod,
+              fiscper_text: dto.fiscper_text,
             };
 
         if (

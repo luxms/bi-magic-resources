@@ -15,6 +15,7 @@ export const SharesInfluenceLayout = ({
   setIsReload,
   lock,
   unlock,
+  tcaption,
 }: SharesInfluenceLayoutProps) => {
   const formApi = useFormikContext();
 
@@ -42,6 +43,7 @@ export const SharesInfluenceLayout = ({
 
   return (
     <>
+      <div style={{ padding: "10px" }}>{tcaption}</div>
       <button
         type="submit"
         style={{ marginBottom: "10px" }}

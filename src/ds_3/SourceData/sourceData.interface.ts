@@ -10,6 +10,7 @@ export interface SourceDataLayoutProps {
   setIsReload: (value: boolean) => void;
   lock: (value: any) => void;
   unlock: (value: any) => void;
+  tcaption: string;
 }
 /**
  * Интерфейс БД получения динамических заголовков

@@ -43,6 +43,7 @@ export interface OrganisationDataDto {
   fiscper: number;
   fiscvar: string;
   ir_flag: number;
+  fiscper_text: string;
 }
 
 /**
@@ -106,6 +107,7 @@ export interface OrganisationData {
   fiscper: number;
   fiscvar: string;
   ir_flag: number;
+  fiscper_text: string;
 }
 
 /**
@@ -121,7 +123,6 @@ export interface FaItemAction {
   dashboard_id?: number;
   dataset_id?: number;
   filters: string;
-  ir_flag: number;
 }
 
 /**

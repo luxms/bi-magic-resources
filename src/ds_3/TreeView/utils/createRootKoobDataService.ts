@@ -98,4 +98,10 @@ export const demensionsRootKoob = [
     sql: "farm",
     title: "farm",
   },
+  {
+    id: "fiscper_text",
+    type: "STRING",
+    sql: "fiscper_text",
+    title: "fiscper_text",
+  },
 ];
