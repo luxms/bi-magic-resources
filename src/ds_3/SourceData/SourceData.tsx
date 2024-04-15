@@ -14,13 +14,10 @@ import {
   FainfoAll,
   FainfoAllDto,
   StatusDto,
-  FadataDto,
 } from "./sourceData.interface";
 import { useColumns, useLockAndUnLock, useRows } from "./utils/hooks";
 import { extractUpdateData, mapRows } from "./utils/transformationData";
-import { updateFadata, updateFadataMass } from "./utils/updateFadata";
-import { insertFadata } from "./utils/insertFadata";
-import { updateStatus } from "./utils/updateStatus";
+import { updateFadataMass } from "./utils/updateFadata";
 import { insertStatus } from "./utils/insertStatus";
 const SourceData = (props) => {
   const [columns, setColumns] = useState<FaPredprIerDto[]>([]);
@@ -199,12 +196,6 @@ const SourceData = (props) => {
   }, [isEditing, pred_id, unlock, isReload]);
 
   // Если пользователь нажал назад будучи на вкладке на которой была установлена блокировка
-  useEffect(() => {
-    window.addEventListener("popstate", onPopState);
-    return () => {
-      window.removeEventListener("popstate", onPopState);
-    };
-  }, [pred_id, onPopState]);
   useEffect(() => {
     window.addEventListener("popstate", onPopState);
     return () => {

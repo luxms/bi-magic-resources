@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useCallback, useEffect } from "react";
+import React, { ChangeEvent, useCallback } from "react";
 import { Field, FieldProps, useFormikContext } from "formik";
 
 import { UrlState } from "bi-internal/core";

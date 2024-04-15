@@ -4,9 +4,10 @@ import {
   KoobFiltersService,
   useService,
   KoobService,
+  KoobDataService,
+  useServiceItself,
 } from "bi-internal/services";
 import { IKoobDataModel } from "bi-internal/services/koob";
-import { KoobDataService } from "bi-internal/services";
 import { $eid } from "bi-internal/utils";
 
 import { demensionsRootKoob } from "./createRootKoobDataService";
@@ -43,23 +44,22 @@ const pickExisting = (obj, keys) =>
 export const useItems = (filters: any = {}, props?: any) => {
   const { cfg } = props;
   const { isReload, setIsReload } = useContext(TreeViewContext);
-  const [items, setItems] = useState<OrganisationData[]>([]);
-  const [pickFilters, setPickFilters] = useState<
-    | {
-        [k: string]: any;
-      }
-    | undefined
-  >();
 
+  const [items, setItems] = useState<OrganisationData[]>([]);
+  const { setClearFilter } = useContext(TreeViewContext);
   const koobModel = useService<KoobService>(
     KoobService,
     cfg.getRaw().dataSource.koob
   );
-  const dashFilters = useMemo(
-    () => KoobFiltersService.getInstance().getModel().filters,
-    [props]
-  );
-  useEffect(() => {
+  const koobFiltersService =
+    useServiceItself<KoobFiltersService>(KoobFiltersService);
+  const koobFiltersModel = koobFiltersService.getModel();
+  if (koobFiltersModel.loading || koobFiltersModel.error) {
+    return { items, setItems };
+  }
+  const dashFilters = koobFiltersModel.filters;
+
+  const pickFilters = useMemo(() => {
     const pickFilters = pickExisting(dashFilters, cfg.dataSource.dimensions);
 
     // если фильтр dashFilters.ir_flag = 1 добавлять фильтр branch: ['=', 184] и отправлять в сервис фильтров
@@ -71,10 +71,10 @@ export const useItems = (filters: any = {}, props?: any) => {
       pickFilters["branch"] = ["=", "184"];
     } else {
       /*KoobFiltersService.getInstance().setFilter(
-        ROOT_KOOB_ID,
-        "branch",
-        undefined
-      );*/
+          ROOT_KOOB_ID,
+          "branch",
+          undefined
+        );*/
     }
 
     //значения фильтров по умолчанию из настроек куба
@@ -84,42 +84,30 @@ export const useItems = (filters: any = {}, props?: any) => {
         column?.config?.defaultValue &&
         !pickFilters.hasOwnProperty(dimension)
       ) {
-        pickFilters[dimension] = column?.config?.defaultValue;
+        pickFilters[dimension] = ["=", column?.config?.defaultValue];
       }
     });
-    const ir_flag = $eid(koobModel.dimensions, "ir_flag");
-    if (
-      ir_flag !== undefined &&
-      ir_flag?.config?.defaultValue !== undefined &&
-      !pickFilters.hasOwnProperty("ir_flag")
-    ) {
-      pickFilters["ir_flag"] = ir_flag?.config?.defaultValue;
-    }
-    setPickFilters(pickFilters);
+    return pickFilters;
   }, [dashFilters, koobModel]);
+  const { clearFilter } = useContext(TreeViewContext);
 
   useEffect(() => {
-    if (pickFilters === undefined) {
+    if (
+      props.suspended || //флаг что ушли с дэша
+      clearFilter || //флаг ручного обновления фильтров при переходе из меню
+      pickFilters === undefined ||
+      Object.keys(pickFilters).length === 0
+    ) {
+      setIsReload(false);
+      setClearFilter(false);
       return undefined;
-    }
-
-    // Если дефолтное значение
-    const filterIrFlag =
-      pickFilters !== undefined &&
-      Object.keys(pickFilters).length !== 0 &&
-      (pickFilters?.ir_flag !== null || pickFilters?.ir_flag !== undefined)
-        ? { ir_flag: ["=", null, pickFilters.ir_flag] }
-        : {};
-
-    if (Array.isArray(pickFilters?.ir_flag)) {
-      filterIrFlag.ir_flag = [...pickFilters.ir_flag, null];
     }
 
     KoobDataService.koobDataRequest3(
       ROOT_KOOB_ID,
       demensionsRootKoob.map((item) => item.id),
       [],
-      { ...filters, ...pickFilters, ...filterIrFlag }
+      { ...filters, ...pickFilters } //, ...filterIrFlag
     )
       .then((data) => {
         setItems(mapItems(data as OrganisationDataDto[]));
@@ -127,6 +115,7 @@ export const useItems = (filters: any = {}, props?: any) => {
       .catch(() => setItems([]));
 
     setIsReload(false);
+    setClearFilter(false);
   }, [pickFilters, isReload]);
 
   return { items, setItems };

@@ -1,5 +1,3 @@
-import { boolean } from "yargs";
-
 export interface SourceDataLayoutProps {
   columns: FaPredprIerDto[];
   rows: FainfoAll[];

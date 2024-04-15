@@ -9,18 +9,10 @@ import {
   extractUpdateData,
   mapColumns,
   mapRows,
-  insertFapart,
-  updateFapart,
 } from "./utils";
 import { updateFapartMass } from "./utils/updateFapart";
 import { SharesInfluenceLayout } from "./SharesInfluence.layout";
-import {
-  Column,
-  FapartDto,
-  Row,
-  DataInsertFapart,
-  StatusDto,
-} from "./sharesInfluence.interface";
+import { Column, FapartDto, Row, StatusDto } from "./sharesInfluence.interface";
 import { insertStatus } from "./utils/insertStatus";
 import { KoobDataService } from "bi-internal/services";
 import { KOOB_ID_FAPART, dimensionsFapart } from "./sharesInfluence.constants";

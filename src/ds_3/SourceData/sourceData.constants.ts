@@ -1,5 +1,4 @@
 import { IKoobDimension } from "bi-internal/defs/bi";
-import { KoobDataService, KoobFiltersService } from "bi-internal/services";
 
 /**
  * Поля, которые необходимо получить из куба(получение динамических столбцов).

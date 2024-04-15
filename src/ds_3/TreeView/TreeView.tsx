@@ -6,7 +6,6 @@ import { Th } from "./children/th/Th";
 import { Td } from "./children/td/Td";
 import { ItemView } from "./children/itemView/ItemView";
 import { TreeViewContext } from "./treeView.context";
-
 import "./styles.scss";
 
 /**
@@ -35,11 +34,18 @@ const TreeView = (props) => {
   const items2 = useItems({ gr_id: ["=", 10] }, props).items;
 
   const items3 = useItems({ gr_id: ["=", 20] }, props).items;
+
   const items =
-    items1.length > 0 ? items1 : items2.length > 0 ? items2 : items3;
+    items1 !== undefined && items1.length !== 0
+      ? items1
+      : items2 !== undefined && items2.length !== 0
+      ? items2
+      : items3;
 
   const formColumns = useFaformColumns();
+
   const clearFilter = useFaConfigs({ CFG_KEY: ["=", "FA_FILTERS_CLEAR"] });
+
   const onClickWindow = useCallback(
     (e: any) => {
       if (!e.target?.dataset?.status) {
@@ -58,8 +64,14 @@ const TreeView = (props) => {
     };
   }, []);
   const { setIsReload } = useContext(TreeViewContext);
+  const { setClearFilter } = useContext(TreeViewContext);
   const onPopState = useCallback(() => {
-    setIsReload(true);
+    if (
+      window.location.href.indexOf("dboard=34") > 0 ||
+      window.location.href.endsWith("dashboards")
+    ) {
+      setIsReload(true);
+    } else setClearFilter(true);
   }, []);
 
   // Обновляем если пользователь нажал назад в формах ввода
@@ -103,8 +115,11 @@ const TreeView = (props) => {
 };
 const TreeViewMain = (props) => {
   const [isReload, setIsReload] = useState(false);
+  const [clearFilter, setClearFilter] = useState(false);
   return (
-    <TreeViewContext.Provider value={{ isReload, setIsReload }}>
+    <TreeViewContext.Provider
+      value={{ isReload, setIsReload, clearFilter, setClearFilter }}
+    >
       <TreeView {...props} />
     </TreeViewContext.Provider>
   );

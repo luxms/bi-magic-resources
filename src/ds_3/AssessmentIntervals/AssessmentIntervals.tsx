@@ -9,17 +9,10 @@ import {
   extractUpdateData,
   mapColumns,
   mapRows,
-  insertFainterval,
-  updateFainterval,
 } from "./utils";
 import { SharesInfluenceLayout } from "./AssessmentIntervals.layout";
 import { updateFaintervalMass } from "./utils/updateFainterval";
-import {
-  Column,
-  FaintervalDto,
-  DataInsertFainterval,
-  Row,
-} from "./AssessmentIntervals.interface";
+import { Column, FaintervalDto, Row } from "./AssessmentIntervals.interface";
 import { KoobDataService } from "bi-internal/services";
 import {
   KOOB_ID_FAINTERVAL,

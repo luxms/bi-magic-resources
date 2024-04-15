@@ -1,14 +1,3 @@
-import { KoobDataService } from "bi-internal/services";
-
-import { ROOT_KOOB_ID } from "../treeView.constants";
-
-/**
- * Создаем KoobDataService для загрузки орагнизаций.
- */
-export const createRootKoobDataService = (filters: any = {}) => {
-  return new KoobDataService(ROOT_KOOB_ID, demensionsRootKoob, [], filters);
-};
-
 export const demensionsRootKoob = [
   {
     id: "predpr_pred_id",

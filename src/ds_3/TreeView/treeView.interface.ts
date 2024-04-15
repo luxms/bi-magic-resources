@@ -131,4 +131,6 @@ export interface FaItemAction {
 export interface TreeViewStateContext {
   isReload: boolean;
   setIsReload: (value: boolean) => void;
+  clearFilter: boolean;
+  setClearFilter: (value: boolean) => void;
 }

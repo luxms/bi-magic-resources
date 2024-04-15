@@ -28,6 +28,7 @@ export const ContextMenu = ({
 }: ContextMenuProps) => {
   const { cfg } = props;
   const { setIsReload } = useContext(TreeViewContext);
+  const { setClearFilter } = useContext(TreeViewContext);
 
   const { userId } = AuthenticationService.getInstance().getModel();
 
@@ -137,6 +138,12 @@ export const ContextMenu = ({
                     ]);
                   }
                   break;
+                case "fiscper":
+                  KoobFiltersService.getInstance().setFilter("", filter, [
+                    "=",
+                    String(item[filter]),
+                  ]);
+                  break;
                 case "ir_flag":
                   KoobFiltersService.getInstance().setFilter(
                     "",
@@ -181,6 +188,7 @@ export const ContextMenu = ({
             segmentId: `ds_${action.dataset_id}`,
             dboard: action.dashboard_id,
           });
+          setClearFilter(true);
         }
       } else {
         const response = await saveItemFaformStatus(
