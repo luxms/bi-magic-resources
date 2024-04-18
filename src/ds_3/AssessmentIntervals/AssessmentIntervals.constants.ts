@@ -50,6 +50,7 @@ export const dimensionsFainterval = [
   "farm",
   "dor_kod",
   "pred_id",
+  "gr_id",
   "fiscper",
   "fiscper_text",
   "fiscvar",

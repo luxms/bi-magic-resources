@@ -177,9 +177,12 @@ export const ContextMenu = ({
             _branch: item.branch,
             _farm: item.farm,
             _dor_kod:
-              Number(item.branch) == 189 && Number(item.farm) == 800
+              Number(item.branch) == 189 &&
+              Number(item.farm) == 800 &&
+              action.fa_act == 4
                 ? item.dor_kod ?? 0
                 : 0,
+            _gr_id: action.fa_act == 4 ? 0 : 10,
             _fa_act: action.fa_act,
             _cash: Math.random(),
           });

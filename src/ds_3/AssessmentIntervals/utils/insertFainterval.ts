@@ -16,6 +16,7 @@ export const insertFainterval = async (data: FaintervalDto) => {
     max_border: data.max_border,
     ir_flag: data.ir_flag,
     dor_kod: data.dor_kod,
+    gr_id: data.gr_id,
   };
   try {
     const response = await fetch(ENDPOINT_MODIFY_FAINTERVAL, {

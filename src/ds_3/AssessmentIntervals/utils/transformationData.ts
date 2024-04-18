@@ -54,6 +54,7 @@ export const extractUpdateData = (
       max_border: dataItem.max_border,
       ir_flag: dataItem.ir_flag,
       dor_kod: dataItem.dor_kod,
+      gr_id: dataItem.gr_id,
     });
   });
   return updateData;

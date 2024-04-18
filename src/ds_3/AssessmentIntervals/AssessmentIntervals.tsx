@@ -48,6 +48,7 @@ const SharesInfluence = () => {
   const dor_kod = url?._dor_kod;
   const cash = url?._cash;
   const caption = url?._caption;
+  const gr_id = url?._gr_id;
 
   const filters: { [key: string]: any } = {
     fiscvar: ["=", fiscvar],
@@ -58,7 +59,9 @@ const SharesInfluence = () => {
     total: ["=", 0],
     dor_kod: ["=", dor_kod],
     pred_id: ["=", pred_id],
+    gr_id: ["=", gr_id],
   };
+
   useRowsAndColumnsFainterval({
     pred_id,
     filters,

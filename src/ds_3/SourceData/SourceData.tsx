@@ -85,9 +85,9 @@ const SourceData = (props) => {
       );
       let response = await updateFadataMass(updateData);
       let isError = response?.status !== 200;
-      if (updateData.length > 0 && !isError) {
-        response = await insertStatus(insStatus);
-      }
+      //if (updateData.length > 0 && !isError) {
+      response = await insertStatus(insStatus);
+      //}
       /* for (let i = 0; i < updateData.length; i++) {
         const element = updateData[i];
         //if (element?.fa_data != null) {

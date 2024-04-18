@@ -92,9 +92,9 @@ const SharesInfluence = () => {
 
       let response = await updateFapartMass(updateData);
       let isError = response?.status !== 200;
-      if (updateData.length > 0 && !isError) {
-        response = await insertStatus(insStatus);
-      }
+      //if (updateData.length > 0 && !isError) {
+      response = await insertStatus(insStatus);
+      // }
       /*let isError = false;
       for (let i = 0; i < updateData.length; i++) {
         const element = updateData[i];

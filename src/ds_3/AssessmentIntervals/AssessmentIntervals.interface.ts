@@ -22,6 +22,7 @@ export interface FaintervalDto {
   factor_id: number;
   branch: string;
   pred_id: number;
+  gr_id: number;
   dor_kod: number;
   f_group_text: string;
   f_text: string;
@@ -67,4 +68,5 @@ export interface DataInsertFainterval {
   max_border: number;
   ir_flag: number;
   dor_kod: number;
+  gr_id: number;
 }
