@@ -59,7 +59,7 @@ const SharesInfluence = () => {
     total: ["=", 0],
     dor_kod: ["=", dor_kod],
     pred_id: ["=", pred_id],
-    gr_id: ["=", gr_id],
+    gr_id: ["=", 1, gr_id],
   };
 
   useRowsAndColumnsFainterval({
@@ -76,6 +76,7 @@ const SharesInfluence = () => {
     farm,
     dor_kod,
     cash,
+    gr_id,
   });
 
   const onSubmit = useCallback(
@@ -88,17 +89,6 @@ const SharesInfluence = () => {
       let response = await updateFaintervalMass(updateData);
       let isError = response?.status !== 200;
 
-      /*let isError = false;
-      for (let i = 0; i < updateData.length; i++) {
-        const element = updateData[i];
-        // if (element?.min_border != null || element?.max_border != null) {
-        let response = await updateFainterval(element);
-        if (response?.status !== 200) {
-          response = await insertFainterval(element);
-          isError = response?.status !== 200;
-        }
-        // }
-      }*/
       setRows([]);
       setChangedData(new Set<string>());
 
