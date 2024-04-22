@@ -1,4 +1,8 @@
-import { FaformColumn, OrganisationData, FaConfigs } from "../../treeView.interface";
+import {
+  FaformColumn,
+  OrganisationData,
+  FaConfigs,
+} from "../../treeView.interface";
 
 export interface ItemViewProps {
   item: OrganisationData;

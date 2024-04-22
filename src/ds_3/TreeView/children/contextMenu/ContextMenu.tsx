@@ -23,6 +23,7 @@ export const ContextMenu = ({
   item,
   frm_id,
   formStatus,
+  depth,
   props,
   filterClear,
 }: ContextMenuProps) => {
@@ -45,6 +46,7 @@ export const ContextMenu = ({
     branch: ["=", item.branch?.trim()],
     frm_st: ["=", formStatus ?? 0],
     gr_id: ["=", item?.gr_id],
+    // leaf_hier_level: ["=", depth],
     ir_flag: Array.isArray(dashFilters?.ir_flag)
       ? dashFilters?.ir_flag
       : ["=", irFlagDefValue],
@@ -54,6 +56,7 @@ export const ContextMenu = ({
     branch: ["=", item.branch?.trim()],
     frm_st: ["=", formStatus ?? 0],
     gr_id: ["=", null],
+    // leaf_hier_level: ["=", depth],
     ir_flag: Array.isArray(dashFilters?.ir_flag)
       ? dashFilters?.ir_flag
       : ["=", irFlagDefValue],
@@ -64,6 +67,7 @@ export const ContextMenu = ({
     branch: ["=", ""],
     frm_st: ["=", formStatus ?? 0],
     gr_id: ["=", item?.gr_id],
+    // leaf_hier_level: ["=", depth],
     ir_flag: Array.isArray(dashFilters?.ir_flag)
       ? dashFilters?.ir_flag
       : ["=", irFlagDefValue],
@@ -73,6 +77,7 @@ export const ContextMenu = ({
     branch: ["=", ""],
     frm_st: ["=", formStatus ?? 0],
     gr_id: ["=", null],
+    //   leaf_hier_level: ["=", depth],
     ir_flag: Array.isArray(dashFilters?.ir_flag)
       ? dashFilters?.ir_flag
       : ["=", irFlagDefValue],
@@ -167,7 +172,15 @@ export const ContextMenu = ({
 
           UrlState.getInstance().updateModel({
             _pred_id: item.id,
-            _caption: item.name + " " + item.fiscper_text,
+            _caption:
+              action.fa_act == 4
+                ? "Линейные подразделения " +
+                  item.name +
+                  " " +
+                  item.fiscper_text
+                : action.fa_act == 42
+                ? "Службы " + item.name + " " + item.fiscper_text
+                : item.name + " " + item.fiscper_text,
             _fiscper: item.fiscper,
             _fiscvar: item.fiscvar,
             _ir_flag: Array.isArray(dashFilters?.ir_flag)

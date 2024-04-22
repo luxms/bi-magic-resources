@@ -35,12 +35,16 @@ const TreeView = (props) => {
 
   const items3 = useItems({ gr_id: ["=", 20] }, props).items;
 
+  const items4 = useItems({ gr_id: ["=", 9] }, props).items;
+
   const items =
     items1 !== undefined && items1.length !== 0
       ? items1
       : items2 !== undefined && items2.length !== 0
       ? items2
-      : items3;
+      : items3 !== undefined && items3.length !== 0
+      ? items3
+      : items4;
 
   const formColumns = useFaformColumns();
 
