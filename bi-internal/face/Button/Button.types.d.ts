@@ -1,4 +1,4 @@
-import React = require("../../defs/react");
+import React from 'react';
 export declare type ISizes = 'sm' | 'md' | 'lg';
 export declare type IVariant = 'primary' | 'secondary' | 'success' | 'danger' | 'warning' | 'info' | 'link' | 'plain' | '4';
 export declare type IWidth = number | string;

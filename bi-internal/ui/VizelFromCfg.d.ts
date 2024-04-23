@@ -1,4 +1,4 @@
-import React = require("../defs/react");
+import React from 'react';
 import {IVizelProperties, tables} from '../defs/bi'
 import {repo} from '../core'
 

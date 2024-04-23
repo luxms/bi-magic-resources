@@ -1,4 +1,4 @@
-import React = require("../../defs/react");
+import React from 'react';
 import { DatePickerProps } from "./DatePicker.types";
 
 declare class DatePicker extends React.Component<DatePickerProps> {

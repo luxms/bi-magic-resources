@@ -1,9 +1,9 @@
-import {BaseService} from '../core/BaseService'
+import {BaseService} from '../core'
 
 export enum AlertType {
     NEWS = 'news',
     INFO = 'info',
-    INFO_IMPORTANT = 'info_important', // todo ?
+    INFO_IMPORTANT = 'info_important',
     SUCCESS = 'success',
     DANGER = 'danger',
     WARNING = 'warning',
@@ -31,7 +31,7 @@ export class AlertsVC extends BaseService<IAlertsVM> {
 
     public static getInstance(): AlertsVC
 
-    public pushAlert(rawAlert: IAlert, timeout?: number): void 
+    public pushAlert(rawAlert: IAlert, timeout?: number): void
 
     public pushNewsAlert(description: string, title?: string, timeout?: number): void;
 
@@ -54,7 +54,7 @@ export class AlertsVC extends BaseService<IAlertsVM> {
     public static pushSuccessAlert(description: string, title?: string, timeout?: number): void;
 
     public static pushDangerAlert(description: string, title?: string, timeout?: number): void;
-    
+
     public static pushWarningAlert(description: string, title?: string, timeout?: number): void;
 }
 

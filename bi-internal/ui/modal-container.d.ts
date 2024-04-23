@@ -1,4 +1,4 @@
-import React = require("../defs/react");
+import React from 'react';
 import {tables} from "../defs/bi";
 
 interface IModalCreateVizel {

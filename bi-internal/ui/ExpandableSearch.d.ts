@@ -1,4 +1,4 @@
-import React = require("../defs/react");
+import React from 'react';
 
 interface IExpandableSearchProps {
     onSearchTermChanged: (searchTerm: string) => any;
