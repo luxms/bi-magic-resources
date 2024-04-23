@@ -13,3 +13,4 @@ export {IfICan} from './ui/IfICan';
 export {Search} from './ui/Search';
 export {OnlyWhenVisible} from './ui/OnlyWhenVisible';
 export {ConfirmWindow} from './ui/ConfirmWindow';
+export {L10n} from './ui/L10n';
