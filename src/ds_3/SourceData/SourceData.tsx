@@ -25,6 +25,7 @@ const SourceData = (props) => {
   const [changedData, setChangedData] = useState(new Set<string>());
   // Флаг открытия закрытия редактирования. Выставляется после блокировки
   const [isEditing, setIsEditing] = useState(false);
+
   // Флаг отвечает за перезагрузку данных, если открыли на редактирование.
   const [isReload, setIsReload] = useState(false);
 
@@ -212,12 +213,13 @@ const SourceData = (props) => {
   ) {
     return <div>Переход был осуществлен не из TreeView</div>;
   }
+
   if (rows.length === 0) {
     return <div>Ничего не найдено</div>;
   }
 
   return (
-    <div style={{ padding: "20px", height: "100%", width: "100%" }}>
+    <div style={{ padding: "20px", height: "95%", width: "100%" }}>
       <Formik initialValues={{ rows }} onSubmit={onSubmit}>
         <SourceDataLayout
           columns={columns}

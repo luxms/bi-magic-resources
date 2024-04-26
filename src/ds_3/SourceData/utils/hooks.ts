@@ -60,9 +60,7 @@ export const useRows = ({
 }: UseRowsParams) => {
   useEffect(() => {
     setRows([]);
-  }, [pred_id, isReload, fiscper, fiscvar, ir_flag, cash]);
 
-  useEffect(() => {
     if (!pred_id) {
       return;
     }

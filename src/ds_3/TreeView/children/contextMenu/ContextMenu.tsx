@@ -13,6 +13,7 @@ import {
   KoobFiltersService,
   KoobService,
   useService,
+  useServiceItself,
 } from "bi-internal/services";
 import { $eid } from "bi-internal/utils";
 /**
@@ -39,7 +40,11 @@ export const ContextMenu = ({
   );
   const irFlagDefValue = $eid(koobModel.dimensions, "ir_flag")?.config
     ?.defaultValue;
-  const dashFilters = KoobFiltersService.getInstance().getModel().filters;
+  const koobFiltersService =
+    useServiceItself<KoobFiltersService>(KoobFiltersService);
+  const koobFiltersModel = koobFiltersService.getModel();
+  if (koobFiltersModel.loading || koobFiltersModel.error) return null;
+  const dashFilters = koobFiltersModel.filters;
 
   const actionsWithBranch1 = useActions({
     frm_id: ["=", frm_id],
@@ -96,79 +101,57 @@ export const ContextMenu = ({
     async (action: FaItemAction) => {
       if (action.frm_st === 0) {
         if (action.url) {
-          clearFilterService(filterClear[0]);
+          const filters = filterClear[0].cfg_val.split(",");
+          const setAllFilters = {};
+          filters.forEach((item) => {
+            setAllFilters[item] = undefined;
+          });
           const setFilters = action.filters?.split(",");
+
           setFilters?.forEach((filter) => {
             if (filter.indexOf("=") > 0) {
               if (filter.indexOf("!=") > 0) {
                 const valFilters = filter.split("!=");
                 let val = valFilters[1].split(";");
-                KoobFiltersService.getInstance().setFilter("", valFilters[0], [
-                  "!=",
-                  ...val,
-                ]);
+                setAllFilters[valFilters[0]] = ["!=", ...val];
               } else {
                 const valFilters = filter.split("=");
                 let val = valFilters[1].split(";");
-                KoobFiltersService.getInstance().setFilter("", valFilters[0], [
-                  "=",
-                  ...val,
-                ]);
+                setAllFilters[valFilters[0]] = ["=", ...val];
               }
             } else
               switch (filter) {
                 case "pred_id":
-                  KoobFiltersService.getInstance().setFilter("", filter, [
-                    "=",
-                    item.id,
-                  ]);
+                  setAllFilters[filter] = ["=", item.id];
                   break;
                 case "pred_idf":
-                  KoobFiltersService.getInstance().setFilter("", filter, [
-                    "=",
-                    item.id,
-                  ]);
+                  setAllFilters[filter] = ["=", item.id];
                   break;
                 case "frm_id":
-                  KoobFiltersService.getInstance().setFilter("", filter, [
-                    "=",
-                    frm_id,
-                  ]);
+                  setAllFilters[filter] = ["=", frm_id];
                   break;
                 case "farm":
                   if (item[filter] != null) {
-                    KoobFiltersService.getInstance().setFilter("", filter, [
-                      "=",
-                      item[filter],
-                    ]);
+                    setAllFilters[filter] = ["=", item[filter]];
                   }
                   break;
                 case "fiscper":
-                  KoobFiltersService.getInstance().setFilter("", filter, [
-                    "=",
-                    String(item[filter]),
-                  ]);
+                  setAllFilters[filter] = ["=", String(item[filter])];
                   break;
                 case "ir_flag":
-                  KoobFiltersService.getInstance().setFilter(
-                    "",
-                    filter,
-                    Array.isArray(dashFilters?.ir_flag)
-                      ? dashFilters?.ir_flag
-                      : ["=", irFlagDefValue]
-                  );
+                  setAllFilters[filter] = Array.isArray(dashFilters?.ir_flag)
+                    ? dashFilters?.ir_flag
+                    : ["=", irFlagDefValue];
                   break;
 
                 default:
                   if (item.hasOwnProperty(filter)) {
-                    //console.log(filter + item[filter]);
-                    KoobFiltersService.getInstance().setFilter("", filter, [
-                      "=",
-                      item[filter],
-                    ]);
+                    setAllFilters[filter] = ["=", item[filter]];
                   }
               }
           });
+
+          koobFiltersService.setFilters("", setAllFilters);
 
           UrlState.getInstance().updateModel({
             _pred_id: item.id,
