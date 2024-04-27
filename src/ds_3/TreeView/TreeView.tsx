@@ -93,7 +93,7 @@ const TreeView = (props) => {
           <Th>ID</Th>
           <Th>Наименование</Th>
           {formColumns.map((column) => (
-            <Td key={column.id}>{column.title}</Td>
+            <Th key={column.id}>{column.title}</Th>
           ))}
         </thead>
         <tbody>

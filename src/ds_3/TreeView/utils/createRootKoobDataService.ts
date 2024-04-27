@@ -1,5 +1,11 @@
 export const demensionsRootKoob = [
   {
+    id: "srt",
+    type: "STRING",
+    sql: "srt",
+    title: "srt",
+  },
+  {
     id: "predpr_pred_id",
     type: "INTEGER",
     sql: "predpr_pred_id",
@@ -45,12 +51,7 @@ export const demensionsRootKoob = [
     sql: "children_count",
     title: "children_count",
   },
-  {
-    id: "branch",
-    type: "STRING",
-    sql: "branch",
-    title: "branch",
-  },
+
   {
     id: "dor_kod",
     type: "INTEGER",
@@ -62,6 +63,18 @@ export const demensionsRootKoob = [
     type: "STRING",
     sql: "st_title",
     title: "st_title",
+  },
+  {
+    id: "branch",
+    type: "STRING",
+    sql: "branch",
+    title: "branch",
+  },
+  {
+    id: "farm",
+    type: "STRING",
+    sql: "farm",
+    title: "farm",
   },
   {
     id: "fiscper",
@@ -81,12 +94,7 @@ export const demensionsRootKoob = [
     sql: "ir_flag",
     title: "ir_flag",
   },
-  {
-    id: "farm",
-    type: "STRING",
-    sql: "farm",
-    title: "farm",
-  },
+
   {
     id: "fiscper_text",
     type: "STRING",
