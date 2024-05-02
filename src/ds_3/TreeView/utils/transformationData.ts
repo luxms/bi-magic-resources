@@ -77,6 +77,7 @@ export const mapFaConfigs = (dtos: FaConfigsDto[]): FaConfigs[] =>
  */
 export const mapFaItemActions = (dtos: FaItemActionDto[]): FaItemAction[] =>
   dtos?.map((dto) => ({
+    srt: dto.srt,
     frm_id: dto.frm_id,
     frm_st: dto.frm_st_end,
     title: dto.title,

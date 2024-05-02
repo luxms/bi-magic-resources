@@ -6,6 +6,13 @@ import { ShowChildrenButton } from "../showChildrenButton/ShowChildrenButton";
 import { ContextMenu } from "../contextMenu/ContextMenu";
 import { ItemChildrenView } from "../itemChildrenView/ItemChildrenView";
 
+function highlight(e) {
+  var elements = document.getElementsByTagName("tr");
+  for (var i = 0; i < elements.length; i++) elements[i].style.background = "";
+  var parent = e.target.parentNode;
+  if (parent.tagName == "TR") parent.style.background = "#d3d3f7";
+}
+
 /**
  * Компонента отображающая организацию.
  */
@@ -52,7 +59,7 @@ export const ItemView = ({
 
   return (
     <>
-      <tr id={item.id?.toString()}>
+      <tr id={item.id?.toString()} onClick={(e) => highlight(e)}>
         <Td className="td-custom__child">
           {"----".repeat(depth - 1)}
           {item.hasChildren && (

@@ -53,6 +53,10 @@ const TreeView = (props) => {
   const onClickWindow = useCallback(
     (e: any) => {
       if (!e.target?.dataset?.status) {
+        var elements = document.getElementsByTagName("tr");
+        for (var i = 0; i < elements.length; i++)
+          elements[i].style.background = "";
+
         setVisibleContextMenu({
           pred_id: undefined,
           frm_id: undefined,

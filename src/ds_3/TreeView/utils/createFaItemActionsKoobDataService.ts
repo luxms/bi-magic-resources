@@ -9,6 +9,8 @@ export const createFaItemActionsKoobDataService = (filters) => {
   return new KoobDataService(
     FA_ITEM_ACTION,
     [
+      { id: "srt", type: "INTEGER", sql: "srt", title: "srt" },
+      { id: "frm_id", type: "INTEGER", sql: "frm_id", title: "frm_id" },
       { id: "branch", type: "STRING", sql: "branch", title: "branch" },
       {
         id: "dashboard_id",
@@ -36,7 +38,7 @@ export const createFaItemActionsKoobDataService = (filters) => {
         sql: "frm_bound_st_end",
         title: "frm_bound_st_end",
       },
-      { id: "frm_id", type: "INTEGER", sql: "frm_id", title: "frm_id" },
+
       { id: "frm_st", type: "INTEGER", sql: "frm_st", title: "frm_st" },
       {
         id: "frm_st_end",

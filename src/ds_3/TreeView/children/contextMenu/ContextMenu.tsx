@@ -6,7 +6,6 @@ import { useActions } from "../../utils/hooks";
 import { TreeViewContext } from "../../treeView.context";
 import { ContextMenuProps } from "./contextMenu.interface";
 import { FaItemAction } from "../../treeView.interface";
-import { clearFilterService } from "../../utils/clearFilterService";
 
 import "./styles.scss";
 import {
@@ -223,14 +222,19 @@ export const ContextMenu = ({
   return (
     <div id="context-menu" className="context-menu">
       <ul>
-        {actions.map((action) => (
+        {actions.map((action, index) => (
           <li>
             <button
               className="context-menu__btn"
               onClick={() => onClick(action)}
               disabled={action.disabled}
             >
-              {action.title}
+              {(item?.gr_id === 7 ||
+                item?.gr_id === 10 ||
+                item?.gr_id === 20) &&
+              frm_id == 4
+                ? `${index + 1} ${action.title}`
+                : action.title}
             </button>
           </li>
         ))}

@@ -50,6 +50,7 @@ export interface OrganisationDataDto {
  * Интерфейс сущности, которую мы получаем из БД, и описывающей экшены доп колонок.
  */
 export interface FaItemActionDto {
+  srt?: number;
   frm_id: number;
   branch?: string;
   dashboard_id?: number;
@@ -114,6 +115,7 @@ export interface OrganisationData {
  * Интерфейс сущности, которую мы используем в наших UI комонентах, и описывающей экшены дополнительных колонок.
  */
 export interface FaItemAction {
+  srt?: number;
   frm_id: number;
   frm_st: number;
   title: string;
