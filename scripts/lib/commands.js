@@ -23,8 +23,6 @@ async function _loginWithSpinner() {
     return result;
   } catch (err) {
     authSpinner.stop();
-    console.log(chalk.red('\nERROR:'));
-    console.error(chalk.red(err.message));
     throw err;
   }
 }

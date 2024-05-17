@@ -13,6 +13,7 @@ const { filterSchemaNames, splitResource, fixResourceIdToName } = require('./lib
 const commands  = require('./lib/commands');
 const authMiddleware = require('./apis/auth-middleware');
 const RtMiddleware = require('./apis/rt-middleware');
+const chalk = require("chalk");
 
 // initialize server module
 
@@ -332,7 +333,13 @@ const startDev = () => {
 };
 
 if (ONLINE) {
-  commands.loginWithSpinner().then(startDev);
+  commands
+    .loginWithSpinner()
+    .then(startDev)
+    .catch(err => {
+      console.log(chalk.red('\nERROR:'));
+      console.error(chalk.red(err.message));
+    });
 } else {
   startDev();
 }
