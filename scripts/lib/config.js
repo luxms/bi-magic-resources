@@ -34,7 +34,9 @@ const defaultValues = {
   noRemove: false,
   include: '^ds_\\w+$',
   exclude: '',
-  dashboards: false,
+  resources: true,                                                                                  // sync resources
+  dashboards: false,                                                                                // DO NOT sync dashboards
+  cubes: false,                                                                                     // DO NOT sync cubes
   kerberos: '',
   noLogin: false,
 };
@@ -145,13 +147,35 @@ function getNoRemove() {
 
 
 /**
- * get dashboards: it's possibility to save configs
- * of Dashboards and Dashlets to a local disk.
+ * hasResources: it's possibility to save resources
+ * to a local disk.
  * Also, upload it to a server after.
  * @returns boolean
  */
-function mustSaveDashboardConfigToDisk() {
+function hasResources() {
+  return !!getOption('resources');
+}
+
+
+/**
+ * hasDashboards: control of Dashboards Groups / Dashboards / Dashlets
+ * save configs to disk
+ * serve on start
+ * @returns boolean
+ */
+function hasDashboards() {
   return !!getOption('dashboards');
+}
+
+
+/**
+ * hasCubes: control of Cubes / Dimensions
+ * save configs to disk
+ * serve on start
+ * @returns boolean
+ */
+function hasCubes() {
+  return !!getOption('cubes');
 }
 
 
@@ -179,6 +203,8 @@ function getSUPConfig() {
 }
 
 function getSUPConfigAndLog() {
+  const check = (v) => v ? '☑' : '☐';
+
   const {SERVER, USERNAME, PASSWORD, KERBEROS} = getSUPConfig();
   console.log();
   console.log('SERVER  :', chalk.yellowBright(SERVER));
@@ -186,8 +212,10 @@ function getSUPConfigAndLog() {
     console.log('KERBEROS:', chalk.yellowBright(KERBEROS));
   } else {
     console.log('USERNAME:', chalk.yellowBright(USERNAME));
-    console.log('PASSWORD:', chalk.yellowBright(PASSWORD.split('').map(_ => '*').join('')), '\n');
+    console.log('PASSWORD:', chalk.yellowBright(PASSWORD.split('').map(_ => '*').join('')));
   }
+  console.log(`          ${check(hasResources())} resources    ${check(hasDashboards())} dashboards    ${check(hasCubes())} cubes`);
+  console.log('\n');
   return {SERVER, USERNAME, PASSWORD};
 }
 
@@ -201,6 +229,8 @@ module.exports = {
   getExclude,
   getSUPConfig,
   getSUPConfigAndLog,
-  mustSaveDashboardConfigToDisk,
+  hasResources,
+  hasDashboards,
+  hasCubes,
   getNoLogin,
 }

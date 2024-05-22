@@ -59,7 +59,7 @@ const startDev = () => {
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
         res.end(JSON.stringify(Object.keys(ASSETS).filter(asset => asset.startsWith(schema_name + '/')).map(asset => ASSETS[asset])));
       });
-      if (config.mustSaveDashboardConfigToDisk()) {
+      if (config.hasDashboards()) {
         app.use('/api/db/:schema_name.dashboards/', async function (req, res, next) {
           try {
             const {method, url} = req;
