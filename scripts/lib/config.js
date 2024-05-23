@@ -26,7 +26,7 @@ const savedValues = {};
 
 /**
  *
- * @type {Object.<string, number>}
+ * @type {Object.<string, any>}
  */
 const defaultValues = {
   port: '3003',
@@ -42,43 +42,69 @@ const defaultValues = {
 };
 
 
+let configJsonContent = null;
+
+function getConfigJsonContent() {
+  if (!configJsonContent) {
+    try {
+      const textContent = fs.readFileSync(path.resolve(__dirname, '..', '..', 'config.json'), 'utf8');
+      configJsonContent = JSON.parse(textContent);
+    } catch (err) {
+      console.warn('Error reading config.json:', err.message);
+      configJsonContent = {};
+    }
+  }
+  return configJsonContent;
+}
+
+let authConfigJsonContent = null;
+
+function getAuthConfigJsonContent() {
+  if (!authConfigJsonContent) {
+    try {
+      const textContent = fs.readFileSync(path.resolve(__dirname, '..', '..', 'authConfig.json'), 'utf8');
+      authConfigJsonContent = JSON.parse(textContent);
+      // now try to read key in this file according to git branch
+      try {
+        const currentBranchName = require('current-git-branch')();
+        if (currentBranchName in authConfigJsonContent) {
+          authConfigJsonContent = authConfigJsonContent[currentBranchName];
+        }
+      } catch (err) {
+        // just skip this feature
+      }
+    } catch (err) {
+      // file might not exist or invalid...
+      console.warn('Error reading authConfig.json:', err.message);
+      authConfigJsonContent = {};                                                                   // skip
+    }
+  }
+  return authConfigJsonContent;
+}
+
+
 function getOption(name, prompt) {
   // 1. may be cached
   const savedValue = savedValues[name];
-  if (savedValue) return savedValue;
+  if (savedValue !== undefined) return savedValue;
 
   // 2. read from cli args:
   // ex:
   //   npm run pull -- --option=value
   const cliValue = getCliArg(name);
-  if (cliValue) return (savedValues[name] = cliValue);
+  if (cliValue !== undefined) return (savedValues[name] = cliValue);
 
   // 3. read value from ENV
   // (must be uppercase)
   // ex:
   //   BI_SERVER=http://127.0.0.1 npm run pull
   const envValue = process.env[varNameToEnv(name)];
-  if (envValue) return (savedValues[name] = envValue);
+  if (envValue !== undefined) return (savedValues[name] = envValue);
 
-  // 4. read from config
-  // two config files:
-  //   config.json - for server and other options
-  //   authConfig  - only for username and password
-  const jsonConfigFileName = (name === 'username' || name === 'password') ? 'authConfig.json': 'config.json';
-  try {
-    const authConfig = fs.readFileSync(path.resolve(__dirname, '..', '..', jsonConfigFileName), 'utf8');
-    try {
-      const jsonConfig = JSON.parse(authConfig);
-      const currentBranchName = require('current-git-branch')();
-      const jsonConfigValue = (currentBranchName in jsonConfig) ? jsonConfig[currentBranchName][name] : jsonConfig[name];
-      if (jsonConfigValue) return (savedValues[name] = jsonConfigValue);
-    } catch (err) {
-      console.warn('Error reading authConfig.json:', err.message);
-    }
-  } catch (err) {
-    // file might not exists or invalid...
-    // skip
-  }
+  // 4. read from config, either config.json - for server and other options
+  //    or authConfig  - for username and password only
+  const jsonConfig = (name === 'username' || name === 'password') ? getAuthConfigJsonContent() : getConfigJsonContent();
+  if (jsonConfig[name] !== undefined) return (savedValues[name] = jsonConfig[name]);
 
   // 5. default value for option
   const defaultValue = defaultValues[name];
@@ -203,7 +229,7 @@ function getSUPConfig() {
 }
 
 function getSUPConfigAndLog() {
-  const check = (v) => v ? '☑' : '☐';
+  const checkMark = (v) => v ? '☑' : '☐';
 
   const {SERVER, USERNAME, PASSWORD, KERBEROS} = getSUPConfig();
   console.log();
@@ -214,7 +240,7 @@ function getSUPConfigAndLog() {
     console.log('USERNAME:', chalk.yellowBright(USERNAME));
     console.log('PASSWORD:', chalk.yellowBright(PASSWORD.split('').map(_ => '*').join('')));
   }
-  console.log(`          ${check(hasResources())} resources    ${check(hasDashboards())} dashboards    ${check(hasCubes())} cubes`);
+  console.log(`          ${checkMark(hasResources())} resources    ${checkMark(hasDashboards())} dashboards    ${checkMark(hasCubes())} cubes`);
   console.log('\n');
   return {SERVER, USERNAME, PASSWORD};
 }

@@ -8,6 +8,7 @@ const pkg = require('./package.json');
 const env = yargs.argv.env;                                                                         // use --env with webpack 2
 const mode = (env === 'build') ? 'production' : 'development';
 const { filterSchemaNames } = require('./scripts/lib/utils');
+const config = require('./scripts/lib/config');
 const JSON5 = require('json5');
 
 
@@ -27,7 +28,19 @@ function getFiles(dir, prefix = '') {
 //  'ds_xxx/File': './src/ds_xxx/File.tsx',
 const entry = {};                                                                                   //  __dirname + '/src/index.js',
 const SRC = path.resolve(__dirname, 'src');
-const SCHEMA_NAMES = filterSchemaNames(fs.readdirSync(SRC).filter(fileName => fs.statSync(path.resolve(SRC, fileName)).isDirectory()));
+const dirs = fs.readdirSync(SRC).filter(fileName => fs.statSync(path.resolve(SRC, fileName)).isDirectory());
+const SCHEMA_NAMES = filterSchemaNames(dirs);
+
+if (!SCHEMA_NAMES.length) {
+  console.log(`Could not find any atlas in src directory`);
+  if (dirs.length) {
+    console.log(`Directories under src/`);
+    console.log(dirs.map(p => '⬩    ' + p).join('\n'));
+    console.log('Config EXCLUDE expr:', config.getExclude());
+    console.log('Config INCLUDE expr:', config.getInclude());
+  }
+  process.exit(1);
+}
 
 SCHEMA_NAMES.forEach(schema_name => {
   const files = getFiles(path.resolve(SRC, schema_name)).filter(fileName => fileName.endsWith('.tsx') || fileName.endsWith('.jsx'));
