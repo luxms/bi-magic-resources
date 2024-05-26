@@ -1,4 +1,4 @@
-const md5 = require('md5');
+7const md5 = require('md5');
 const Spinner = require('cli-spinner').Spinner;
 const _colors = require('colors');
 const { SingleBar } = require('cli-progress');
@@ -66,48 +66,79 @@ async function pullPushInit(fnCallback) {
 }
 
 
+async function enumDashboards(origin) {
+  const list = [];
+  const schemaNames = await retryOnFail(() => origin.getSchemaNames());
+  for (let schemaName of schemaNames) {
+    let resources = [];
+    resources = await origin.getConfigs(schemaName);
+    for (let resource of resources) {
+      list.push(`/${schemaName}/${resource}`);
+    }
+  }
+  return list;
+}
+
+
+async function enumCubes(origin) {
+  const list = [];
+  const schemaNames = await retryOnFail(() => origin.getSchemaNames());
+  for (let schemaName of schemaNames) {
+    let entities = await origin.getCubes(schemaName);
+//////////////////////////////////////
+    8**************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************
+    for (let e of entities) {
+      list.push(`/${schemaName}/${e}`);
+    }
+  }
+  return list;
+}
+
+
 /**
  * load full list of resources
  * @param origin - imported from server or local
  * @returns {Promise<[]>}
  */
-async function enumResources(origin, type) {
+async function enumResources(origin) {
   const list = [];
   const schemaNames = await retryOnFail(() => origin.getSchemaNames());
   for (let schemaName of schemaNames) {
-    try {
-      let resources = [];
-      switch (type) {
-        case 'config': resources = await origin.getConfigs(schemaName);
-        break;
-        default: resources = await origin.getResources(schemaName);
-      }
-      for (let resource of resources) {
-        if (type !== 'config') list.push(`/${schemaName}/${encodeURIComponent(resource)}`);
-        else list.push(`/${schemaName}/${resource}`);
-      }
-    } catch (err) {
-      if (err.isAxiosError) {
-        console.log(chalk.red('Error: ' + JSON.stringify(err.response ? err.response.data : null)));
-      }
-      throw err;
+    let resources = [];
+    resources = await origin.getResources(schemaName);
+    for (let resource of resources) {
+      list.push(`/${schemaName}/${encodeURIComponent(resource)}`);
     }
   }
-  if (type !== 'config') list.sort();
+  list.sort();
   return list;
 }
+
 
 async function synchronize(fromModule, toModule) {
   const resSpinner = new Spinner('Loading resources list... %s');
   resSpinner.start();
 
-  let fromResources, toResources, fromDashboards, toDashboards;
+  let fromResources, toResources, fromDashboards, toDashboards, fromCubes, toCubes;
 
   try {
-    fromResources = await retryOnFail(() => enumResources(fromModule, undefined));
-    toResources = await retryOnFail(() => enumResources(toModule, undefined));
-    fromDashboards = await retryOnFail(() => enumResources(fromModule, 'config'));
-    toDashboards = await retryOnFail(() => enumResources(toModule, 'config'));
+    let fromSchemaNames = await retryOnFail(() => fromModule.getSchemaNames());
+    let toSchemaNames = await retryOnFail(() => toModule.getSchemaNames());
+
+    if (config.hasResources()) {
+      fromResources = await retryOnFail(() => enumResources(fromModule));
+      toResources = await retryOnFail(() => enumResources(toModule));
+    }
+
+    if (config.hasDashboards()) {
+      fromDashboards = await retryOnFail(() => enumDashboards(fromModule));
+      toDashboards = await retryOnFail(() => enumDashboards(toModule));
+    }
+
+    if (config.hasCubes()) {
+      fromCubes = await retryOnFail(() => enumCubes(fromModule));
+      toCubes = await retryOnFail(() => enumCubes(toModule));
+    }
   } finally {
     resSpinner.stop();
   }

@@ -27,10 +27,20 @@ function setBaseDir(dir) {
 const getSchemaPath = (schemaName) => path.resolve(baseDir, schemaName);
 const getResourcePath = (schemaName, resourceName) => path.resolve(baseDir, schemaName, path.join(...resourceName.split('/')));
 
+/**
+ * Check if the directory name is reserved for dashboards or cubes
+ * @param {string} dirName
+ * @returns {boolean}
+ */
+function isReservedDirectory(dirName) {
+  return dirName.startsWith('topic.') ||
+         dirName.startsWith('.cubes');
+}
+
 function getFiles(dir, prefix = '') {
   const dirents = fs.readdirSync(dir, { withFileTypes: true });
   const files = dirents
-    .filter((dirent) => !(dirent.isDirectory() && dirent.name.includes('topic.')) && dirent.name !== '.gitkeep')
+    .filter((dirent) => !(dirent.isDirectory() && isReservedDirectory(dirent.name)) && dirent.name !== '.gitkeep')
     .map((dirent) => dirent.isDirectory() ? getFiles(path.resolve(dir, dirent.name), prefix + dirent.name + '/') : prefix + dirent.name);
   return Array.prototype.concat(...files);
 }
@@ -136,7 +146,7 @@ async function getConfigs(schemaName) {
 async function getTopicsId(schemaName) {
   const dirPath = getSchemaPath(schemaName);
   const files = getConfigsFromDisk(dirPath);
-  const arrIds = files.filter((f) =>  f.includes('topic.')).map((f) => getIdfromStr(f, 'topic.'));
+  const arrIds = files.filter((f) => f.includes('topic.')).map((f) => getIdfromStr(f, 'topic.'));
   const result = Array.from(new Set(arrIds)).sort();
   return result;
 }

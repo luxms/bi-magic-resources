@@ -95,20 +95,6 @@ async function getResourceId(resource) {
   return id;
 }
 
-async function getResourceName(resource) {
-  const [schemaName, resourceId] = splitResource(resource);
-  let resourceName;
-  if (resourceId.match(/^\d+$/)) {
-    const metaUrl = `${SERVER}/api/db/${schemaName}.resources/${resourceId}`;
-    resourceName = (await axios.get(metaUrl, {
-      jar: cookieJar,
-      withCredentials: true,
-    })).data[0].alt_id;                                                                                 // TODO: handle not found
-  } else {
-    resourceName = resourceId;
-  }
-  return resourceName;
-}
 
 async function getSchemaNames() {
   const url = `${SERVER}/api/db/adm.datasets`;
@@ -449,9 +435,20 @@ async function getId (payload) {
   return response.statusText === 'OK' && response.data.hasOwnProperty('id') ? response.data.id : null;
 }
 
+
+/**
+ *
+ * @returns {Promise<Cube[]>}
+ */
+async function getCubes() {
+  return [
+    {ident: "a"}
+  ];
+}
+
+
 module.exports = {
   setServer,
-  loginKerberos,
   loginSSO,
   login,
   logout,
