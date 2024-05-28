@@ -1,4 +1,5 @@
-import React = require("../defs/react");
+import React from 'react';
+
 interface IBIIconProps {
     icon?: string;
     text?: string;
@@ -18,5 +19,5 @@ interface IBIIconProps {
  * @description вставляет иконки по названию из assets/icons
  */
 export class BIIcon extends React.PureComponent<IBIIconProps> {
-    public constructor(props)
+    public constructor(props: IBIIconProps)
 }

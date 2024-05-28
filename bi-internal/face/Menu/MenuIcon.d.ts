@@ -1,4 +1,4 @@
-import React = require("../../defs/react");
+import React from 'react';
 interface MenuIconProps {
     icon?: JSX.Element | Element | string;
     onClick?: (e: any) => any;

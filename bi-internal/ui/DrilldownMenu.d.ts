@@ -1,5 +1,4 @@
 import {IVizelConfig, IDatasetModel} from '../defs/types';
-import {data_engine} from '../defs/data-manip'
 import {ISubspacePtr, IVCPV } from "../defs/bi";
 
 export interface IMenuItem {

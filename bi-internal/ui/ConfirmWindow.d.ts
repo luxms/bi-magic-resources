@@ -1,4 +1,4 @@
-import React = require("../defs/react");
+import React from 'react';
 
 interface IConfirmWindowProps {
     readonly title?: string;

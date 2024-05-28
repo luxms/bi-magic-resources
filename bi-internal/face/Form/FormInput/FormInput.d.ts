@@ -1,4 +1,4 @@
-import React = require("../../../defs/react");
+import React from 'react';
 import { FormInputProps } from "../Form.types";
 declare const FormInput: React.FC<FormInputProps>;
 export default FormInput;
