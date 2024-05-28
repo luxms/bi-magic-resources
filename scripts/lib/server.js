@@ -146,6 +146,7 @@ async function getResourceContent(resource) {
   return response.data;
 }
 
+
 /**
  *
  * @param {string} resource
@@ -438,12 +439,11 @@ async function getId (payload) {
 
 /**
  *
+ * @param {string} schema_name
  * @returns {Promise<Cube[]>}
  */
-async function getCubes() {
-  return [
-    {ident: "a"}
-  ];
+async function getCubes(schema_name) {
+  return [];
 }
 
 
@@ -465,4 +465,5 @@ module.exports = {
   saveJSONContent,
   removeJSONContent,
   getId,
+  getCubes,
 };

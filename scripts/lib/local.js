@@ -352,6 +352,17 @@ async function createDashlet(payload) {
   }
 }
 
+
+/**
+ *
+ * @param {string} schema_name
+ * @returns {Promise<Cube[]>}
+ */
+async function getCubes(schema_name) {
+  return [];
+}
+
+
 module.exports = {
   setBaseDir,
   getSchemaNames,
@@ -371,5 +382,6 @@ module.exports = {
   createDashboard,
   createDashlet,
   createTopic,
-  getTopicsId
+  getTopicsId,
+  getCubes,
 };
