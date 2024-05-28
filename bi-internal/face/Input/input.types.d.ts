@@ -1,4 +1,4 @@
-import React = require("../../defs/react");
+import React from 'react';
 
 export interface IInput extends React.FC<React.InputHTMLAttributes<HTMLInputElement>> {
     Label: React.FC<IInputLabel>;

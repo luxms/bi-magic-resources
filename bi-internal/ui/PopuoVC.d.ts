@@ -1,4 +1,4 @@
-import {BaseService} from '../core/BaseService';
+import {BaseService} from '../core';
 
 /**
  *
@@ -34,9 +34,9 @@ export interface IPopupVM extends IPopupPosition {
 
 
 export class PopupVC extends BaseService<IPopupVM> {
-    
+
     private constructor();
-    
+
     public static getInstance(): PopupVC;
 
     public showDialog(dlgVC: any, position: IPopupPosition, onClose?: any): void;

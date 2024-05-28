@@ -1,4 +1,4 @@
-import React = require("../../defs/react");
+import React from 'react';
 interface IBaseProps extends React.HTMLAttributes<HTMLElement> {
     children?: JSX.Element[] | JSX.Element | Element | string;
     className?: string;

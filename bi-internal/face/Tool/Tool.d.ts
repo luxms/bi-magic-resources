@@ -1,4 +1,4 @@
-import React = require("../../defs/react");
+import React from 'react';
 import { IToolProps } from "./Tool.types";
 declare const Tool: React.FC<IToolProps>;
 export default Tool;

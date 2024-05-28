@@ -1,4 +1,4 @@
-import React = require("../../defs/react");
+import React from 'react';
 export declare type Sizes = 'sm' | 'md' | 'lg';
 interface IBaseProps {
     children: string | number | JSX.Element[] | JSX.Element | Element;

@@ -1,4 +1,4 @@
-import React = require("../defs/react")
+import React from 'react';
 import {ISummaryModel} from '../services/services'
 
 export interface IRootSegment {

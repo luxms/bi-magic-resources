@@ -1,4 +1,4 @@
-import React = require("../../defs/react");
+import React from 'react';
 export interface IAccountToolProps extends React.HTMLAttributes<HTMLElement> {
     title?: string;
     icon1?: JSX.Element | Element;

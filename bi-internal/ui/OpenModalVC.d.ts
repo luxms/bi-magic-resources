@@ -1,4 +1,4 @@
-import React = require("../defs/react");
+import React from 'react';
 import CSSProperties = React.CSSProperties;
 
 export interface IOpenModalVMOpt {
@@ -16,4 +16,4 @@ export interface IOpenModalVMOpt {
  *  onModalResult: (args: any) => void
  * , Функции срабатываают на  openModal.then((args)=> аргументы из onModalResult ).catch((args)=> аргументы из onModalCancel)
  */
-export function openModal(el: React.ReactElement, options?: IOpenModalVMOpt): Promise<any> 
+export function openModal(el: React.ReactElement, options?: IOpenModalVMOpt): Promise<any>

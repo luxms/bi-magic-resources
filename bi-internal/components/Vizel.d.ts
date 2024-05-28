@@ -1,5 +1,5 @@
 import {ISubspace, IVizel, IVizelListener, IVizelProperties } from '../defs/bi'
-import React = require("../defs/react")
+import React from 'react';
 import { IVizelProps } from '../defs/types'
 
 export class Vizel extends React.Component<IVizelProps> implements IVizel{

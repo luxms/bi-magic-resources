@@ -2,6 +2,7 @@ export * from './utils/utils'
 export * from './utils/list';
 export * from './utils/c-utils'
 export * from './utils/lpe'
+export * from './utils/vizel_config'
 
 import {mouseWatcher} from './utils/MouseWathcer';
 
