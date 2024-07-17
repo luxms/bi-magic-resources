@@ -68,8 +68,10 @@ module.exports = {
   externals: {
     'react': 'react',
     'react-dom': 'react-dom',
+    'react-dom/client': 'react-dom/client',
+    'react-latex-next': 'react-latex-next',
     'classnames': 'classnames',
-    //'jquery': 'jquery',
+    'jquery': 'jquery',
     'axios': 'axios',
     'three': 'three',
     '@react-three/fiber': '@react-three/fiber',

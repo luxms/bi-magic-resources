@@ -41,9 +41,7 @@
   },
   "homepage": "https://gito.luxms.com/luxmsbi/luxmsbi-web-internal",
   "dependencies": {
-    "format-number-with-string": "^0.0.2",
-    "iscroll": "^5.2.0",
-    "jquery": "^3.6.0"
+    "format-number-with-string": "^0.0.2"
   },
   "optionalDependencies": {
     "node-expose-sspi": "^0.1.60"
