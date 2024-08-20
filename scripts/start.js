@@ -100,7 +100,6 @@ const startDev = () => {
                 }
                 const contentBuffer = Buffer.from(JSON.stringify(contents));
                 res.setHeader('Content-Type', 'application/json');
-                res.setHeader('Authorization', `Bearer ${JWT}`);
                 res.end(contentBuffer);
               }
                 break;
