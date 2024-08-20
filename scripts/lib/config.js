@@ -32,11 +32,12 @@ const defaultValues = {
   port: '3003',
   force: false,
   noRemove: false,
-  include: '^ds_\\w+$',
+  include: 'ds_hello', //'^ds_\\w+$',
   exclude: '',
-  dashboards: false,
+  dashboards: true, // false
   kerberos: '',
   noLogin: false,
+  jwt: '',
 };
 
 
@@ -163,6 +164,13 @@ function getNoLogin() {
   return !!getOption('noLogin');
 }
 
+/**
+ * get json web token: alternative authorization method
+ * @returns {string}
+ */
+function getJWT() {
+  return getOption('jwt');
+}
 
 /**
  * get server, username and password values from config
@@ -173,9 +181,10 @@ function getNoLogin() {
 function getSUPConfig() {
   const SERVER = getServer();
   const KERBEROS = getOption('kerberos');
-  const USERNAME = !KERBEROS ? getOption('username') : '';
-  const PASSWORD = !KERBEROS ? getOption('password') : '';
-  return {SERVER, USERNAME, PASSWORD, KERBEROS};
+  const JWT = !KERBEROS ? getOption('jwt') : '';
+  const USERNAME = !KERBEROS && !JWT ? getOption('username') : '';
+  const PASSWORD = !KERBEROS && !JWT ? getOption('password') : '';
+  return {SERVER, USERNAME, PASSWORD, KERBEROS, JWT};
 }
 
 function getSUPConfigAndLog() {
@@ -203,4 +212,5 @@ module.exports = {
   getSUPConfigAndLog,
   mustSaveDashboardConfigToDisk,
   getNoLogin,
+  getJWT,
 }

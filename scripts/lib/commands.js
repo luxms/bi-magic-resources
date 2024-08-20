@@ -10,14 +10,18 @@ const config = require('./config');
 const utils = require('./utils');
 
 async function _loginWithSpinner() {
-  const {SERVER, USERNAME, PASSWORD, KERBEROS} = config.getSUPConfig();
+  const {SERVER, USERNAME, PASSWORD, KERBEROS, JWT} = config.getSUPConfig();
   server.setServer(SERVER);
 
   // authentication
   const authSpinner = new Spinner('Authentication... %s');
   authSpinner.start();
   try {
-    const result = KERBEROS ? await retryOnFail(() => server.loginSSO(KERBEROS)) : await retryOnFail(() => server.login(USERNAME, PASSWORD));
+    const result = KERBEROS
+      ? await retryOnFail(() => server.loginSSO(KERBEROS))
+      : JWT
+        ? await retryOnFail(() => server.loginJWT(JWT))
+        : await retryOnFail(() => server.login(USERNAME, PASSWORD));
     authSpinner.stop();
     console.log('SUCCESS\n');
     return result;
