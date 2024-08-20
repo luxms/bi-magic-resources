@@ -81,7 +81,7 @@
     "current-git-branch": "^1.1.0",
     "file-loader": "^6.2.0",
     "git": "^0.1.5",
-    "http-proxy-middleware": "^2.0.1",
+    "http-proxy-middleware": "^3.0.0",
     "json5": "^2.2.0",
     "kerberos": "^2.0.1",
     "md5": "^2.3.0",
