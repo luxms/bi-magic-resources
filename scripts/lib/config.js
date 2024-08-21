@@ -188,11 +188,13 @@ function getSUPConfig() {
 }
 
 function getSUPConfigAndLog() {
-  const {SERVER, USERNAME, PASSWORD, KERBEROS} = getSUPConfig();
+  const {SERVER, USERNAME, PASSWORD, KERBEROS, JWT} = getSUPConfig();
   console.log();
   console.log('SERVER  :', chalk.yellowBright(SERVER));
   if (!!KERBEROS) {
     console.log('KERBEROS:', chalk.yellowBright(KERBEROS));
+  } else if (!!JWT) {
+    console.log('JWT:', chalk.yellowBright(`${JWT.slice(0, 16)}...`));
   } else {
     console.log('USERNAME:', chalk.yellowBright(USERNAME));
     console.log('PASSWORD:', chalk.yellowBright(PASSWORD.split('').map(_ => '*').join('')), '\n');
