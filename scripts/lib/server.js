@@ -146,6 +146,35 @@ async function getResourceContent(resource) {
   return response.data;
 }
 
+/**
+ *
+ * @param cube - full id of cube form of '/ds_xxx/cubes/xx.xx'
+ * @returns {Promise<ArrayBuffer>} - resource content
+ */
+async function getCubesContent(cube) {
+  const [_, schemaName, folderName, cubeId] = cube.split('/');
+  const url = `${SERVER}/api/db/${schemaName}.cubes/${cubeId}`;
+  try {
+    const response = await axios.get(url, {
+      jar: cookieJar,
+      withCredentials: true,
+    });
+    const cubeData = response.data[0];
+    const dimURL = `${SERVER}/api/db/${schemaName}.dimensions/.filter(source_ident='${cubeData.source_ident}')`;
+    const dimResponse = await axios.get(dimURL, {
+      jar: cookieJar,
+      withCredentials: true,
+    });
+    const dimensions = dimResponse.data;
+    ["id", "is_source_global", "is_global"].forEach(key => delete cubeData[key]);
+    ["id", "is_cube_global", "is_global", "source_ident", "cube_id", "cube_name"].forEach((key) => {
+      dimensions.forEach(dim => delete dim[key])
+    });
+    return { ...cubeData, dimensions };
+  } catch(err) {
+    throw err;
+  }
+}
 
 /**
  *
@@ -443,6 +472,18 @@ async function getId (payload) {
  * @returns {Promise<Cube[]>}
  */
 async function getCubes(schema_name) {
+  const url = `${SERVER}/api/db/${schema_name}.cubes`;
+  try {
+    const response = await axios.get(url, {
+      jar: cookieJar,
+      withCredentials: true,
+    });
+    const resources = response.data.map(entry => entry.id);
+    return resources;
+  } catch (err) {
+    // console.warn(`Failed request ${url}`, err);
+    throw err;
+  }
   return [];
 }
 
@@ -466,4 +507,5 @@ module.exports = {
   removeJSONContent,
   getId,
   getCubes,
+  getCubesContent,
 };

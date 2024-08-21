@@ -81,12 +81,12 @@ async function enumDashboards(origin) {
 
 
 async function enumCubes(origin) {
-  const list = [];
+  const list =  [];
   const schemaNames = await retryOnFail(() => origin.getSchemaNames());
   for (let schemaName of schemaNames) {
-    let entities = await origin.getCubes(schemaName);
-    for (let e of entities) {
-      list.push(`/${schemaName}/${e}`);
+    let cubes = await origin.getCubes(schemaName);
+    for (let cube of cubes) {
+      list.push(`/${schemaName}/cubes/${cube}`);
     }
   }
   return list;
@@ -117,7 +117,12 @@ async function synchronize(fromModule, toModule) {
   const resSpinner = new Spinner('Loading resources list... %s');
   resSpinner.start();
 
-  let fromResources, toResources, fromDashboards, toDashboards, fromCubes, toCubes;
+  let fromResources = [],
+      toResources = [],
+      fromDashboards = [],
+      toDashboards = [],
+      fromCubes = [],
+      toCubes = [];
 
   try {
     let fromSchemaNames = await retryOnFail(() => fromModule.getSchemaNames());
@@ -190,6 +195,28 @@ async function synchronize(fromModule, toModule) {
     if (!config.getNoRemove()) {
       for (let config of toDashboards) {
         if (!fromDashboards.includes(config)) {
+          removeConfigItems.push({config});
+        }
+      }
+    }
+  }
+
+  if (config.hasCubes()) {
+    for (let config of fromCubes) {
+      const fromContent = await retryOnFail(() => fromModule.getCubesContent(config));
+
+      if (toCubes.includes(config)) {                                                               // may be overwrite
+        let toContent = await retryOnFail(() => toModule.getConfigContent(config));
+        if (!utils.compareObjects(fromContent, toContent)) {                                             // check if config changed
+          overwriteConfigItems.push({config, content: fromContent});
+        }
+      } else {                                                                                        // has new config
+        createConfigItems.push({config, content: fromContent})
+      }
+    }
+    if (!config.getNoRemove()) {
+      for (let config of toCubes) {
+        if (!fromCubes.includes(config)) {
           removeConfigItems.push({config});
         }
       }
