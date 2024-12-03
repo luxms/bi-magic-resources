@@ -13,6 +13,7 @@ const { filterSchemaNames, splitResource, fixResourceIdToName } = require('./lib
 const commands  = require('./lib/commands');
 const authMiddleware = require('./apis/auth-middleware');
 const RtMiddleware = require('./apis/rt-middleware');
+const RtMiddlewareRSocket = require('./apis/rt-middleware-r-socket');
 const chalk = require("chalk");
 
 // initialize server module
@@ -40,7 +41,8 @@ const startDev = () => {
     publicPath: '/',
     watchOptions: {ignored: /node_modules/, poll: true},
 
-    sockPath: '/srv/rt',
+    sockPath: '/srv/bI/',
+    // sockPath: '/srv/rt',
 
     transportMode: {
       client: 'ws',
@@ -176,7 +178,7 @@ const startDev = () => {
             }
             let dashContents = dashlets.map((r) => r.content);
             switch (method) {
-              case 'GET': {
+              case 'GET':
                 if (resource === '.order_by(srt,id)') {
                   dashContents.sort((prev, next) => prev.srt - next.srt || prev.id - next.id);
                 } else {
@@ -185,9 +187,9 @@ const startDev = () => {
                 const contentBuffer = Buffer.from(JSON.stringify(dashContents));
                 res.setHeader('Content-Type', 'application/json');
                 res.end(contentBuffer);
-              }
                 break;
-              case 'PUT': {
+
+              case 'PUT':
                 req.on('data', async function (chunk) {
                   const data = chunk;
                   const jsonBody = {id: dashletdId, ...JSON.parse(data)};
@@ -196,9 +198,8 @@ const startDev = () => {
                   res.setHeader('Content-Type', 'application/json');
                   res.end(Buffer.from(JSON.stringify(jsonBody)));
                 })
-
-              }
                 break;
+
               case 'POST': {
                 req.on('data', async function (chunk) {
                   const data = chunk;
@@ -277,7 +278,30 @@ const startDev = () => {
   });
 
 
-  let rtMiddleware = new RtMiddleware(webpackDevServer.listeningApp);                                 // rt must be initialized with httpServer object
+  let rtMiddleware = new RtMiddleware(webpackDevServer.listeningApp);                               // rt must be initialized with httpServer object
+  let rtMiddlewareRSocket = new RtMiddlewareRSocket(webpackDevServer.listeningApp);
+  // Поскольку сейчас висит два обработчика на вебсокетах, то требуется вручную их роутить
+  webpackDevServer.listeningApp.on('upgrade', (request, socket, head) => {
+    const srvbi = rtMiddleware._wsServer;
+    const srvrt = rtMiddlewareRSocket._wsServer;
+
+    const pathname = request.url;
+
+    if (pathname === '/srv/bI/') {
+      srvbi.handleUpgrade(request, socket, head, (ws) => {
+        srvbi.emit('connection', ws);
+      });
+    } else if (pathname === '/srv/rt/') {
+      srvrt.handleUpgrade(request, socket, head, (ws) => {
+        srvrt.emit('connection', ws);
+      });
+    } else {
+      socket.destroy();
+    }
+  });
+
+
+
   let ASSETS = {}, _id = 1;
 
   webpackDevServer.compiler.hooks.done.tap('webpack-dev-server', (stats) => {
@@ -309,10 +333,18 @@ const startDev = () => {
         updated: now,
         created: now
       });
-      groupBySchemaNames(addedIds).forEach(({schema_name, ids}) => rtMiddleware.addResources(schema_name, ids.map(id => ASSETS[id])));
+
+      groupBySchemaNames(addedIds).forEach(({schema_name, ids}) => {
+        rtMiddleware.addResources(schema_name, ids.map(id => ASSETS[id]));
+        rtMiddlewareRSocket.addResources(schema_name, ids.map(id => ASSETS[id]));
+      });
 
       modifiedIds.forEach(asset => ASSETS[asset].updated = now);
-      groupBySchemaNames(modifiedIds).forEach(({schema_name, ids}) => rtMiddleware.modifyResources(schema_name, ids.map(id => ASSETS[id])));
+
+      groupBySchemaNames(modifiedIds).forEach(({schema_name, ids}) => {
+        rtMiddleware.modifyResources(schema_name, ids.map(id => ASSETS[id]));
+        rtMiddlewareRSocket.modifyResources(schema_name, ids.map(id => ASSETS[id]));
+      });
 
     } catch (err) {
       console.error(err);
