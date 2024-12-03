@@ -108,5 +108,6 @@
     "ws": "^8.0.0",
     "yargs": "^10.0.3",
     "yarn-or-npm": "^3.0.1"
-  }
+  },
+  "packageManager": "yarn@4.3.0"
 }
