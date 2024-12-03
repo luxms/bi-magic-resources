@@ -2,6 +2,7 @@
 // use `yarn start` command to launch the server.
 const webpack = require('webpack');
 const WebpackDevServer = require('webpack-dev-server');
+const { createProxyMiddleware } = require('http-proxy-middleware');
 const webpackConfig = require('../webpack.config');
 const path = require('path');
 const parse = require('url-parse')
@@ -18,11 +19,11 @@ const chalk = require("chalk");
 
 // initialize server module
 
-const ONLINE = !config.getNoLogin()
+const ONLINE = !config.getNoLogin();
 if (ONLINE) config.getSUPConfigAndLog();
 const SERVER = config.getServer();
 const PORT = config.getPort();
-
+const JWT = config.getJWT();
 
 const startDev = () => {
 
@@ -251,6 +252,16 @@ const startDev = () => {
             console.error(err);
           }
         });
+      }
+      if (JWT) {
+        app.use('/api/', createProxyMiddleware({
+          target: `${SERVER}/api/`,
+          on: {
+            proxyReq: (proxyReq) => {
+              proxyReq.setHeader('Authorization', `Bearer ${JWT}`);
+            },
+          }
+        }))
       }
 
       // поскольку есть copy plugin, теперь не нужно сервить статику специальным образом

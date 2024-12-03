@@ -37,6 +37,7 @@ const defaultValues = {
   dashboards: false,
   kerberos: '',
   noLogin: false,
+  jwt: '',
 };
 
 
@@ -163,6 +164,13 @@ function getNoLogin() {
   return !!getOption('noLogin');
 }
 
+/**
+ * get json web token: alternative authorization method
+ * @returns {string}
+ */
+function getJWT() {
+  return getOption('jwt');
+}
 
 /**
  * get server, username and password values from config
@@ -173,17 +181,20 @@ function getNoLogin() {
 function getSUPConfig() {
   const SERVER = getServer();
   const KERBEROS = getOption('kerberos');
-  const USERNAME = !KERBEROS ? getOption('username') : '';
-  const PASSWORD = !KERBEROS ? getOption('password') : '';
-  return {SERVER, USERNAME, PASSWORD, KERBEROS};
+  const JWT = !KERBEROS ? getOption('jwt') : '';
+  const USERNAME = !KERBEROS && !JWT ? getOption('username') : '';
+  const PASSWORD = !KERBEROS && !JWT ? getOption('password') : '';
+  return {SERVER, USERNAME, PASSWORD, KERBEROS, JWT};
 }
 
 function getSUPConfigAndLog() {
-  const {SERVER, USERNAME, PASSWORD, KERBEROS} = getSUPConfig();
+  const {SERVER, USERNAME, PASSWORD, KERBEROS, JWT} = getSUPConfig();
   console.log();
   console.log('SERVER  :', chalk.yellowBright(SERVER));
   if (!!KERBEROS) {
     console.log('KERBEROS:', chalk.yellowBright(KERBEROS));
+  } else if (!!JWT) {
+    console.log('JWT:', chalk.yellowBright(`${JWT.slice(0, 16)}...`));
   } else {
     console.log('USERNAME:', chalk.yellowBright(USERNAME));
     console.log('PASSWORD:', chalk.yellowBright(PASSWORD.split('').map(_ => '*').join('')), '\n');
@@ -203,4 +214,5 @@ module.exports = {
   getSUPConfigAndLog,
   mustSaveDashboardConfigToDisk,
   getNoLogin,
+  getJWT,
 }

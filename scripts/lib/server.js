@@ -9,6 +9,7 @@ const cookieJar = new tough.CookieJar();
 const treeFF = {}; // a virtual tree of folders and files on the disk
 
 let SERVER = '';
+let JWT = '';
 
 function setServer(server) {
   if (server.endsWith('/')) server = server.slice(0, -1);
@@ -26,6 +27,30 @@ async function login(username, password) {
     withCredentials: true,
   });
   return result.data;
+}
+
+async function loginJWT(token) {
+  JWT = token;
+  try {
+    const url = `${SERVER}/api/auth/check`;
+    const result = await axios.get(url, {
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
+    return result.data;
+  } catch(err) {
+    if (err.response) {
+      throw new Error(err.response.data.message);
+    } else {
+      throw new Error(err.message);
+    }
+  }
+}
+
+function getReqOptions(additionalHeaders = {}) {
+  if (JWT) {
+    return { headers: { 'Authorization': `Bearer ${JWT}` }, ...additionalHeaders };
+  }
+  return { jar: cookieJar, withCredentials: true };
 }
 
 async function loginKerberos(kerberosUrl) {
@@ -84,10 +109,7 @@ async function logout() {
 async function getResourceId(resource) {
   const [schema_name, alt_id] = splitResource(resource);
   const metaUrl = `${SERVER}/api/db/${schema_name}.resources/.filter(alt_id='${encodeURIComponent(alt_id)}')`;
-  const response = await axios.get(metaUrl, {
-    jar: cookieJar,
-    withCredentials: true,
-  });
+  const response = await axios.get(metaUrl, getReqOptions());
   if (!response.data.length) {
     throw new Error(`Not found resource in ${schema_name} with alt_id=${alt_id} (${metaUrl})`);
   }
@@ -100,10 +122,7 @@ async function getResourceName(resource) {
   let resourceName;
   if (resourceId.match(/^\d+$/)) {
     const metaUrl = `${SERVER}/api/db/${schemaName}.resources/${resourceId}`;
-    resourceName = (await axios.get(metaUrl, {
-      jar: cookieJar,
-      withCredentials: true,
-    })).data[0].alt_id;                                                                                 // TODO: handle not found
+    resourceName = (await axios.get(metaUrl, getReqOptions())).data[0].alt_id;                                                                                 // TODO: handle not found
   } else {
     resourceName = resourceId;
   }
@@ -113,10 +132,7 @@ async function getResourceName(resource) {
 async function getSchemaNames() {
   const url = `${SERVER}/api/db/adm.datasets`;
   try {
-    const response = await axios.get(url, {
-      jar: cookieJar,
-      withCredentials: true,
-    });
+    const response = await axios.get(url, getReqOptions());
     const data = response.data;
     return filterSchemaNames(data.map(item => item.schema_name));
   } catch (err) {
@@ -133,10 +149,7 @@ async function getSchemaNames() {
 async function getResources(schemaName) {
   const url = `${SERVER}/api/db/${schemaName}.resources`;
   try {
-    const response = await axios.get(url, {
-      jar: cookieJar,
-      withCredentials: true,
-    });
+    const response = await axios.get(url, getReqOptions());
     const resources = response.data.map(entry => entry.alt_id);
     return resources;
   } catch (err) {
@@ -174,13 +187,11 @@ async function saveResourceContent(resource, content) {
   const response = await axios({
     method: 'put',
     url: url,
-    jar: cookieJar,
-    withCredentials: true,
     data: content,
-    headers: {
+    ...getReqOptions({
       // Server issue with application/json content
       'Content-Type': (mime.lookup(alt_id) || 'application/octet-stream').replace('application/json', 'text/plain'),
-    },
+    }),
   });
 
   if (response.statusText === 'OK' && mime.lookup(alt_id).includes('application/json')) {
@@ -188,9 +199,8 @@ async function saveResourceContent(resource, content) {
     const r = await axios({
       method: 'put',
       url: url,
-      jar: cookieJar,
-      withCredentials: true,
       data: {"content_type": "application/json"},
+      ...getReqOptions(),
     });
   }
 }
@@ -208,11 +218,7 @@ async function createResourceContent(resource, content) {
   const createMetaResponse = await axios({
     method: 'post',
     url: createMetaUrl,
-    jar: cookieJar,
-    withCredentials: true,
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    ...getReqOptions({'Content-Type': 'application/json'}),
     data: {
       alt_id: alt_id,
       // Server issue with application/json content
@@ -254,20 +260,18 @@ async function getConfigs(schemaName) {
   promises.push(axios({
     method: 'get',
     url: `${SERVER}/api/db/${schemaName}.dashboard_topics`,
-    jar: cookieJar,
-    withCredentials: true,
+    ...getReqOptions(),
+
   }));
   promises.push(axios({
     method: 'get',
     url: `${SERVER}/api/db/${schemaName}.dashboards`,
-    jar: cookieJar,
-    withCredentials: true,
+    ...getReqOptions(),
   }));
   promises.push(axios({
     method: 'get',
     url: `${SERVER}/api/db/${schemaName}.dashlets`,
-    jar: cookieJar,
-    withCredentials: true,
+    ...getReqOptions(),
   }));
 
   const response = await Promise.all(promises);
@@ -357,11 +361,7 @@ async function createJSONContent(config, content) {
   const response = await axios({
     method: 'post',
     url: createMetaUrl,
-    jar: cookieJar,
-    withCredentials: true,
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    ...getReqOptions({'Content-Type': 'application/json'}),
     data,
   });
   return response.statusText === 'OK' ? response.data : null;
@@ -394,11 +394,7 @@ async function saveJSONContent(config, content) {
   await axios({
     method: 'put',
     url: createMetaUrl,
-    jar: cookieJar,
-    withCredentials: true,
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    ...getReqOptions({'Content-Type': 'application/json'}),
     data,
   });
 }
@@ -428,8 +424,7 @@ async function removeJSONContent(config) {
   await axios({
     method: 'delete',
     url: createMetaUrl,
-    jar: cookieJar,
-    withCredentials: true,
+    ...getReqOptions(),
   });
 }
 
@@ -442,8 +437,7 @@ async function getId (payload) {
   const response = await axios({
     method: 'get',
     url: createMetaUrl,
-    jar: cookieJar,
-    withCredentials: true,
+    ...getReqOptions(),
   });
 
   return response.statusText === 'OK' && response.data.hasOwnProperty('id') ? response.data.id : null;
@@ -453,6 +447,7 @@ module.exports = {
   setServer,
   loginKerberos,
   loginSSO,
+  loginJWT,
   login,
   logout,
   getCookies,
