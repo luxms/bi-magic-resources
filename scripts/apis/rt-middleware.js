@@ -109,14 +109,15 @@ class RtMiddleware {
 
   _notifySchemaBut(excludeConnectionId, schema_name, payload) {
     this._wsServer.clients.forEach((client) => {
-      if (!(schema_name in client._schemaSubscriptions)) return;
+      const subject = `bi.rt.${schema_name}`;
+      if (!(subject in client._schemaSubscriptions)) return;
       if (client.readyState !== WebSocket.OPEN) return;
 
       const
-        sid = client._schemaSubscriptions[schema_name],
+        sid = client._schemaSubscriptions[subject],
         data = JSON.stringify(payload),
         bytes = Text_Encoder.encode(data).length,
-        msgMessage = `${NATS_PROTOCOL_MESSAGES.MSG} ${schema_name} ${sid} ${bytes}` + NATS_PROTOCOL + data;
+        msgMessage = `${NATS_PROTOCOL_MESSAGES.MSG} ${subject} ${sid} ${bytes}` + NATS_PROTOCOL + data;
 
       this._natsSendMessage(msgMessage, client);
     });
