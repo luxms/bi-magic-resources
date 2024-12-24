@@ -46,11 +46,9 @@ async function loginJWT(token) {
   }
 }
 
-function getReqOptions(additionalHeaders = {}) {
-  if (JWT) {
-    return { headers: { 'Authorization': `Bearer ${JWT}` }, ...additionalHeaders };
-  }
-  return { jar: cookieJar, withCredentials: true };
+function getReqOptions(headers = {}) {
+  if (JWT) return { headers: { 'Authorization': `Bearer ${JWT}` }, ...headers };
+  return { jar: cookieJar, withCredentials: true, headers };
 }
 
 async function loginKerberos(kerberosUrl) {
