@@ -256,6 +256,8 @@ const startDev = () => {
       if (JWT) {
         app.use('/api/', createProxyMiddleware({
           target: `${SERVER}/api/`,
+          changeOrigin: true,
+          secure: false,
           on: {
             proxyReq: (proxyReq) => {
               proxyReq.setHeader('Authorization', `Bearer ${JWT}`);
