@@ -62,8 +62,8 @@ function getOption(name, prompt) {
   // 4. read from config
   // two config files:
   //   config.json - for server and other options
-  //   authConfig  - only for username and password
-  const jsonConfigFileName = (name === 'username' || name === 'password') ? 'authConfig.json': 'config.json';
+  //   authConfig.json  - only for username, password and jwt
+  const jsonConfigFileName = (name === 'username' || name === 'password' || name === 'jwt') ? 'authConfig.json': 'config.json';
   try {
     const authConfig = fs.readFileSync(path.resolve(__dirname, '..', '..', jsonConfigFileName), 'utf8');
     try {
