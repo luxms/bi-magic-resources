@@ -95,7 +95,6 @@ async function getResourceId(resource) {
   return id;
 }
 
-
 async function getSchemaNames() {
   const url = `${SERVER}/api/db/adm.datasets`;
   try {
@@ -484,9 +483,53 @@ async function getCubes(schema_name) {
     // console.warn(`Failed request ${url}`, err);
     throw err;
   }
-  return [];
 }
 
+/**
+ *
+ * @param {string} schema_name
+ * @returns {Promise<Cube[]>}
+ */
+async function getDataSources(schema_name) {
+  const url = `${SERVER}/api/db/${schema_name}.data_sources/` + (schema_name !== 'adm' ? '.filter(is_global=0)' : '');
+  try {
+    const response = await axios.get(url, {
+      jar: cookieJar,
+      withCredentials: true,
+    });
+    return response.data;
+  } catch (err) {
+    // console.warn(`Failed request ${url}`, err);
+    throw err;
+  }
+}
+
+/**
+ *
+ * @param {string} schema_name
+ * @returns {Promise<Cube[]>}
+ */
+async function lalala(schema_name, sql, ident, isLocal) {
+  const url = `${SERVER}/api/ipc/service`;
+  try {
+    const response = await axios.post(url, {
+      args: [
+        isLocal ? `source://connector/${ident}?atlas=${schema_name}` : `source://connector/${ident}`,
+        sql,
+        1024,
+        0
+      ],
+      service: "DataSourceInspectorService.sampleFirstRows"
+    }, {
+      jar: cookieJar,
+      withCredentials: true,
+    });
+    return response.data;
+  } catch (err) {
+    // console.warn(`Failed request ${url}`, err);
+    throw err;
+  }
+}
 
 module.exports = {
   setServer,
@@ -508,4 +551,6 @@ module.exports = {
   getId,
   getCubes,
   getCubesContent,
+  getDataSources,
+  lalala,
 };

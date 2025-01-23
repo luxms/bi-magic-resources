@@ -355,13 +355,35 @@ async function createDashlet(payload) {
 
 /**
  *
- * @param {string} schema_name
+ * @param {string} schemaName
  * @returns {Promise<Cube[]>}
  */
-async function getCubes(schema_name) {
-  return [];
+async function getCubes(schemaName) {
+  const dirPath = getSchemaPath(schemaName);
+  const cubesPath = path.resolve(dirPath, 'cubes');
+  return getFiles(cubesPath);
 }
 
+/**
+ *
+ * @param {string} cubePath
+ * @returns {Promise<Cube[]>}
+ */
+async function getCubeContent(schemaName, cubePath) {
+  const filePath = getResourcePath(schemaName, `cubes/${cubePath}`);
+  try {
+    await fsp.stat(filePath);
+  } catch (err) {
+    return null;
+  }
+  const str = (await fsp.readFile(filePath)).toString();
+  const content = JSON5.parse(str);
+  return {
+    ...content,
+    id: `${content.source_ident}.${content.name}`,
+    is_global: 0,
+  };
+}
 
 module.exports = {
   setBaseDir,
@@ -384,4 +406,5 @@ module.exports = {
   createTopic,
   getTopicsId,
   getCubes,
+  getCubeContent,
 };
