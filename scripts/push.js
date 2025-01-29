@@ -1,6 +1,9 @@
-const local = require('./lib/local');
-const server = require('./lib/server');
-const { synchronize, pullPushInit } = require('./lib/commands');
+const Local = require('./platforms/Local');
+const Server = require('./platforms/Server');
+const Commands = require('./lib/Commands');
 
-local.setBaseDir('dist');
-pullPushInit(() => synchronize(local, server));
+const local = new Local('dist');
+const server = new Server();
+
+const commands = new Commands(local, server);
+commands.withAuth(() => commands.synchronize());

@@ -26,6 +26,16 @@ class Manager {
   async enumerate(schemaName) {
     throw new Error('enumerate must be implemented');
   }
+
+  // Common utility methods for managers
+  async readJSONFile(path) {
+    const content = await this.platform.readFile(path);
+    return content ? JSON.parse(content) : null;
+  }
+
+  async writeJSONFile(path, content) {
+    await this.platform.writeFile(path, JSON.stringify(content, null, 2));
+  }
 }
 
 module.exports = Manager;

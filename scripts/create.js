@@ -1,8 +1,13 @@
-const local = require('./lib/local');
-const server = require('./lib/server');
-const { pullPushInit, createEntity } = require('./lib/commands');
-let args = process.argv.slice(2);
-// args = ['topic', 'ds_demo12',]
+const Local = require('./platforms/Local');
+const Server = require('./platforms/Server');
+const Commands = require('./lib/Commands');
 
-args = args.map((arg) => arg.includes('--') ? arg.split('=')[1] : arg);
-pullPushInit(() => createEntity(local, server, ...args));
+let args = process.argv.slice(2);
+args = args.map(arg => arg.includes('--') ? arg.split('=')[1] : arg);
+const [type, schemaName, topicId, dashboardId, content] = args;
+
+const local = new Local();
+const server = new Server();
+
+const commands = new Commands(local, server);
+commands.withAuth(() => commands.createEntity(type, schemaName, topicId, dashboardId, content));

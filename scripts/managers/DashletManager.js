@@ -1,4 +1,4 @@
-const Manager = require("./Manager");
+const Manager = require('./base/Manager');
 
 /**
  * - ConcreteImplementor (bridge pattern)
