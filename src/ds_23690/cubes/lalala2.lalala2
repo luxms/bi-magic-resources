@@ -1,0 +1,53 @@
+{
+  "guid": "8d22f8cc-caff-4344-b0f3-4609dd0ec0dd",
+  "source_ident": "lalala2",
+  "name": "lalala2",
+  "title": "lalala2",
+  "sql_query": "select \"xdds\".\"t23546\".\"level1\" as \"level1\",\n       \"xdds\".\"t23546\".\"level2\" as \"level2\",\n       \"xdds\".\"t23546\".\"level3\" as \"level3\",\n       \"xdds\".\"t23546\".\"value\" as \"value\"\nfrom \"xdds\".\"t23546\"",
+  "config": {},
+  "_has_model": 0,
+  "dimensions": [
+    {
+      "name": "level1",
+      "type": "STRING",
+      "title": "level1",
+      "sql_query": "level1",
+      "config": {
+        "possible_aggregations": []
+      }
+    },
+    {
+      "name": "level2",
+      "type": "STRING",
+      "title": "level2",
+      "sql_query": "level2",
+      "config": {
+        "possible_aggregations": []
+      }
+    },
+    {
+      "name": "level3",
+      "type": "STRING",
+      "title": "level3",
+      "sql_query": "level3",
+      "config": {
+        "possible_aggregations": []
+      }
+    },
+    {
+      "name": "value",
+      "type": "SUM",
+      "title": "value",
+      "sql_query": "value",
+      "config": {
+        "possible_aggregations": [
+          "count",
+          "avg",
+          "sum",
+          "min",
+          "max"
+        ]
+      }
+    }
+  ]
+}

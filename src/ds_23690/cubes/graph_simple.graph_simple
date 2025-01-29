@@ -1,0 +1,29 @@
+{
+  "guid": "9c305c58-4146-432c-9a72-5041a74f6db3",
+  "source_ident": "graph_simple",
+  "name": "graph_simple",
+  "title": "graph-simple",
+  "sql_query": "select \"xdds\".\"t21762\".\"city\" as \"city\",\n       \"xdds\".\"t21762\".\"country\" as \"country\"\nfrom \"xdds\".\"t21762\"",
+  "config": {},
+  "_has_model": 0,
+  "dimensions": [
+    {
+      "name": "city",
+      "type": "STRING",
+      "title": "city",
+      "sql_query": "city",
+      "config": {
+        "possible_aggregations": []
+      }
+    },
+    {
+      "name": "country",
+      "type": "STRING",
+      "title": "country",
+      "sql_query": "country",
+      "config": {
+        "possible_aggregations": []
+      }
+    }
+  ]
+}

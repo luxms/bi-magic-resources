@@ -2,8 +2,7 @@ const WebSocketServer = require('websocket').server;
 const BaseServer = require('webpack-dev-server/lib/servers/BaseServer');
 const ws = require('ws');
 
-module.exports = class CustomServer extends BaseServer {
-
+class CustomServer extends BaseServer {
   constructor(server) {
     super(server);
     this.wsServer = new ws.Server({
@@ -89,4 +88,6 @@ module.exports = class CustomServer extends BaseServer {
     console.log('CLOSE CONNECTION');
     connection.on('close', f);
   }
-};
+}
+
+module.exports = CustomServer;

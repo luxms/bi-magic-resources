@@ -1,0 +1,59 @@
+{
+  "guid": "1acb3ec0-2356-4d5a-9962-63428b2a9cdd",
+  "source_ident": "graph_simple3",
+  "name": "graph_simple3",
+  "title": "graph-simple3",
+  "sql_query": "select \"xdds\".\"t21828\".\"city\" as \"city\",\n       \"xdds\".\"t21828\".\"country\" as \"country\",\n       \"xdds\".\"t21828\".\"land\" as \"land\",\n       \"xdds\".\"t21828\".\"population\" as \"population\"\nfrom \"xdds\".\"t21828\"",
+  "config": {},
+  "_has_model": 0,
+  "dimensions": [
+    {
+      "name": "city",
+      "type": "STRING",
+      "title": "city",
+      "sql_query": "city",
+      "config": {
+        "possible_aggregations": []
+      }
+    },
+    {
+      "name": "country",
+      "type": "STRING",
+      "title": "country",
+      "sql_query": "country",
+      "config": {
+        "possible_aggregations": []
+      }
+    },
+    {
+      "name": "land",
+      "type": "SUM",
+      "title": "land",
+      "sql_query": "land",
+      "config": {
+        "possible_aggregations": [
+          "count",
+          "avg",
+          "sum",
+          "min",
+          "max"
+        ]
+      }
+    },
+    {
+      "name": "population",
+      "type": "SUM",
+      "title": "population",
+      "sql_query": "population",
+      "config": {
+        "possible_aggregations": [
+          "count",
+          "avg",
+          "sum",
+          "min",
+          "max"
+        ]
+      }
+    }
+  ]
+}
