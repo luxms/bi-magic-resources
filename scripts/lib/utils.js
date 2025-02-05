@@ -1,6 +1,5 @@
 const config = require('./config');
 
-
 /**
  * extract schemaName and resource name from resource identifier
  * @param {string} resource

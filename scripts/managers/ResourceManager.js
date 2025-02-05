@@ -5,7 +5,7 @@ const Manager = require('./base/Manager');
  */
 class ResourceManager extends Manager {
   async getContent(resource) {
-    return this.platform.getResourceContent(resource);
+    return await this.platform.readFile(resource);
   }
 
   async saveContent(resource, content) {
@@ -20,9 +20,20 @@ class ResourceManager extends Manager {
     return this.platform.removeResourceContent(resource);
   }
 
-  async enumerate(schemaName) {
-    const resources = await this.platform.getResources(schemaName);
-    return resources.map(resource => `/${schemaName}/${encodeURIComponent(resource)}`);
+  async enumerate() {
+    const resources = [];
+    const schemaNames = await this.platform.getSchemaNames();
+
+    for (const schemaName of schemaNames) {
+      const files = await this.platform.getFiles(schemaName, 'resources');
+      for (const file of files) {
+        const fileName = typeof file === 'string' ? file : file.alt_id;
+        resources.push(`/${schemaName}/${fileName}`);
+      }
+    }
+
+    resources.sort();
+    return resources;
   }
 }
 

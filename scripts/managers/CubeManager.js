@@ -22,6 +22,7 @@ class CubeManager extends Manager {
   }
 
   async enumerate(schemaName) {
+    const files = super.enumerate();
     const cubes = await this.platform.getCubes(schemaName);
     return cubes.map(cube => `/${schemaName}/cubes/${cube}`);
   }

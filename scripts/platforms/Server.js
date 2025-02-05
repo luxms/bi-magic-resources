@@ -2,7 +2,7 @@ const axios = require('axios').default;
 const axiosCookieJarSupport = require('axios-cookiejar-support').default;
 const tough = require('tough-cookie');
 const mime = require('mime-types');
-const { splitResource, filterSchemaNames } = require('./utils');
+const { splitResource, filterSchemaNames } = require('../lib/utils');
 const Platform = require('./base/Platform');
 
 /**
@@ -31,6 +31,16 @@ class Server extends Platform {
     } catch (err) {
       console.warn(`Failed request ${url}`, err.message);
       throw err;
+    }
+  }
+
+  async getFiles(schemaName, dirName) {
+    const url = `${this.SERVER}/api/db/${schemaName}.${dirName}`;
+    try {
+      const response = await axios.get(url, {withCredentials: true, jar: this.cookieJar});
+      return response.data;
+    } catch (error) {
+      throw new Error(`Failed to fetch files for schema ${schemaName}: ${error.message}`);
     }
   }
 

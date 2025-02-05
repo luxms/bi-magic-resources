@@ -3,29 +3,45 @@
  */
 class Manager {
   constructor(platform) {
-    // Connect with Abstraction
     this.platform = platform;
+  }
+
+  /**
+   * Перечислить все файлы
+   * @returns {string[]}
+   */
+  async enumerate() {
+    const resources = [];
+    const schemaNames = await this.platform.getSchemaNames();
+
+    for (const schemaName of schemaNames) {
+      const fileNames = await this.platform.getFiles(schemaName);
+      for (const fileName of fileNames) {
+        resources.push(`/${schemaName}/${fileName}`);
+      }
+    }
+
+    resources.sort();
+    return resources;
   }
 
   async getContent(resource) {
     throw new Error('getContent must be implemented');
   }
 
-  async saveContent(resource, content) {
-    throw new Error('saveContent must be implemented');
-  }
-
   async createContent(resource, content) {
     throw new Error('createContent must be implemented');
   }
 
-  async removeContent(resource) {
+  async updateContent(resource, content) {
+    throw new Error('saveContent must be implemented');
+  }
+
+  async deleteContent(resource) {
     throw new Error('removeContent must be implemented');
   }
 
-  async enumerate(schemaName) {
-    throw new Error('enumerate must be implemented');
-  }
+
 
   // Common utility methods for managers
   async readJSONFile(path) {

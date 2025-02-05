@@ -1,22 +1,23 @@
-const ResourceManager = require('../../managers/ResourceManager');
-const DashletManager = require('../../managers/DashletManager');
-const CubeManager = require('../../managers/CubeManager');
-
 /**
- * Abstract base class representing a data storage platform.
- * Both Local and Server classes will inherit from this
- * - Abstraction (bridge pattern)
+ * Abstract base class representing a data storage platform
  */
 class Platform {
-  constructor() {
-    this.resourceManager = new ResourceManager(this);
-    this.dashletManager = new DashletManager(this);
-    this.cubeManager = new CubeManager(this);
-  }
+  constructor() {}
 
-  // Core platform operations that managers will use
+  /**
+   * Получить список schemaNames
+   * @returns {string[]}
+   */
   async getSchemaNames() {
     throw new Error('getSchemaNames must be implemented');
+  }
+
+  /**
+   * Получить список файлов по schemaName
+   * @returns {any[]}
+   */
+  async getFiles(schemaNames) {
+    throw new Error('getFiles must be implemented');
   }
 
   // Each platform should implement only these core methods
@@ -35,10 +36,6 @@ class Platform {
 
   async makeDirectory(path) {
     throw new Error('makeDirectory must be implemented');
-  }
-
-  async listFiles(path) {
-    throw new Error('listFiles must be implemented');
   }
 
   // Authentication methods for ServerPlatform

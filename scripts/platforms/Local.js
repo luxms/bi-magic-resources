@@ -2,7 +2,7 @@ const fs = require('fs');
 const fsp = fs.promises;
 const path = require('path');
 const JSON5 = require('json5');
-const { splitResource, filterSchemaNames } = require('./utils');
+const { splitResource, filterSchemaNames } = require('../lib/utils');
 const Platform = require('./base/Platform');
 
 /**
@@ -20,11 +20,28 @@ class Local extends Platform {
 
   async getSchemaNames() {
     const entries = await fsp.readdir(this.baseDir, { withFileTypes: true });
-    return filterSchemaNames(
-      entries
-        .filter(entry => entry.isDirectory())
-        .map(entry => entry.name)
-    );
+    return filterSchemaNames(entries.filter(entry => entry.isDirectory()).map(entry => entry.name));
+  }
+
+  async getFiles(schemaName, dirName) {
+    const fullPath = path.resolve(this.baseDir, schemaName, dirName);
+
+    try {
+      const dirents = await fsp.readdir(fullPath, { withFileTypes: true });
+      const files = await Promise.all(
+        dirents
+          .filter((dirent) => !(dirent.isDirectory() && dirent.name === '.gitkeep'))
+          .map((dirent) =>
+            dirent.isDirectory()
+              ? this.getFiles(schemaName, path.join(dirName, dirent.name))
+              : dirent.name
+          )
+      );
+      return Array.prototype.concat(...files);
+    } catch (error) {
+      if (error.code === 'ENOENT') return [];
+      throw error; // Re-throw other errors
+    }
   }
 
   async readFile(filePath) {
