@@ -8,48 +8,15 @@ const Platform = require('./base/Platform');
 class Local extends Platform {
   constructor(baseDir = 'src') {
     super();
-    this.baseDir = path.resolve(__dirname, '..', '..', baseDir);
+    this.BASE_DIR = path.resolve(__dirname, '..', '..', baseDir);
   }
 
   setBaseDir(dir) {
-    this.baseDir = path.resolve(__dirname, '..', '..', dir);
-  }
-
-  _getSchemaPath(schemaName) {
-    return path.resolve(this.baseDir, schemaName);
-  }
-
-  _getResourcePath(schemaName, resourceName) {
-    return path.resolve(this.baseDir, schemaName, path.join(...resourceName.split('/')));
-  }
-
-  _isReservedDirectory(dirName) {
-    return dirName.startsWith('topic.') || dirName.startsWith('.cubes');
-  }
-
-  /**
-   * Gets all files in directory recursively
-   * @private
-   */
-  async _getFiles(dir, prefix = '') {
-    const entries = await fs.readdir(dir, { withFileTypes: true });
-    const files = await Promise.all(
-      entries
-        .filter(entry => !(entry.isDirectory() && this._isReservedDirectory(entry.name)) && entry.name !== '.gitkeep')
-        .map(async entry => {
-          const fullPath = path.join(dir, entry.name);
-          if (entry.isDirectory()) {
-            const subFiles = await this._getFiles(fullPath, prefix + entry.name + '/');
-            return subFiles;
-          }
-          return prefix + entry.name;
-        })
-    );
-    return files.flat();
+    this.BASE_DIR = path.resolve(__dirname, '..', '..', dir);
   }
 
   async getSchemaNames() {
-    const entries = await fsp.readdir(this.baseDir, {withFileTypes: true});
+    const entries = await fsp.readdir(this.BASE_DIR, {withFileTypes: true});
     return filterSchemaNames(
       entries
         .filter(entry => entry.isDirectory())
@@ -58,16 +25,33 @@ class Local extends Platform {
   }
 
   async getResources(schemaName) {
-    const dirPath = this._getSchemaPath(schemaName);
-    try {
-      const files = await this._getFiles(dirPath);
-      return files;
-    } catch (err) {
-      if (err.code === 'ENOENT') {
-        return [];
-      }
-      throw err;
-    }
+    const result = await this.getFiles(path.resolve(this.BASE_DIR, schemaName));
+    return result;
+  }
+
+  async getFiles(dir, prefix = '') {
+    const dirents = fs.readdirSync(dir, { withFileTypes: true });
+    const files = await Promise.all(dirents
+      .filter((dirent) => !(dirent.isDirectory() && dirent.name === '.gitkeep'))
+      .map(async (dirent) => {
+        if (dirent.isDirectory()) {
+          return this.getFiles(path.resolve(dir, dirent.name), prefix + dirent.name + '/');
+        }
+        return prefix + dirent.name;
+      }));
+    return Array.prototype.concat(...files);
+  }
+
+  _getSchemaPath(schemaName) {
+    return path.resolve(this.BASE_DIR, schemaName);
+  }
+
+  _getResourcePath(schemaName, resourceName) {
+    return path.resolve(this.BASE_DIR, schemaName, path.join(...resourceName.split('/')));
+  }
+
+  _isReservedDirectory(dirName) {
+    return dirName.startsWith('topic.') || dirName.startsWith('.cubes');
   }
 
   async getResourceContent(resource) {
@@ -124,30 +108,9 @@ class Local extends Platform {
     }
   }
 
-  async getFiles(schemaName, dirName) {
-    const fullPath = path.resolve(this.baseDir, schemaName, dirName);
-
-    try {
-      const dirents = await fsp.readdir(fullPath, { withFileTypes: true });
-      const files = await Promise.all(
-        dirents
-          .filter((dirent) => !(dirent.isDirectory() && dirent.name === '.gitkeep'))
-          .map((dirent) =>
-            dirent.isDirectory()
-              ? this.getFiles(schemaName, path.join(dirName, dirent.name))
-              : dirent.name
-          )
-      );
-      return Array.prototype.concat(...files);
-    } catch (error) {
-      if (error.code === 'ENOENT') return [];
-      throw error; // Re-throw other errors
-    }
-  }
-
   async readFile(filePath) {
     try {
-      const fullPath = path.join(this.baseDir, filePath);
+      const fullPath = path.join(this.BASE_DIR, filePath);
       await fsp.stat(fullPath);
       return await fsp.readFile(fullPath);
     } catch (err) {
@@ -156,7 +119,7 @@ class Local extends Platform {
   }
 
   async writeFile(filePath, content) {
-    const fullPath = path.join(this.baseDir, filePath);
+    const fullPath = path.join(this.BASE_DIR, filePath);
     const dir = path.dirname(fullPath);
 
     try {
@@ -169,7 +132,7 @@ class Local extends Platform {
   }
 
   async deleteFile(filePath) {
-    const fullPath = path.join(this.baseDir, filePath);
+    const fullPath = path.join(this.BASE_DIR, filePath);
     try {
       await fsp.unlink(fullPath);
     } catch (err) {
@@ -178,12 +141,12 @@ class Local extends Platform {
   }
 
   async makeDirectory(dirPath) {
-    const fullPath = path.join(this.baseDir, dirPath);
+    const fullPath = path.join(this.BASE_DIR, dirPath);
     await fsp.mkdir(fullPath, { recursive: true });
   }
 
   async listFiles(dirPath) {
-    const fullPath = path.join(this.baseDir, dirPath);
+    const fullPath = path.join(this.BASE_DIR, dirPath);
     const entries = await fsp.readdir(fullPath, { withFileTypes: true });
     return entries.map(entry => ({
       name: entry.name,

@@ -1,16 +1,22 @@
 const axios = require('axios').default;
 const tough = require('tough-cookie');
 const chalk = require('chalk');
+const axiosCookieJarSupport = require('axios-cookiejar-support').default;
 const Spinner = require('cli-spinner').Spinner;
 const config = require('./config');
 const {retryOnFail} = require('./utils');
 
 class Auth {
   constructor() {
+    axiosCookieJarSupport(axios);
     this.BASE_URL = null;
     this.LOGIN_PROMISE = null;
     this.COOKIE_JAR = new tough.CookieJar();
     this.JWT = null;
+    this.REQUEST_OPTIONS = {
+      jar: this.COOKIE_JAR,
+      withCredentials: true,
+    };
   }
 
   /**
@@ -137,6 +143,7 @@ class Auth {
 
   async _loginWithJWT(token) {
     this.JWT = token;
+    this.REQUEST_OPTIONS = {headers: {'Authorization': `Bearer ${token}`}};
     try {
       const url = `${this.BASE_URL}/api/auth/check`;
       const result = await axios.get(url, {

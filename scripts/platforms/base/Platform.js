@@ -6,7 +6,7 @@ class Platform {
 
   /**
    * Gets list of available schema names
-   * @returns {string[]}
+   * @returns {Promise<string[]>}
    */
   async getSchemaNames() {
     throw new Error('getSchemaNames must be implemented');

@@ -12,7 +12,7 @@ const DashboardManager = require('../managers/DashboardManager');
 const CubeManager = require('../managers/CubeManager');
 
 /**
- * Синхронизирует файлы на сервере и на диске
+ * Synchronize local and server files
  * @param source
  * @param target
  * @returns {Promise<void>}

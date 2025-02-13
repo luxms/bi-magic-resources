@@ -13,18 +13,14 @@ function splitResource(resource) {
 }
 
 function filterSchemaNames(schema_names) {
-  const include = config.getInclude();
-  if (include) {
-    const rInclude = new RegExp(include);
+  if (config.getInclude()) {
+    const rInclude = new RegExp(config.getInclude());
     schema_names = schema_names.filter(schema_name => schema_name.match(rInclude));
   }
-
-  const exclude = config.getExclude();
-  if (exclude) {
-    const rExclude = new RegExp(exclude);
+  if (config.getExclude()) {
+    const rExclude = new RegExp(config.getExclude());
     schema_names = schema_names.filter(schema_name => !schema_name.match(rExclude));
   }
-
   return schema_names;
 }
 
