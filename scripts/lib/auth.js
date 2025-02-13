@@ -39,7 +39,7 @@ class Auth {
   _logParams() {
     this.BASE_URL = config.getServer();
     const {KERBEROS, JWT, USERNAME, PASSWORD} = config.getAuthConfig();
-    console.log('SERVER:', chalk.yellowBright(this.BASE_URL));
+    console.log('\nSERVER:', chalk.yellowBright(this.BASE_URL));
     if (KERBEROS) {
       console.log('KERBEROS:', chalk.yellowBright(KERBEROS));
     } else if (JWT) {
@@ -92,7 +92,7 @@ class Auth {
     try {
       const result = await this._getAuthenticationMethod();
       authSpinner.stop();
-      console.log('SUCCESS\n');
+      console.log('SUCCESS');
       return result;
     } catch (err) {
       authSpinner.stop();
@@ -168,27 +168,6 @@ class Auth {
       withCredentials: true,
     });
     return result.data;
-  }
-
-  /**
-   * Extend server request options with auth params
-   * @param {object} headers - Additional headers (not auth related)
-   * @returns {object}
-   */
-  getRequestOptions(headers = {}) {
-    if (this.JWT) {
-      return {
-        headers: {
-          'Authorization': `Bearer ${this.JWT}`,
-          ...headers
-        }
-      };
-    }
-    return {
-      jar: this.COOKIE_JAR,
-      withCredentials: true,
-      headers
-    };
   }
 }
 

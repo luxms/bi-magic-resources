@@ -55,7 +55,7 @@ async function synchronize(source, target) {
 
   // Success, show source files count
   console.log(`SUCCESS\n`);
-  console.log(`${sourceResources.length} resources, ${sourceDashboards.length} dashboards, ${sourceCubes.length} cubes`);
+  console.log(`${sourceResources.length} resources, ${sourceDashboards.length} dashboards, ${sourceCubes.length} cubes\n`);
 
   // Load files content
   const bar = new SingleBar({ format: 'Loading files content... |' + colors.cyan('{bar}') + '| {percentage}% || {value}/{total}' });
@@ -66,11 +66,11 @@ async function synchronize(source, target) {
 
   if (config.hasResources()) {
     for (const resource of sourceResources) {
-      const sourceContent = await retryOnFail(() => source.resourceManager.getContent(resource));
+      const sourceContent = await retryOnFail(() => sourceResourceManager.getContent(resource));
 
       // Select between create and update
       if (targetResources.includes(resource)) {
-        const targetContent = await retryOnFail(() => target.resourceManager.getContent(resource));
+        const targetContent = await retryOnFail(() => targetResourceManager.getContent(resource));
         if (md5(sourceContent) !== md5(targetContent)) overwriteItems.push({ type: 'resource', fileName: resource, content: sourceContent });
       } else {
         createItems.push({ type: 'resource', fileName: resource, content: sourceContent })
@@ -97,11 +97,11 @@ async function synchronize(source, target) {
 
   if (config.hasDashboards()) {
     for (const dashboard of sourceDashboards) {
-      const sourceContent = await retryOnFail(() => source.dashletManager.getContent(dashboard)); // utils.cleanPropertyMembers??
+      const sourceContent = await retryOnFail(() => sourceDashboardManager.getContent(dashboard)); // utils.cleanPropertyMembers??
 
       // Select between create and update
       if (targetDashboards.includes(dashboard)) {
-        const targetContent = await retryOnFail(() => target.dashletManager.getContent(dashboard)); // utils.cleanPropertyMembers??
+        const targetContent = await retryOnFail(() => targetDashboardManager.getContent(dashboard)); // utils.cleanPropertyMembers??
         if (!utils.compareObjects(sourceContent, targetContent)) overwriteItems.push({ type: 'dashboard', fileName: dashboard, content: sourceContent });
       } else {
         createItems.push({ type: 'dashboard', fileName: dashboard, content: sourceContent })
@@ -120,11 +120,11 @@ async function synchronize(source, target) {
 
   if (config.hasCubes()) {
     for (const cube of sourceCubes) {
-      const sourceContent = await retryOnFail(() => source.cubeManager.getContent(cube));
+      const sourceContent = await retryOnFail(() => sourceCubeManager.getContent(cube));
 
       // Select between create and update
       if (targetCubes.includes(cube)) {
-        const targetContent = await retryOnFail(() => target.dashletManager.getContent(cube)); // utils.cleanPropertyMembers??
+        const targetContent = await retryOnFail(() => targetCubeManager.getContent(cube)); // utils.cleanPropertyMembers??
         if (!utils.compareObjects(sourceContent, targetContent)) overwriteItems.push({ type: 'cube', fileName: cube, content: sourceContent });
       } else {
         createItems.push({ type: 'cube', fileName: cube, content: sourceContent })
