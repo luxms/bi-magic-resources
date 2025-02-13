@@ -1,21 +1,15 @@
 const Manager = require('./base/Manager');
 
 class CubeManager extends Manager {
-  /**
-   * Lists all cubes across schemas
-   * @returns {Promise<string[]>}
-   */
   async enumerate() {
     const list = [];
     const schemaNames = await this.platform.getSchemaNames();
-
     for (const schemaName of schemaNames) {
       const cubes = await this.platform.getCubes(schemaName);
       for (const cube of cubes) {
         list.push(`/${schemaName}/cubes/${cube}`);
       }
     }
-
     return list;
   }
 

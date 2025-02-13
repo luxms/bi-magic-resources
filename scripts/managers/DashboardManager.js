@@ -1,21 +1,15 @@
 const Manager = require('./base/Manager');
 
 class DashboardManager extends Manager {
-  /**
-   * Lists all dashboard configurations across schemas
-   * @returns {Promise<string[]>}
-   */
   async enumerate() {
     const list = [];
     const schemaNames = await this.platform.getSchemaNames();
-
     for (const schemaName of schemaNames) {
-      const configs = await this.platform.getConfigs(schemaName);
-      for (const config of configs) {
-        list.push(`/${schemaName}/${config}`);
+      const dashboards = await this.platform.getDashboards(schemaName);
+      for (const dashboard of dashboards) {
+        list.push(`/${schemaName}/${dashboard}`);
       }
     }
-
     return list;
   }
 

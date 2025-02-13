@@ -29,7 +29,7 @@ class Config {
     const JWT = !KERBEROS ? this.getOption('jwt') : '';
     const USERNAME = !KERBEROS && !JWT ? this.getOption('username') : '';
     const PASSWORD = !KERBEROS && !JWT ? this.getOption('password') : '';
-    return { JWT, KERBEROS, USERNAME, PASSWORD };
+    return {JWT, KERBEROS, USERNAME, PASSWORD};
   }
 
   getServer() {

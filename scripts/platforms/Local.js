@@ -25,22 +25,47 @@ class Local extends Platform {
   }
 
   async getResources(schemaName) {
-    const result = await this.getFiles(path.resolve(this.BASE_DIR, schemaName));
-    return result;
+    const schemaPath = path.resolve(this.BASE_DIR, schemaName);
+    return await this.getFiles(schemaPath);
   }
 
+  async getDashboards(schemaName) {
+    const schemaPath = path.resolve(this.BASE_DIR, schemaName);
+    return this.getConfigsFromDisk(schemaPath);
+  }
+
+  async getCubes(schemaName) {
+    const schemaPath = path.resolve(this.BASE_DIR, path.join(schemaName, 'cubes'));
+    return await this.getFiles(schemaPath);
+  }
+
+  // По сути дела тут все одно и то же, только с фильтрацией по .topic/.cubes
   async getFiles(dir, prefix = '') {
     const dirents = fs.readdirSync(dir, { withFileTypes: true });
     const files = await Promise.all(dirents
-      .filter((dirent) => !(dirent.isDirectory() && dirent.name === '.gitkeep'))
+      .filter((dirent) => !(dirent.isDirectory() && this.isReservedDirectory(dirent.name)) && dirent.name === '.gitkeep')
       .map(async (dirent) => {
-        if (dirent.isDirectory()) {
-          return this.getFiles(path.resolve(dir, dirent.name), prefix + dirent.name + '/');
-        }
+        if (dirent.isDirectory()) return this.getFiles(path.resolve(dir, dirent.name), prefix + dirent.name + '/');
         return prefix + dirent.name;
-      }));
+      })
+    );
     return Array.prototype.concat(...files);
   }
+
+  isReservedDirectory(dirName) {
+    return dirName.startsWith('topic.') || dirName.startsWith('cubes');
+  }
+
+  getConfigsFromDisk(dir, prefix = '') {
+    const dirents = fs.readdirSync(dir, { withFileTypes: true });
+    const files = dirents
+      .filter((d) => d.name.includes('topic.'))
+      .map((dirent) => {
+        return dirent.isDirectory() ? getJSONFiles(path.resolve(dir, dirent.name), prefix + dirent.name + '/') : prefix + dirent.name;
+      });
+    return Array.prototype.concat(...files.reverse());
+  }
+  // -----------------
 
   _getSchemaPath(schemaName) {
     return path.resolve(this.BASE_DIR, schemaName);
@@ -82,7 +107,6 @@ class Local extends Platform {
       throw new Error(`Failed to create resource ${resource}: ${err.message}`);
     }
   }
-
 
   async saveResourceContent(resource, content) {
     return this.createResourceContent(resource, content);

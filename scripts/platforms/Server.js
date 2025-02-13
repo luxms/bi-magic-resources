@@ -5,6 +5,11 @@ const Platform = require('./base/Platform');
 const auth = require('../lib/auth');
 
 class Server extends Platform {
+  constructor() {
+    super();
+    this.TREE_FF = {};
+  }
+
   async getSchemaNames() {
     const url = `${auth.BASE_URL}/api/db/adm.datasets`;
     try {
@@ -16,26 +21,75 @@ class Server extends Platform {
     }
   }
 
+  async getResources(schemaName) {
+    const resources = await this.getFiles(schemaName, 'resources');
+    return resources.map(entry => entry.alt_id).filter(resource => !resource.startsWith('cubes'));
+  }
+
+  async getDashboards(schemaName) {
+    let result = [];
+    const response = await Promise.all([
+      axios({
+        method: 'get',
+        url: `${auth.BASE_URL}/api/db/${schemaName}.dashboard_topics`,
+        ...auth.REQUEST_OPTIONS
+      }),
+      axios({
+        method: 'get',
+        url: `${auth.BASE_URL}/api/db/${schemaName}.dashboards`,
+        ...auth.REQUEST_OPTIONS
+      }),
+      axios({
+        method: 'get',
+        url: `${auth.BASE_URL}/api/db/${schemaName}.dashlets`,
+        ...auth.REQUEST_OPTIONS
+      })
+    ]);
+    const topics = response[0].data;
+    const dashboards = response[1].data;
+    const dashlets = response[2].data;
+    const snFolders = this.TREE_FF[schemaName] = {};
+    for (let topic of topics) {
+      const topicId = topic.id
+      result.push(`topic.${topicId}/index.json`);
+      if (topic.hasOwnProperty('id')) delete topic.id;
+      if (topic.hasOwnProperty('updated')) delete topic.updated;
+      const snf = snFolders[`topic.${topicId}`] = {index: topic};
+      for (let db of dashboards) {
+        if (db.topic_id == topicId) {
+          const dashboardId = db.id
+          result.push(`topic.${topicId}/dashboard.${dashboardId}/index.json`);
+          if (db.hasOwnProperty('id')) delete db.id;
+          if (db.hasOwnProperty('updated')) delete db.updated;
+          const cd = snf[`dashboard.${dashboardId}`] = {index: db};
+          dashlets.forEach((d) => {
+            if (d.dashboard_id == dashboardId) {
+              const dashId = d.id;
+              result.push(`topic.${topicId}/dashboard.${dashboardId}/${dashId}.json`);
+              if (d.hasOwnProperty('id')) delete d.id;
+              if (d.hasOwnProperty('updated')) delete d.updated;
+              cd[dashId] = d;
+            }
+          })
+        }
+      }
+    }
+   return result;
+  }
+
+  async getCubes(schemaName) {
+    const cubes = await this.getFiles(schemaName, 'cubes');
+    return cubes.map(cube => cube.id);
+  }
+
   async getFiles(schemaName, dirName) {
     const url = `${auth.BASE_URL}/api/db/${schemaName}.${dirName}`;
     try {
       const response = await axios.get(url, auth.REQUEST_OPTIONS);
       return response.data;
     } catch (error) {
+      if (err.response?.status === 404) return [];
       throw new Error(`Failed to fetch files for schema ${schemaName}: ${error.message}`);
-    }
-  }
-
-  async getResources(schemaName) {
-    const url = `${auth.BASE_URL}/api/db/${schemaName}.resources`;
-    try {
-      const response = await axios.get(url, auth.REQUEST_OPTIONS);
-      return response.data.map(entry => entry.alt_id);
-    } catch (err) {
-      if (err.response?.status === 404) {
-        return [];
-      }
-      throw err;
     }
   }
 

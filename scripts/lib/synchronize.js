@@ -54,7 +54,8 @@ async function synchronize(source, target) {
   }
 
   // Success, show source files count
-  console.log(`SUCCESS: ${sourceResources.length} resources, ${sourceDashboards.length} dashboards, ${sourceCubes.length} cubes`);
+  console.log(`SUCCESS\n`);
+  console.log(`${sourceResources.length} resources, ${sourceDashboards.length} dashboards, ${sourceCubes.length} cubes`);
 
   // Load files content
   const bar = new SingleBar({ format: 'Loading files content... |' + colors.cyan('{bar}') + '| {percentage}% || {value}/{total}' });

@@ -25,7 +25,7 @@ class Auth {
    * @returns {Promise<void>}
    */
   async init(callback) {
-    this._logAuthParams();
+    this._logParams();
     try {
       await this._login();
       await callback();
@@ -36,7 +36,7 @@ class Auth {
     }
   }
 
-  _logAuthParams() {
+  _logParams() {
     this.BASE_URL = config.getServer();
     const {KERBEROS, JWT, USERNAME, PASSWORD} = config.getAuthConfig();
     console.log('SERVER:', chalk.yellowBright(this.BASE_URL));
@@ -48,6 +48,8 @@ class Auth {
       console.log('USERNAME:', chalk.yellowBright(USERNAME));
       console.log('PASSWORD:', chalk.yellowBright(PASSWORD.split('').map(_ => '*').join('')), '\n');
     }
+    const checkMark = (v) => v ? '☑' : '☐';
+    console.log(`${checkMark(config.hasResources())} resources    ${checkMark(config.hasDashboards())} dashboards    ${checkMark(config.hasCubes())} cubes\n`);
   }
 
   async _login() {
