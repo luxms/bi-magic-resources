@@ -8,7 +8,7 @@ const {retryOnFail} = require('./utils');
 const utils = require('./utils');
 const config = require('./config');
 const ResourceManager = require('../managers/ResourceManager');
-const DashletManager = require('../managers/DashletManager');
+const DashboardManager = require('../managers/DashboardManager');
 const CubeManager = require('../managers/CubeManager');
 
 /**
@@ -20,10 +20,10 @@ const CubeManager = require('../managers/CubeManager');
 async function synchronize(source, target) {
   // Create manager instances
   const sourceResourceManager = new ResourceManager(source);
-  const sourceDashletManager = new DashletManager(source);
+  const sourceDashboardManager = new DashboardManager(source);
   const sourceCubeManager = new CubeManager(source);
   const targetResourceManager = new ResourceManager(target);
-  const targetDashletManager = new DashletManager(target);
+  const targetDashboardManager = new DashboardManager(target);
   const targetCubeManager = new CubeManager(target);
 
   // Enumerate files
@@ -41,8 +41,8 @@ async function synchronize(source, target) {
     }
 
     if (config.hasDashboards()) {
-      sourceDashboards = await retryOnFail(() => sourceDashletManager.enumerate());
-      targetDashboards = await retryOnFail(() => targetDashletManager.enumerate());
+      sourceDashboards = await retryOnFail(() => sourceDashboardManager.enumerate());
+      targetDashboards = await retryOnFail(() => targetDashboardManager.enumerate());
     }
 
     if (config.hasCubes()) {
@@ -176,23 +176,23 @@ async function synchronize(source, target) {
 
   try {
     for (const item of createItems) {
-      if (item.type === 'resource') await target.resourceManager.createContent(item.fileName, item.content);
-      if (item.type === 'dashboard') await target.dashletManager.createContent(item.fileName, item.content);
-      if (item.type === 'cube') await target.cubeManager.createContent(item.fileName, item.content);
+      if (item.type === 'resource') await targetResourceManager.createContent(item.fileName, item.content);
+      if (item.type === 'dashboard') await targetDashboardManager.createContent(item.fileName, item.content);
+      if (item.type === 'cube') await targetCubeManagerr.createContent(item.fileName, item.content);
       finalBar.increment();
     }
 
     for (let item of overwriteItems) {
-      if (item.type === 'resource') await target.resourceManager.updateContent(item.fileName, item.content);
-      if (item.type === 'dashboard') await target.dashletManager.updateContent(item.fileName, item.content);
-      if (item.type === 'cube') await target.cubeManager.updateContent(item.fileName, item.content);
+      if (item.type === 'resource') await targetResourceManager.updateContent(item.fileName, item.content);
+      if (item.type === 'dashboard') await targetDashboardManager.updateContent(item.fileName, item.content);
+      if (item.type === 'cube') await targetCubeManager.updateContent(item.fileName, item.content);
       finalBar.increment();
     }
 
     for (let item of removeItems) {
-      if (item.type === 'resource') await target.resourceManager.deleteContent(item.fileName);
-      if (item.type === 'dashboard') await target.dashletManager.deleteContent(item.fileName);
-      if (item.type === 'cube') await target.cubeManager.deleteContent(item.fileName);
+      if (item.type === 'resource') await targetResourceManager.deleteContent(item.fileName);
+      if (item.type === 'dashboard') await targetDashboardManager.deleteContent(item.fileName);
+      if (item.type === 'cube') await targetCubeManager.deleteContent(item.fileName);
       finalBar.increment();
     }
   } finally {

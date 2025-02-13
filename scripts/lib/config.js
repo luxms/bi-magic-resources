@@ -4,7 +4,7 @@ const readlineSync = require('readline-sync');
 const currentGitBranch = require('current-git-branch');
 
 class Config {
-  DEFAULT_VALUES = {
+  static DEFAULT_VALUES = {
     port: '3003',
     force: false,
     noRemove: false,
@@ -14,6 +14,7 @@ class Config {
     dashboards: false,
     cubes: false,
     kerberos: '',
+    jwt: '',
     noLogin: false,
   };
 
@@ -24,10 +25,10 @@ class Config {
   }
 
   getAuthConfig() {
-    const JWT = this.getOption('jwt');
     const KERBEROS = this.getOption('kerberos');
-    const USERNAME = this.getOption('username');
-    const PASSWORD = this.getOption('password');
+    const JWT = !KERBEROS ? this.getOption('jwt') : '';
+    const USERNAME = !KERBEROS && !JWT ? this.getOption('username') : '';
+    const PASSWORD = !KERBEROS && !JWT ? this.getOption('password') : '';
     return { JWT, KERBEROS, USERNAME, PASSWORD };
   }
 
@@ -86,18 +87,26 @@ class Config {
     let value;
 
     // 2. CLI args
+    // ex:
+    //   npm run pull -- --option=value
     value = this._getFromCli(name);
     if (value !== undefined) {
       return (this.OPTIONS_CACHE[name] = value);
     }
 
     // 3. ENV variables
+    // (must be uppercase)
+    // ex:
+    //   BI_SERVER=http://127.0.0.1 npm run pull
     value = this._getFromEnv(name);
     if (value !== undefined) {
       return (this.OPTIONS_CACHE[name] = value);
     }
 
     // 4. Config files
+    // two config files:
+    //   config.json - for server and other options
+    //   authConfig.json  - only for username, password and jwt
     const useAuthConfig = ['username', 'password', 'jwt'].includes(name);
     const config = useAuthConfig ? this._loadAuthConfig() : this._loadConfig();
     if (config[name] !== undefined) {
@@ -106,7 +115,7 @@ class Config {
 
     // 5. Default values
     if (Config.DEFAULT_VALUES[name] !== undefined) {
-      return (this.OPTIONS_CACHE[name] = this.DEFAULT_VALUES[name]);
+      return (this.OPTIONS_CACHE[name] = Config.DEFAULT_VALUES[name]);
     }
 
     // 6. Ask user
@@ -130,32 +139,36 @@ class Config {
   }
   
   _loadConfig() {
-    if (this.CONFIG_CACHE) return this.CONFIG_CACHE;
-    try {
-      const textContent = fs.readFileSync(path.resolve(__dirname, '..', '..', 'config.json'), 'utf8');
-      this.CONFIG_CACHE = JSON.parse(textContent);
-    } catch (err) {
-      console.warn('Error reading config.json:', err.message);
-      this.CONFIG_CACHE = {};
+    if (!this.CONFIG_CACHE) {
+      try {
+        const textContent = fs.readFileSync(path.resolve(__dirname, '..', '..', 'config.json'), 'utf8');
+        this.CONFIG_CACHE = JSON.parse(textContent);
+      } catch (err) {
+        console.warn('Error reading config.json:', err.message);
+        this.CONFIG_CACHE = {};
+      }
     }
+    return this.CONFIG_CACHE;
   }
 
   _loadAuthConfig() {
-    if (this.AUTH_CONFIG_CACHE) return this.AUTH_CONFIG_CACHE;
-    try {
-      const textContent = fs.readFileSync(path.resolve(__dirname, '..', '..', 'authConfig.json'), 'utf8');
-      let config = JSON.parse(textContent);
+    if (!this.AUTH_CONFIG_CACHE) {
       try {
-        const branchName = currentGitBranch();
-        if (branchName in config) config = config[branchName];
+        const textContent = fs.readFileSync(path.resolve(__dirname, '..', '..', 'authConfig.json'), 'utf8');
+        let config = JSON.parse(textContent);
+        try {
+          const branchName = currentGitBranch();
+          if (branchName in config) config = config[branchName];
+        } catch (err) {
+          // Skip git branch feature
+        }
+        this.AUTH_CONFIG_CACHE = config;
       } catch (err) {
-        // Skip git branch feature
+        console.warn('Error reading authConfig.json:', err.message);
+        this.AUTH_CONFIG_CACHE = {};
       }
-      this.AUTH_CONFIG_CACHE = config;
-    } catch (err) {
-      console.warn('Error reading authConfig.json:', err.message);
-      this.AUTH_CONFIG_CACHE = {};
     }
+    return this.AUTH_CONFIG_CACHE;
   }
 }
 

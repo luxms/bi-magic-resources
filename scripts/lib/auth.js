@@ -1,5 +1,7 @@
 const axios = require('axios').default;
 const tough = require('tough-cookie');
+const chalk = require('chalk');
+const Spinner = require('cli-spinner').Spinner;
 const config = require('./config');
 const {retryOnFail} = require('./utils');
 
@@ -31,14 +33,14 @@ class Auth {
   _logAuthParams() {
     this.BASE_URL = config.getServer();
     const {KERBEROS, JWT, USERNAME, PASSWORD} = config.getAuthConfig();
-    console.log('SERVER: ', chalk.yellowBright(this.BASE_URL));
+    console.log('SERVER:', chalk.yellowBright(this.BASE_URL));
     if (KERBEROS) {
-      console.log('KERBEROS: ', chalk.yellowBright(KERBEROS));
+      console.log('KERBEROS:', chalk.yellowBright(KERBEROS));
     } else if (JWT) {
-      console.log('JWT: ', chalk.yellowBright(`${JWT.slice(0, 16)}...`));
+      console.log('JWT:', chalk.yellowBright(`${JWT.slice(0, 16)}...`));
     } else {
-      console.log('USERNAME: ', chalk.yellowBright(USERNAME));
-      console.log('PASSWORD: ', chalk.yellowBright(PASSWORD.split('').map(_ => '*').join('')), '\n');
+      console.log('USERNAME:', chalk.yellowBright(USERNAME));
+      console.log('PASSWORD:', chalk.yellowBright(PASSWORD.split('').map(_ => '*').join('')), '\n');
     }
   }
 
