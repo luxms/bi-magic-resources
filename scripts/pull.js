@@ -1,9 +1,9 @@
-const Local = require('./platforms/Local');
 const Server = require('./platforms/Server');
-const withAuth = require('./lib/auth');
+const Local = require('./platforms/Local');
 const synchronize = require('./lib/synchronize');
+const auth = require('./core/auth');
 
-const local = new Local('src');
 const server = new Server();
+const local = new Local('src');
 
-withAuth(server, () => synchronize(server, local));
+auth.init(() => synchronize(server, local));
