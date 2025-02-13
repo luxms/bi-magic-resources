@@ -12,7 +12,6 @@ function splitResource(resource) {
   return [schemaName, decodeURIComponent(resourceName)];
 }
 
-
 function filterSchemaNames(schema_names) {
   const include = config.getInclude();
   if (include) {
@@ -28,7 +27,6 @@ function filterSchemaNames(schema_names) {
 
   return schema_names;
 }
-
 
 async function retryOnFail(fn) {
   let error = null;

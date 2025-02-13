@@ -1,30 +1,68 @@
 const Manager = require('./base/Manager');
 
-/**
- * - ConcreteImplementor (bridge pattern)
- */
 class CubeManager extends Manager {
-  async getContent(cube) {
-    const [_, schemaName, __, cubePath] = cube.split('/');
-    return this.platform.getCubeContent(schemaName, cubePath);
+  /**
+   * Lists all cubes across schemas
+   * @returns {Promise<string[]>}
+   */
+  async enumerate() {
+    const list = [];
+    const schemaNames = await this.platform.getSchemaNames();
+
+    for (const schemaName of schemaNames) {
+      const cubes = await this.platform.getCubes(schemaName);
+      for (const cube of cubes) {
+        list.push(`/${schemaName}/cubes/${cube}`);
+      }
+    }
+
+    return list;
   }
 
-  async saveContent(cube, content) {
-    return this.platform.saveJSONContent(cube, content);
+  /**
+   * Gets cube configuration content
+   * @param {string} path - Full cube path
+   * @returns {Promise<Object>}
+   */
+  async getContent(path) {
+    const [schemaName, _, cubePath] = path.split('/').filter(Boolean);
+    
+    // For Local platform
+    if (this.platform.constructor.name === 'Local') {
+      return this.platform.getCubeContent(schemaName, cubePath);
+    }
+    
+    // For Server platform
+    return this.platform.getCubesContent(path);
   }
 
-  async createContent(cube, content) {
-    return this.platform.createJSONContent(cube, content);
+  /**
+   * Creates a new cube configuration
+   * @param {string} path - Full cube path
+   * @param {Object} content - Cube configuration
+   * @returns {Promise<Object|null>}
+   */
+  async createContent(path, content) {
+    return this.platform.createJSONContent(path, content);
   }
 
-  async removeContent(cube) {
-    return this.platform.removeJSONContent(cube);
+  /**
+   * Updates existing cube configuration
+   * @param {string} path - Full cube path
+   * @param {Object} content - New cube configuration
+   * @returns {Promise<void>}
+   */
+  async updateContent(path, content) {
+    return this.platform.saveJSONContent(path, content);
   }
 
-  async enumerate(schemaName) {
-    const files = super.enumerate();
-    const cubes = await this.platform.getCubes(schemaName);
-    return cubes.map(cube => `/${schemaName}/cubes/${cube}`);
+  /**
+   * Deletes a cube configuration
+   * @param {string} path - Full cube path
+   * @returns {Promise<void>}
+   */
+  async deleteContent(path) {
+    return this.platform.removeJSONContent(path);
   }
 }
 

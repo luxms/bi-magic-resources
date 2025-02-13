@@ -1,16 +1,67 @@
 /**
- * Abstract base class representing a data storage platform
+ * Base Platform class that defines the interface for Local and Server
  */
 class Platform {
   constructor() {}
 
   /**
-   * Получить список schemaNames
+   * Gets list of available schema names
    * @returns {string[]}
    */
   async getSchemaNames() {
     throw new Error('getSchemaNames must be implemented');
   }
+
+
+  /**
+   * Gets list of resources for a schema
+   * @param {string} schemaName
+   * @returns {Promise<string[]>}
+   */
+  async getResources(schemaName) {
+    throw new Error('getResources must be implemented');
+  }
+
+  /**
+   * Gets content of a resource
+   * @param {string} resource
+   * @returns {Promise<Buffer>}
+   */
+  async getResourceContent(resource) {
+    throw new Error('getResourceContent must be implemented');
+  }
+
+  /**
+   * Creates a new resource
+   * @param {string} resource
+   * @param {Buffer} content
+   * @returns {Promise<void>}
+   */
+  async createResourceContent(resource, content) {
+    throw new Error('createResourceContent must be implemented');
+  }
+
+  /**
+   * Updates existing resource content
+   * @param {string} resource
+   * @param {Buffer} content
+   * @returns {Promise<void>}
+   */
+  async saveResourceContent(resource, content) {
+    throw new Error('saveResourceContent must be implemented');
+  }
+
+  /**
+   * Removes a resource
+   * @param {string} resource
+   * @returns {Promise<void>}
+   */
+  async removeResourceContent(resource) {
+    throw new Error('removeResourceContent must be implemented');
+  }
+
+
+  
 
   /**
    * Получить список файлов по schemaName
@@ -36,15 +87,6 @@ class Platform {
 
   async makeDirectory(path) {
     throw new Error('makeDirectory must be implemented');
-  }
-
-  // Authentication methods for ServerPlatform
-  async login(username, password) {
-    throw new Error('login must be implemented');
-  }
-
-  async logout() {
-    throw new Error('logout must be implemented');
   }
 }
 

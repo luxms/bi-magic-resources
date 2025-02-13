@@ -3,14 +3,13 @@ const chalk = require('chalk');
 const colors = require('colors');
 const Confirm = require('prompt-confirm');
 const Spinner = require('cli-spinner').Spinner;
-const { SingleBar } = require('cli-progress');
-const { retryOnFail } = require('./utils');
+const {SingleBar} = require('cli-progress');
+const {retryOnFail} = require('./utils');
 const utils = require('./utils');
 const config = require('./config');
 const ResourceManager = require('../managers/ResourceManager');
 const DashletManager = require('../managers/DashletManager');
 const CubeManager = require('../managers/CubeManager');
-
 
 /**
  * Синхронизирует файлы на сервере и на диске
@@ -19,12 +18,10 @@ const CubeManager = require('../managers/CubeManager');
  * @returns {Promise<void>}
  */
 async function synchronize(source, target) {
-  // source managers
+  // Create manager instances
   const sourceResourceManager = new ResourceManager(source);
   const sourceDashletManager = new DashletManager(source);
   const sourceCubeManager = new CubeManager(source);
-
-  // target managers
   const targetResourceManager = new ResourceManager(target);
   const targetDashletManager = new DashletManager(target);
   const targetCubeManager = new CubeManager(target);

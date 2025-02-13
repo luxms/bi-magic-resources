@@ -9,3 +9,4 @@ let args = process.argv.slice(2);
 args = args.map(arg => arg.includes('--') ? arg.split('=')[1] : arg);
 
 // withAuth(server, createEntity(local, server, ...args));
+

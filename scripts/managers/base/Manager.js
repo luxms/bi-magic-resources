@@ -1,56 +1,60 @@
+const Platform = require('../../platforms/base/Platform');
+
 /**
- * - Implementor (bridge pattern)
+ * Base Manager class that defines common functionality for all managers
  */
 class Manager {
+  /**
+   * @param {Platform} platform - Platform instance (Local or Server)
+   */
   constructor(platform) {
     this.platform = platform;
   }
 
   /**
-   * Перечислить все файлы
-   * @returns {string[]}
+   * Lists all items managed by this manager
+   * @returns {Promise<string[]>}
    */
   async enumerate() {
-    const resources = [];
-    const schemaNames = await this.platform.getSchemaNames();
-
-    for (const schemaName of schemaNames) {
-      const fileNames = await this.platform.getFiles(schemaName);
-      for (const fileName of fileNames) {
-        resources.push(`/${schemaName}/${fileName}`);
-      }
-    }
-
-    resources.sort();
-    return resources;
+    throw new Error('enumerate must be implemented');
   }
 
-  async getContent(resource) {
+  /**
+   * Gets content of an item
+   * @param {string} path
+   * @returns {Promise<any>}
+   */
+  async getContent(path) {
     throw new Error('getContent must be implemented');
   }
 
-  async createContent(resource, content) {
+  /**
+   * Creates a new item
+   * @param {string} path
+   * @param {any} content
+   * @returns {Promise<void>}
+   */
+  async createContent(path, content) {
     throw new Error('createContent must be implemented');
   }
 
-  async updateContent(resource, content) {
-    throw new Error('saveContent must be implemented');
+  /**
+   * Updates existing item
+   * @param {string} path
+   * @param {any} content
+   * @returns {Promise<void>}
+   */
+  async updateContent(path, content) {
+    throw new Error('updateContent must be implemented');
   }
 
-  async deleteContent(resource) {
-    throw new Error('removeContent must be implemented');
-  }
-
-
-
-  // Common utility methods for managers
-  async readJSONFile(path) {
-    const content = await this.platform.readFile(path);
-    return content ? JSON.parse(content) : null;
-  }
-
-  async writeJSONFile(path, content) {
-    await this.platform.writeFile(path, JSON.stringify(content, null, 2));
+  /**
+   * Deletes an item
+   * @param {string} path
+   * @returns {Promise<void>}
+   */
+  async deleteContent(path) {
+    throw new Error('deleteContent must be implemented');
   }
 }
 
