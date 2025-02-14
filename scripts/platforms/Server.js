@@ -8,6 +8,7 @@ class Server extends Platform {
   constructor() {
     super();
     this.TREE_FF = {};
+    this.type = 'server';
   }
 
   async getSchemaNames() {

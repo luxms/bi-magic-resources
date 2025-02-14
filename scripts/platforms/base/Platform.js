@@ -2,6 +2,9 @@ const CubeManager = require('../../managers/CubeManager');
 const DashboardManager = require('../../managers/DashboardManager');
 const ResourceManager = require('../../managers/ResourceManager');
 
+/**
+ * Базовый класс, от которого наследуются Local и Server
+ */
 class Platform {
   constructor() {
     this.dashboards = new DashboardManager(this);

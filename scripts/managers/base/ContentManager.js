@@ -1,3 +1,6 @@
+/**
+ * Базовый класс для работы с файлами
+ */
 class ContentManager {
   constructor(platform) {
     this.platform = platform;

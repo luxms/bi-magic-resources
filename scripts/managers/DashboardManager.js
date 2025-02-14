@@ -13,20 +13,19 @@ class DashboardManager extends ContentManager {
     return list;
   }
 
-  /**
-   * Gets dashboard configuration content
-   * @param {string} path - Full config path
-   * @returns {Promise<Object>}
-   */
   async getContent(path) {
-    const content = await this.platform.getConfigContent(path);
-    if (!content) return null;
+    if (this.platform.type === 'server') {
+      const content = await this.platform.getConfigContent(path);
+      if (!content) return null;
 
-    // Remove service fields that shouldn't be compared
-    delete content.id;
-    delete content.updated;
+      // Remove service fields that shouldn't be compared
+      delete content.id;
+      delete content.updated;
 
-    return content;
+      return content;
+    }
+
+    return await this.platform.readFile(path);
   }
 
   /**

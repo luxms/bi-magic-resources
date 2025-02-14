@@ -13,48 +13,24 @@ class CubeManager extends ContentManager {
     return list;
   }
 
-  /**
-   * Gets cube configuration content
-   * @param {string} path - Full cube path
-   * @returns {Promise<Object>}
-   */
   async getContent(path) {
-    const [schemaName, _, cubePath] = path.split('/').filter(Boolean);
+    const [schemaName, cubesFolder, cubePath] = path.split('/').filter(Boolean);
 
-    // For Local platform
-    if (this.platform.constructor.name === 'Local') {
-      return this.platform.getCubeContent(schemaName, cubePath);
+    if (this.platform.type === 'server') {
+      return this.platform.getCubesContent(path);
     }
 
-    // For Server platform
-    return this.platform.getCubesContent(path);
+    return await this.platform.readFile(path);
   }
 
-  /**
-   * Creates a new cube configuration
-   * @param {string} path - Full cube path
-   * @param {Object} content - Cube configuration
-   * @returns {Promise<Object|null>}
-   */
   async createContent(path, content) {
     return this.platform.createJSONContent(path, content);
   }
 
-  /**
-   * Updates existing cube configuration
-   * @param {string} path - Full cube path
-   * @param {Object} content - New cube configuration
-   * @returns {Promise<void>}
-   */
   async updateContent(path, content) {
     return this.platform.saveJSONContent(path, content);
   }
 
-  /**
-   * Deletes a cube configuration
-   * @param {string} path - Full cube path
-   * @returns {Promise<void>}
-   */
   async deleteContent(path) {
     return this.platform.removeJSONContent(path);
   }

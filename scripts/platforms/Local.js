@@ -9,6 +9,7 @@ class Local extends Platform {
   constructor(baseDir = 'src') {
     super();
     this.BASE_DIR = path.resolve(__dirname, '..', '..', baseDir);
+    this.type = 'local';
   }
 
   setBaseDir(dir) {

@@ -9,6 +9,7 @@ const utils = require('./utils');
 const config = require('./config');
 const contentTypes = ['resources', 'dashboards', 'cubes'];
 
+// TODO Сделать тоже классом синглтоном
 /**
  * Synchronize local and server files
  * @param source
