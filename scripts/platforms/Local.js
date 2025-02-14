@@ -82,7 +82,7 @@ class Local extends Platform {
   async getResourceContent(resource) {
     const [schemaName, resourceName] = splitResource(resource);
     const filePath = this._getResourcePath(schemaName, resourceName);
-    
+
     try {
       await fs.stat(filePath);
       return fs.readFile(filePath);
@@ -119,7 +119,7 @@ class Local extends Platform {
 
     try {
       await fs.unlink(filePath);
-      
+
       // Clean up empty directories
       const filesLeft = await fs.readdir(dirPath);
       if (filesLeft.length === 0) {

@@ -1,6 +1,6 @@
-const Manager = require('./base/Manager');
+const ContentManager = require('./base/ContentManager');
 
-class DashboardManager extends Manager {
+class DashboardManager extends ContentManager {
   async enumerate() {
     const list = [];
     const schemaNames = await this.platform.getSchemaNames();
@@ -25,7 +25,7 @@ class DashboardManager extends Manager {
     // Remove service fields that shouldn't be compared
     delete content.id;
     delete content.updated;
-    
+
     return content;
   }
 

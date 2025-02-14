@@ -1,6 +1,6 @@
-const Manager = require('./base/Manager');
+const ContentManager = require('./base/ContentManager');
 
-class ResourceManager extends Manager {
+class ResourceManager extends ContentManager {
   async enumerate() {
     const list = [];
     const schemaNames = await this.platform.getSchemaNames();

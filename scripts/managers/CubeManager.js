@@ -1,6 +1,6 @@
-const Manager = require('./base/Manager');
+const ContentManager = require('./base/ContentManager');
 
-class CubeManager extends Manager {
+class CubeManager extends ContentManager {
   async enumerate() {
     const list = [];
     const schemaNames = await this.platform.getSchemaNames();
@@ -20,12 +20,12 @@ class CubeManager extends Manager {
    */
   async getContent(path) {
     const [schemaName, _, cubePath] = path.split('/').filter(Boolean);
-    
+
     // For Local platform
     if (this.platform.constructor.name === 'Local') {
       return this.platform.getCubeContent(schemaName, cubePath);
     }
-    
+
     // For Server platform
     return this.platform.getCubesContent(path);
   }

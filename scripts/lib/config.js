@@ -72,6 +72,10 @@ class Config {
     return !!this.getOption('cubes');
   }
 
+  hasOption(name) {
+    return !!this.getOption(name);
+  }
+
   /**
    * Get option from config
    * @param {string} name - Option name
@@ -137,7 +141,7 @@ class Config {
     const envName = 'BI_' + name.replace(/[A-Z]/g, letter => '_' + letter).toUpperCase();
     return process.env[envName];
   }
-  
+
   _loadConfig() {
     if (!this.CONFIG_CACHE) {
       try {
