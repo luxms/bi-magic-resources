@@ -48,7 +48,7 @@ class CubeManager extends ContentManager {
   }
 
   async updateContent(path, content) {
-    return this.platform.writeFile(path, content);
+    return this.platform.updateFile(path, content);
   }
 
   async deleteContent(path) {

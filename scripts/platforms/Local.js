@@ -77,6 +77,10 @@ class Local extends Platform {
     }
   }
 
+  async updateFile(filePath, content) {
+    this.writeFile(filePath, content);
+  }
+
   _getSchemaPath(schemaName) {
     return path.resolve(this.BASE_DIR, schemaName);
   }

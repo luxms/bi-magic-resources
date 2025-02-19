@@ -35,12 +35,12 @@ class Platform {
     throw new Error('Method writeFile must be implemented');
   }
 
-  async deleteFile(path) {
-    throw new Error('Method deleteFile must be implemented');
+  async updateFile(path, content) {
+    throw new Error('Method updateFile must be implemented');
   }
 
-  async makeDirectory(path) {
-    throw new Error('Method makeDirectory must be implemented');
+  async deleteFile(path) {
+    throw new Error('Method deleteFile must be implemented');
   }
 }
 

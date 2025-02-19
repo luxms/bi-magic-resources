@@ -118,21 +118,10 @@ class DashboardManager extends ContentManager {
     return this.platform.writeFile(path, content);
   }
 
-  /**
-   * Updates existing dashboard configuration
-   * @param {string} path - Full config path
-   * @param {Object} content - New configuration content
-   * @returns {Promise<void>}
-   */
   async updateContent(path, content) {
-    return this.platform.saveJSONContent(path, content);
+    return this.platform.updateFile(path, content);
   }
 
-  /**
-   * Deletes a dashboard configuration
-   * @param {string} path - Full config path
-   * @returns {Promise<void>}
-   */
   async deleteContent(path) {
     return this.platform.removeJSONContent(path);
   }

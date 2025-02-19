@@ -31,7 +31,7 @@ class ResourceManager extends ContentManager {
   }
 
   async updateContent(path, content) {
-    return this.platform.saveResourceContent(path, content);
+    return this.platform.updateFile(path, content);
   }
 
   async deleteContent(path) {
