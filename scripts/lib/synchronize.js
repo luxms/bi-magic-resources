@@ -7,6 +7,7 @@ const {SingleBar} = require('cli-progress');
 const {retryOnFail} = require('./utils');
 const utils = require('./utils');
 const config = require('./config');
+
 const contentTypes = ['resources', 'dashboards', 'cubes'];
 
 // TODO Сделать тоже классом синглтоном
@@ -50,10 +51,18 @@ async function synchronize(source, target) {
       for (const item of sourceItems[contentType]) {
         const sourceContent = await retryOnFail(() => source[contentType].getContent(item));
 
-          if (targetItems[contentType].includes(item)) {
+        if (targetItems[contentType].includes(item)) {
           const targetContent = await retryOnFail(() => target[contentType].getContent(item));
-          // TODO Наверное надо сделать тут разные проверки в зависимости от расширения файла
-          if (md5(sourceContent) !== md5(targetContent)) overwriteItems.push({ type: contentType, path: item, content: sourceContent });
+
+          if (item.endsWith('.json')) {
+            if (!utils.compareObjects(sourceContent, targetContent)) {
+              overwriteItems.push({ type: contentType, path: item, content: sourceContent });
+            }
+          } else {
+            if (md5(sourceContent) !== md5(targetContent)) {
+              overwriteItems.push({ type: contentType, path: item, content: sourceContent });
+            }
+          }
         } else {
           createItems.push({ type: contentType, path: item, content: sourceContent })
         }

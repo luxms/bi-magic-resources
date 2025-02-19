@@ -1,14 +1,57 @@
 const ContentManager = require('./base/ContentManager');
+const utils = require('../lib/utils');
 
 class DashboardManager extends ContentManager {
+  constructor(platform) {
+    super(platform);
+    this.TREE_FF = {};
+  }
+
   async enumerate() {
     const list = [];
     const schemaNames = await this.platform.getSchemaNames();
     for (const schemaName of schemaNames) {
       if (this.platform.type === 'server') {
-        const dashboards = await this.platform.getDashboards(schemaName);
-        for (const dashboard of dashboards) {
-          list.push(`/${schemaName}/${dashboard}`);
+        const [topics, dashboards, dashlets] = await Promise.all([
+          this.platform.getFiles(schemaName, 'dashboard_topics'),
+          this.platform.getFiles(schemaName, 'dashboards'),
+          this.platform.getFiles(schemaName, 'dashlets')
+        ]);
+
+        const fileNames = [];
+        const snFolders = this.TREE_FF[schemaName] = {};
+
+        // Как и в кубах, возможно мерджинг стоит вынести в отдельную функцию
+        for (let topic of topics) {
+          const topicId = topic.id;
+          const topicPath = `topic.${topicId}/index.json`;
+          fileNames.push(topicPath);
+          const { id, updated, ...topicData } = topic;
+          const snf = snFolders[`topic.${topicId}`] = { index: topicData };
+
+          for (let db of dashboards) {
+            if (db.topic_id === topicId) {
+              const dashboardId = db.id;
+              const dashboardPath = `topic.${topicId}/dashboard.${dashboardId}/index.json`;
+              fileNames.push(dashboardPath);
+              const { id, updated, ...dbData } = db;
+              const cd = snf[`dashboard.${dashboardId}`] = { index: dbData };
+
+              dashlets.forEach(d => {
+                if (d.dashboard_id === dashboardId) {
+                  const dashletId = d.id;
+                  fileNames.push(`topic.${topicId}/dashboard.${dashboardId}/${dashletId}.json`);
+                  
+                  const { id, updated, ...dashletData } = d;
+                  cd[dashletId] = dashletData;
+                }
+              });
+            }
+          }
+        }
+
+        for (const fileName of fileNames) {
+          list.push(`/${schemaName}/${fileName}`);
         }
       } else {
         const fileNames = await this.platform.getFiles(schemaName);
@@ -26,17 +69,48 @@ class DashboardManager extends ContentManager {
 
   async getContent(path) {
     if (this.platform.type === 'server') {
-      const content = await this.platform.getConfigContent(path);
-      if (!content) return null;
+      if (!path?.startsWith('/')) {
+        console.error('Invalid path format in getContent');
+        return null;
+      }
 
-      // Remove service fields that shouldn't be compared
-      delete content.id;
-      delete content.updated;
+      const [, schemaName, topic, dashboard, dash] = path.split('/');
 
-      return content;
+      if (!schemaName || !topic || !dashboard) {
+        console.error('Missing required path components in getContent');
+        return null;
+      }
+
+      let result = null;
+
+      try {
+        if (!this.TREE_FF[schemaName][topic]) {
+          console.error(`Missing tree structure for ${schemaName}/${topic}`);
+          return null;
+        }
+
+        if (dash) {
+          const dashletId = dash.split('.')[0];
+          result = this.TREE_FF[schemaName][topic][dashboard]?.[dashletId];
+        } else {
+          const dashboardId = dashboard.split('.')[0];
+          result = this.TREE_FF[schemaName][topic][dashboardId];
+        }
+
+        if (!result) {
+          console.warn(`Content not found for path: ${path}`);
+          return null;
+        }
+
+        return utils.cleanPropertyMembers(result);
+      } catch (error) {
+        console.error('Error in getContent:', error);
+        return null;
+      }
     }
 
-    return await this.platform.readFile(path);
+    const result = await this.platform.readFile(path);
+    return utils.cleanPropertyMembers(result);
   }
 
   /**

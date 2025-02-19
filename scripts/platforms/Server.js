@@ -7,7 +7,6 @@ const auth = require('../lib/auth');
 class Server extends Platform {
   constructor() {
     super();
-    this.TREE_FF = {};
     this.type = 'server';
   }
 
@@ -33,55 +32,22 @@ class Server extends Platform {
     }
   }
 
-  async getDashboards(schemaName) {
-    let result = [];
-    const response = await Promise.all([
-      axios({
-        method: 'get',
-        url: `${auth.BASE_URL}/api/db/${schemaName}.dashboard_topics`,
-        ...auth.REQUEST_OPTIONS
-      }),
-      axios({
-        method: 'get',
-        url: `${auth.BASE_URL}/api/db/${schemaName}.dashboards`,
-        ...auth.REQUEST_OPTIONS
-      }),
-      axios({
-        method: 'get',
-        url: `${auth.BASE_URL}/api/db/${schemaName}.dashlets`,
-        ...auth.REQUEST_OPTIONS
-      })
-    ]);
-    const topics = response[0].data;
-    const dashboards = response[1].data;
-    const dashlets = response[2].data;
-    const snFolders = this.TREE_FF[schemaName] = {};
-    for (let topic of topics) {
-      const topicId = topic.id
-      result.push(`topic.${topicId}/index.json`);
-      if (topic.hasOwnProperty('id')) delete topic.id;
-      if (topic.hasOwnProperty('updated')) delete topic.updated;
-      const snf = snFolders[`topic.${topicId}`] = {index: topic};
-      for (let db of dashboards) {
-        if (db.topic_id == topicId) {
-          const dashboardId = db.id
-          result.push(`topic.${topicId}/dashboard.${dashboardId}/index.json`);
-          if (db.hasOwnProperty('id')) delete db.id;
-          if (db.hasOwnProperty('updated')) delete db.updated;
-          const cd = snf[`dashboard.${dashboardId}`] = {index: db};
-          dashlets.forEach((d) => {
-            if (d.dashboard_id == dashboardId) {
-              const dashId = d.id;
-              result.push(`topic.${topicId}/dashboard.${dashboardId}/${dashId}.json`);
-              if (d.hasOwnProperty('id')) delete d.id;
-              if (d.hasOwnProperty('updated')) delete d.updated;
-              cd[dashId] = d;
-            }
-          })
-        }
+  async readFile(path, options) {
+    try {
+      const encodedPath = path.split('/').map(part => encodeURIComponent(part)).join('/');
+      const fullPath = `${auth.BASE_URL}/${encodedPath}`;
+      const response = await axios.get(fullPath, {
+        ...auth.REQUEST_OPTIONS,
+        responseType: path.endsWith('.json') ? 'json' : 'arraybuffer',
+        ...options,
+      });
+      return response.data;
+    } catch (err) {
+      if (err.response?.status === 404) {
+        return null;
       }
+      throw err;
     }
-   return result;
   }
 
   async _getResourceId(resource) {
@@ -92,23 +58,6 @@ class Server extends Platform {
       throw new Error(`Resource not found: ${resource}`);
     }
     return response.data[0].id;
-  }
-
-  async readFile(path) {
-    try {
-      const encodedPath = path.split('/').map(part => encodeURIComponent(part)).join('/');
-      const fullPath = `${auth.BASE_URL}/${encodedPath}`;
-      const response = await axios.get(fullPath, {
-        ...auth.REQUEST_OPTIONS,
-        responseType: path.endsWith('.json') ? 'json' : 'arraybuffer'
-      });
-      return response.data;
-    } catch (err) {
-      if (err.response?.status === 404) {
-        return null;
-      }
-      throw err;
-    }
   }
 
   async createResourceContent(resource, content) {

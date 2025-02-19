@@ -1,4 +1,5 @@
 const ContentManager = require('./base/ContentManager');
+const utils = require('../lib/utils');
 
 class CubeManager extends ContentManager {
   async enumerate() {
@@ -9,7 +10,7 @@ class CubeManager extends ContentManager {
       const files = await this.platform.getFiles(schemaName, 'cubes');
 
       for (const file of files) {
-        const fileName = typeof file === 'string' ? file : file.id;
+        const fileName = typeof file === 'string' ? file : `${file.id}.json`;
         list.push(`/${schemaName}/cubes/${fileName}`);
       }
     }
@@ -19,11 +20,14 @@ class CubeManager extends ContentManager {
 
   async getContent(cube) {
     if (this.platform.type === 'server') {
-      const [schemaName, cubeFolder, cubeId] = cube.split('/').filter(Boolean);
+      const [schemaName, _, fileName] = cube.split('/').filter(Boolean);
+      const cubeId = fileName.endsWith('.json') ? fileName.slice(0, -5) : fileName;
+
       const cubeUrl = `api/db/${schemaName}.cubes/${cubeId}`;
-      const cubeData = await this.platform.readFile(cubeUrl);
-      const dimensionsUrl = `api/db/${schemaName}.dimensions/.filter(source_ident='${cubeData[0].source_ident}')`;
-      const dimensionsData = await this.platform.readFile(dimensionsUrl);
+      const [cubeData] = await this.platform.readFile(cubeUrl, { responseType: 'json' });
+
+      const dimensionsUrl = `api/db/${schemaName}.dimensions/.filter(source_ident='${cubeData.source_ident}')`;
+      const dimensionsData = await this.platform.readFile(dimensionsUrl, { responseType: 'json' });
 
       // Чистим от всего лишнего, todo возможно стоит вынести в хэлпер
       ['id', 'is_source_global', 'is_global'].forEach(key => delete cubeData[key]);
@@ -31,10 +35,12 @@ class CubeManager extends ContentManager {
         dimensionsData.forEach(dim => delete dim[key])
       });
 
-      return { ...cubeData, dimensions: dimensionsData };
+      const result = { ...cubeData, dimensions: dimensionsData };
+      return utils.cleanPropertyMembers(result);
     }
 
-    return await this.platform.readFile(cube);
+    const result = await this.platform.readFile(cube);
+    return utils.cleanPropertyMembers(result);
   }
 
   async createContent(path, content) {
