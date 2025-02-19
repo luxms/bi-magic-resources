@@ -5,9 +5,20 @@ class DashboardManager extends ContentManager {
     const list = [];
     const schemaNames = await this.platform.getSchemaNames();
     for (const schemaName of schemaNames) {
-      const dashboards = await this.platform.getDashboards(schemaName);
-      for (const dashboard of dashboards) {
-        list.push(`/${schemaName}/${dashboard}`);
+      if (this.platform.type === 'server') {
+        const dashboards = await this.platform.getDashboards(schemaName);
+        for (const dashboard of dashboards) {
+          list.push(`/${schemaName}/${dashboard}`);
+        }
+      } else {
+        const fileNames = await this.platform.getFiles(schemaName);
+        // Эта штука важна, чтобы поднять индексовые файлы
+        fileNames.reverse();
+        for (const fileName of fileNames) {
+          if (fileName.startsWith('topic.')) {
+            list.push(`/${schemaName}/${fileName}`);
+          }
+        }
       }
     }
     return list;

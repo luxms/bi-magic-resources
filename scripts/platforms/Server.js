@@ -22,11 +22,6 @@ class Server extends Platform {
     }
   }
 
-  async getResources(schemaName) {
-    const resources = await this.getFiles(schemaName, 'resources');
-    return resources.map(entry => entry.alt_id).filter(resource => !resource.startsWith('cubes'));
-  }
-
   async getDashboards(schemaName) {
     let result = [];
     const response = await Promise.all([
@@ -76,11 +71,6 @@ class Server extends Platform {
       }
     }
    return result;
-  }
-
-  async getCubes(schemaName) {
-    const cubes = await this.getFiles(schemaName, 'cubes');
-    return cubes.map(cube => cube.id);
   }
 
   async getFiles(schemaName, dirName) {

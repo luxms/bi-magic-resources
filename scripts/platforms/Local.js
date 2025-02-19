@@ -18,55 +18,13 @@ class Local extends Platform {
 
   async getSchemaNames() {
     const entries = await fsp.readdir(this.BASE_DIR, {withFileTypes: true});
-    return filterSchemaNames(
+    const schemaNames = filterSchemaNames(
       entries
         .filter(entry => entry.isDirectory())
         .map(entry => entry.name)
     );
+    return schemaNames;
   }
-
-  async getResources(schemaName) {
-    const schemaPath = path.resolve(this.BASE_DIR, schemaName);
-    return await this.getFiles(schemaPath);
-  }
-
-  async getDashboards(schemaName) {
-    const schemaPath = path.resolve(this.BASE_DIR, schemaName);
-    return this.getConfigsFromDisk(schemaPath);
-  }
-
-  async getCubes(schemaName) {
-    const schemaPath = path.resolve(this.BASE_DIR, path.join(schemaName, 'cubes'));
-    return await this.getFiles(schemaPath);
-  }
-
-  // По сути дела тут все одно и то же, только с фильтрацией по .topic/.cubes
-  async getFiles(dir, prefix = '') {
-    const dirents = fs.readdirSync(dir, { withFileTypes: true });
-    const files = await Promise.all(dirents
-      .filter((dirent) => !(dirent.isDirectory() && this.isReservedDirectory(dirent.name)) && dirent.name === '.gitkeep')
-      .map(async (dirent) => {
-        if (dirent.isDirectory()) return this.getFiles(path.resolve(dir, dirent.name), prefix + dirent.name + '/');
-        return prefix + dirent.name;
-      })
-    );
-    return Array.prototype.concat(...files);
-  }
-
-  isReservedDirectory(dirName) {
-    return dirName.startsWith('topic.') || dirName.startsWith('cubes');
-  }
-
-  getConfigsFromDisk(dir, prefix = '') {
-    const dirents = fs.readdirSync(dir, { withFileTypes: true });
-    const files = dirents
-      .filter((d) => d.name.includes('topic.'))
-      .map((dirent) => {
-        return dirent.isDirectory() ? getJSONFiles(path.resolve(dir, dirent.name), prefix + dirent.name + '/') : prefix + dirent.name;
-      });
-    return Array.prototype.concat(...files.reverse());
-  }
-  // -----------------
 
   _getSchemaPath(schemaName) {
     return path.resolve(this.BASE_DIR, schemaName);
@@ -170,13 +128,29 @@ class Local extends Platform {
     await fsp.mkdir(fullPath, { recursive: true });
   }
 
-  async listFiles(dirPath) {
+  async getFiles(...pathSegments) {
+    const dirPath = path.join(...pathSegments);
     const fullPath = path.join(this.BASE_DIR, dirPath);
     const entries = await fsp.readdir(fullPath, { withFileTypes: true });
-    return entries.map(entry => ({
-      name: entry.name,
-      isDirectory: entry.isDirectory(),
-    }));
+    
+    const filePromises = entries.map(async entry => {
+      if (entry.isDirectory()) {
+        const subDirPath = path.join(dirPath, entry.name);
+        return await this.getFiles(subDirPath);
+      }
+      
+      return entry.name === '.gitkeep' ? null : entry.name;
+    });
+
+    const results = await Promise.all(filePromises);
+    const flatResults = results.flat().filter(Boolean);
+
+    if (dirPath.includes('/')) {
+      const currentDir = path.basename(dirPath);
+      return flatResults.map(name => path.join(currentDir, name));
+    }
+
+    return flatResults;
   }
 }
 

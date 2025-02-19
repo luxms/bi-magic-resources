@@ -5,9 +5,11 @@ class ResourceManager extends ContentManager {
     const list = [];
     const schemaNames = await this.platform.getSchemaNames();
     for (const schemaName of  schemaNames) {
-      const resources = await this.platform.getResources(schemaName);
-      for (const resource of resources) {
-        list.push(`/${schemaName}/${resource}`);
+      // Очень красиво получается если сложить ресурсы в отдельную папку
+      const files = await this.platform.getFiles(schemaName, 'resources');
+      for (const file of files) {
+        const fileName = typeof file === 'string' ? file : file.alt_id;
+        list.push(`/${schemaName}/resources/${fileName}`);
       }
     }
     return list.sort();

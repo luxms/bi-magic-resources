@@ -5,12 +5,13 @@ class CubeManager extends ContentManager {
     const list = [];
     const schemaNames = await this.platform.getSchemaNames();
     for (const schemaName of schemaNames) {
-      const cubes = await this.platform.getCubes(schemaName);
-      for (const cube of cubes) {
-        list.push(`/${schemaName}/cubes/${cube}`);
+      const files = await this.platform.getFiles(schemaName, 'cubes');
+      for (const file of files) {
+        const fileName = typeof file === 'string' ? file : file.id;
+        list.push(`/${schemaName}/cubes/${fileName}`);
       }
     }
-    return list;
+    return list.sort();
   }
 
   async getContent(path) {
