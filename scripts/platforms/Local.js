@@ -1,7 +1,6 @@
 const fs = require('fs');
 const fsp = fs.promises;
 const path = require('path');
-const JSON5 = require('json5');
 const { splitResource, filterSchemaNames } = require('../lib/utils');
 const Platform = require('./base/Platform');
 
@@ -17,7 +16,7 @@ class Local extends Platform {
   }
 
   async getSchemaNames() {
-    const entries = await fsp.readdir(this.BASE_DIR, {withFileTypes: true});
+    const entries = await fsp.readdir(this.BASE_DIR, { withFileTypes: true });
     const schemaNames = filterSchemaNames(
       entries
         .filter(entry => entry.isDirectory())
@@ -50,7 +49,7 @@ class Local extends Platform {
       await fsp.stat(fullPath);
 
       if (filePath.endsWith('.json')) {
-        const content = await fsp.readFile(fullPath, { encoding: 'utf8' });
+        const content = await fsp.readFile(fullPath, 'utf8');
         return JSON.parse(content);
       }
 
@@ -60,31 +59,30 @@ class Local extends Platform {
     }
   }
 
+  async writeFile(filePath, content) {
+    try {
+      const normalizedPath = filePath.startsWith('/') ? filePath.slice(1) : filePath;
+      const fullPath = path.join(this.BASE_DIR, normalizedPath);
+      const dirPath = path.dirname(fullPath);
+      await fsp.mkdir(dirPath, { recursive: true });
+
+      if (normalizedPath.endsWith('.json')) {
+        await fsp.writeFile(fullPath, JSON.stringify(content, null, 2), 'utf-8');
+      } else {
+        await fsp.writeFile(fullPath, content);
+      }
+    } catch (error) {
+      console.error('WriteFile failed:', error);
+      throw error;
+    }
+  }
+
   _getSchemaPath(schemaName) {
     return path.resolve(this.BASE_DIR, schemaName);
   }
 
   _getResourcePath(schemaName, resourceName) {
     return path.resolve(this.BASE_DIR, schemaName, path.join(...resourceName.split('/')));
-  }
-
-  _isReservedDirectory(dirName) {
-    return dirName.startsWith('topic.') || dirName.startsWith('.cubes');
-  }
-
-  async getResourceContent(resource) {
-    const [schemaName, resourceName] = splitResource(resource);
-    const filePath = this._getResourcePath(schemaName, resourceName);
-
-    try {
-      await fs.stat(filePath);
-      return fs.readFile(filePath);
-    } catch (err) {
-      if (err.code === 'ENOENT') {
-        return null;
-      }
-      throw err;
-    }
   }
 
   async createResourceContent(resource, content) {
@@ -99,10 +97,6 @@ class Local extends Platform {
     } catch (err) {
       throw new Error(`Failed to create resource ${resource}: ${err.message}`);
     }
-  }
-
-  async saveResourceContent(resource, content) {
-    return this.createResourceContent(resource, content);
   }
 
   async removeResourceContent(resource) {
@@ -123,19 +117,6 @@ class Local extends Platform {
         throw err;
       }
     }
-  }
-
-  async writeFile(filePath, content) {
-    const fullPath = path.join(this.BASE_DIR, filePath);
-    const dir = path.dirname(fullPath);
-
-    try {
-      await fsp.stat(dir);
-    } catch (err) {
-      await fsp.mkdir(dir, { recursive: true });
-    }
-
-    await fsp.writeFile(fullPath, content);
   }
 
   async deleteFile(filePath) {

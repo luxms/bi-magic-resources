@@ -37,7 +37,7 @@ async function synchronize(source, target) {
 
   // Success, show source files count
   console.log(`SUCCESS\n`);
-  console.log(`${sourceItems.resources.length} resources, ${sourceItems.dashboards.length} dashboards, ${sourceItems.cubes.length} cubes\n`);
+  console.log(`${sourceItems.resources.length} resources, ${sourceItems.dashboards.length} dashboards, ${sourceItems.cubes.length} cubes`);
 
   // Load files content
   const bar = new SingleBar({ format: 'Loading files content... |' + colors.cyan('{bar}') + '| {percentage}% || {value}/{total}' });
@@ -90,7 +90,7 @@ async function synchronize(source, target) {
 
   // No changes, skip
   if (createItems.length === 0 && overwriteItems.length === 0 && removeItems.length === 0) {
-    console.log(chalk.green('No changes'));
+    console.log(chalk.green('\nNo changes'));
     return;
   }
 
@@ -122,23 +122,17 @@ async function synchronize(source, target) {
 
   try {
     for (const item of createItems) {
-      if (item.type === 'resource') await target.resources.createContent(item.path, item.content);
-      if (item.type === 'dashboard') await target.dashboards.createContent(item.path, item.content);
-      if (item.type === 'cube') await target.cubes.createContent(item.path, item.content);
+      await target[item.type].createContent(item.path, item.content);
       finalBar.increment();
     }
 
-    for (let item of overwriteItems) {
-      if (item.type === 'resource') await target.resources.updateContent(item.path, item.content);
-      if (item.type === 'dashboard') await target.dashboards.updateContent(item.path, item.content);
-      if (item.type === 'cube') await target.cubes.updateContent(item.path, item.content);
+    for (const item of overwriteItems) {
+      await target[item.type].updateContent(item.path, item.content);
       finalBar.increment();
     }
-
-    for (let item of removeItems) {
-      if (item.type === 'resource') await target.resources.deleteContent(item.path);
-      if (item.type === 'dashboard') await target.dashboards.deleteContent(item.path);
-      if (item.type === 'cube') await target.cubes.deleteContent(item.path);
+  
+    for (const item of removeItems) {
+      await target[item.type].deleteContent(item.path);
       finalBar.increment();
     }
   } finally {

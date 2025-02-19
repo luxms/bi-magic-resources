@@ -44,11 +44,11 @@ class CubeManager extends ContentManager {
   }
 
   async createContent(path, content) {
-    return this.platform.createJSONContent(path, content);
+    return this.platform.writeFile(path, content);
   }
 
   async updateContent(path, content) {
-    return this.platform.saveJSONContent(path, content);
+    return this.platform.writeFile(path, content);
   }
 
   async deleteContent(path) {

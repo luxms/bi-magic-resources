@@ -10,6 +10,7 @@ class DashboardManager extends ContentManager {
   async enumerate() {
     const list = [];
     const schemaNames = await this.platform.getSchemaNames();
+
     for (const schemaName of schemaNames) {
       if (this.platform.type === 'server') {
         const [topics, dashboards, dashlets] = await Promise.all([
@@ -113,14 +114,8 @@ class DashboardManager extends ContentManager {
     return utils.cleanPropertyMembers(result);
   }
 
-  /**
-   * Creates a new dashboard configuration
-   * @param {string} path - Full config path
-   * @param {Object} content - Configuration content
-   * @returns {Promise<Object|null>} - Returns new entity if created on server
-   */
   async createContent(path, content) {
-    return this.platform.createJSONContent(path, content);
+    return this.platform.writeFile(path, content);
   }
 
   /**
