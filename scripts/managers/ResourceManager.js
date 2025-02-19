@@ -4,22 +4,25 @@ class ResourceManager extends ContentManager {
   async enumerate() {
     const list = [];
     const schemaNames = await this.platform.getSchemaNames();
+
     for (const schemaName of  schemaNames) {
-      // Очень красиво получается если сложить ресурсы в отдельную папку
-      const files = await this.platform.getFiles(schemaName, 'resources');
+      const files = this.platform.type === 'server'
+        ? await this.platform.getFiles(schemaName, 'resources')
+        : await this.platform.getFiles(schemaName);
+
       for (const file of files) {
         const fileName = typeof file === 'string' ? file : file.alt_id;
-        list.push(`/${schemaName}/resources/${fileName}`);
+        if (!fileName.startsWith('cubes/') && !fileName.startsWith('topic.')) {
+          list.push(`/${schemaName}/${fileName}`);
+        }
       }
     }
+
     return list.sort();
   }
 
-  async getContent(path) {
-    if (this.platform.type === 'server') {
-      return this.platform.getResourceContent(path);
-    }
-
+  async getContent(resource) {
+    const path = this.platform.type === 'server' ? `srv/resources${resource}` : resource;
     return await this.platform.readFile(path);
   }
 

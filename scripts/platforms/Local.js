@@ -26,6 +26,40 @@ class Local extends Platform {
     return schemaNames;
   }
 
+  async getFiles(...pathSegments) {
+    const dirPath = path.join(...pathSegments);
+    const fullPath = path.join(this.BASE_DIR, dirPath);
+    const entries = await fsp.readdir(fullPath, { withFileTypes: true });
+    
+    const filePromises = entries.map(async entry => {
+      if (entry.isDirectory()) {
+        const subResults = await this.getFiles(dirPath, entry.name);
+        return subResults.map(file => path.join(entry.name, file));
+      }
+      
+      return entry.name === '.gitkeep' ? null : entry.name;
+    });
+
+    const results = await Promise.all(filePromises);
+    return results.flat().filter(Boolean);
+  }
+
+  async readFile(filePath) {
+    try {
+      const fullPath = path.join(this.BASE_DIR, filePath);
+      await fsp.stat(fullPath);
+
+      if (filePath.endsWith('.json')) {
+        const content = await fsp.readFile(fullPath, { encoding: 'utf8' });
+        return JSON.parse(content);
+      }
+
+      return await fsp.readFile(fullPath);
+    } catch (err) {
+      return null;
+    }
+  }
+
   _getSchemaPath(schemaName) {
     return path.resolve(this.BASE_DIR, schemaName);
   }
@@ -91,16 +125,6 @@ class Local extends Platform {
     }
   }
 
-  async readFile(filePath) {
-    try {
-      const fullPath = path.join(this.BASE_DIR, filePath);
-      await fsp.stat(fullPath);
-      return await fsp.readFile(fullPath);
-    } catch (err) {
-      return null;
-    }
-  }
-
   async writeFile(filePath, content) {
     const fullPath = path.join(this.BASE_DIR, filePath);
     const dir = path.dirname(fullPath);
@@ -126,31 +150,6 @@ class Local extends Platform {
   async makeDirectory(dirPath) {
     const fullPath = path.join(this.BASE_DIR, dirPath);
     await fsp.mkdir(fullPath, { recursive: true });
-  }
-
-  async getFiles(...pathSegments) {
-    const dirPath = path.join(...pathSegments);
-    const fullPath = path.join(this.BASE_DIR, dirPath);
-    const entries = await fsp.readdir(fullPath, { withFileTypes: true });
-    
-    const filePromises = entries.map(async entry => {
-      if (entry.isDirectory()) {
-        const subDirPath = path.join(dirPath, entry.name);
-        return await this.getFiles(subDirPath);
-      }
-      
-      return entry.name === '.gitkeep' ? null : entry.name;
-    });
-
-    const results = await Promise.all(filePromises);
-    const flatResults = results.flat().filter(Boolean);
-
-    if (dirPath.includes('/')) {
-      const currentDir = path.basename(dirPath);
-      return flatResults.map(name => path.join(currentDir, name));
-    }
-
-    return flatResults;
   }
 }
 

@@ -22,6 +22,17 @@ class Server extends Platform {
     }
   }
 
+  async getFiles(schemaName, dirName) {
+    const url = `${auth.BASE_URL}/api/db/${schemaName}.${dirName}`;
+    try {
+      const response = await axios.get(url, auth.REQUEST_OPTIONS);
+      return response.data;
+    } catch (error) {
+      if (err.response?.status === 404) return [];
+      throw new Error(`Failed to fetch files for schema ${schemaName}: ${error.message}`);
+    }
+  }
+
   async getDashboards(schemaName) {
     let result = [];
     const response = await Promise.all([
@@ -73,17 +84,6 @@ class Server extends Platform {
    return result;
   }
 
-  async getFiles(schemaName, dirName) {
-    const url = `${auth.BASE_URL}/api/db/${schemaName}.${dirName}`;
-    try {
-      const response = await axios.get(url, auth.REQUEST_OPTIONS);
-      return response.data;
-    } catch (error) {
-      if (err.response?.status === 404) return [];
-      throw new Error(`Failed to fetch files for schema ${schemaName}: ${error.message}`);
-    }
-  }
-
   async _getResourceId(resource) {
     const [schemaName, altId] = splitResource(resource);
     const url = `${auth.BASE_URL}/api/db/${schemaName}.resources/.filter(alt_id='${encodeURIComponent(altId)}')`;
@@ -94,12 +94,13 @@ class Server extends Platform {
     return response.data[0].id;
   }
 
-  async getResourceContent(resource) {
-    const url = `${auth.BASE_URL}/srv/resources${resource}`;
+  async readFile(path) {
     try {
-      const response = await axios.get(url, {
+      const encodedPath = path.split('/').map(part => encodeURIComponent(part)).join('/');
+      const fullPath = `${auth.BASE_URL}/${encodedPath}`;
+      const response = await axios.get(fullPath, {
         ...auth.REQUEST_OPTIONS,
-        responseType: 'arraybuffer'
+        responseType: path.endsWith('.json') ? 'json' : 'arraybuffer'
       });
       return response.data;
     } catch (err) {
