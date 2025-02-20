@@ -6,10 +6,11 @@ class CubeManager extends ContentManager {
     const list = [];
     const schemaNames = await this.platform.getSchemaNames();
     for (const schemaName of schemaNames) {
-      const files = await this.platform.getFiles(schemaName, 'cubes');
+      const folderName = this.platform.type === 'server' ? 'cubes' : '.cubes';
+      const files = await this.platform.getFiles(schemaName, folderName);
       for (const file of files) {
         const fileName = typeof file === 'string' ? file : `${file.id}.json`;
-        list.push(`/${schemaName}/cubes/${fileName}`);
+        list.push(`/${schemaName}/.cubes/${fileName}`);
       }
     }
     return list.sort();

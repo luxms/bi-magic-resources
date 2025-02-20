@@ -28,17 +28,21 @@ class Local extends Platform {
   async getFiles(...pathSegments) {
     const dirPath = path.join(...pathSegments);
     const fullPath = path.join(this.BASE_DIR, dirPath);
+
+    try {
+      await fsp.access(fullPath);
+    } catch (error) {
+      return [];
+    }
+
     const entries = await fsp.readdir(fullPath, { withFileTypes: true });
-    
     const filePromises = entries.map(async entry => {
       if (entry.isDirectory()) {
         const subResults = await this.getFiles(dirPath, entry.name);
         return subResults.map(file => path.join(entry.name, file));
       }
-      
       return entry.name === '.gitkeep' ? null : entry.name;
     });
-
     const results = await Promise.all(filePromises);
     return results.flat().filter(Boolean);
   }

@@ -1,6 +1,5 @@
 const axios = require('axios').default;
-const mime = require('mime-types');
-const {splitResource, filterSchemaNames} = require('../lib/utils');
+const {filterSchemaNames} = require('../lib/utils');
 const Platform = require('./base/Platform');
 const auth = require('../lib/auth');
 
@@ -36,9 +35,13 @@ class Server extends Platform {
     try {
       const fullPath = this._getFullPath(path);
       const response = await axios.get(fullPath, {
-        ...auth.REQUEST_OPTIONS,
         responseType: path.endsWith('.json') ? 'json' : 'arraybuffer',
+        ...auth.REQUEST_OPTIONS,
         ...options,
+        headers: {
+          ...auth.REQUEST_OPTIONS.headers,
+          ...(options && options.headers || {}),
+        },
       });
       return response.data;
     } catch (err) {
@@ -49,15 +52,15 @@ class Server extends Platform {
     }
   }
 
-  async writeFile(path, content) {
+  async writeFile(path, content, options) {
     try {
       const fullPath = this._getFullPath(path);
-      // todo Порешать дело с заголовками и датой
       const response = await axios({
         ...auth.REQUEST_OPTIONS,
         headers: {
-          ...auth.REQUEST_OPTIONS,
           'Content-Type': 'application/json',
+          ...auth.REQUEST_OPTIONS,
+          ...(options && options.headers || {}),
         },
         method: 'post',
         url: fullPath,
@@ -69,15 +72,14 @@ class Server extends Platform {
     }
   }
 
-  async updateFile(path, content) {
+  async updateFile(path, content, options) {
     try {
       const fullPath = this._getFullPath(path);
-      // todo Порешать дело с заголовками и датой
       const response = await axios({
         ...auth.REQUEST_OPTIONS,
         headers: {
           ...auth.REQUEST_OPTIONS.headers,
-          'Content-Type': contentType.replace('application/json', 'text/plain')
+          ...(options && options.headers || {}),
         },
         method: 'put',
         url: fullPath,
@@ -99,8 +101,12 @@ class Server extends Platform {
   }
 
   _getFullPath(path) {
-    const encodedPath = path.split('/').map(part => encodeURIComponent(part)).join('/');
-    return `${auth.BASE_URL}/${encodedPath}`;
+    const parts = path.split('/').filter(Boolean);
+    const encodedPath = parts.map(part => {
+      const decodedPart = decodeURIComponent(part);
+      return encodeURIComponent(decodedPart);
+    }).join('/');
+    return`${auth.BASE_URL}/${encodedPath}`;
   }
 }
 

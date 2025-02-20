@@ -10,7 +10,6 @@ const config = require('./config');
 
 const contentTypes = ['resources', 'dashboards', 'cubes'];
 
-// TODO Сделать тоже классом синглтоном
 /**
  * Synchronize local and server files
  * @param source
@@ -53,16 +52,8 @@ async function synchronize(source, target) {
 
         if (targetItems[contentType].includes(item)) {
           const targetContent = await retryOnFail(() => target[contentType].getContent(item));
-
-          if (item.endsWith('.json')) {
-            if (!utils.compareObjects(sourceContent, targetContent)) {
-              overwriteItems.push({ type: contentType, path: item, content: sourceContent });
-            }
-          } else {
-            if (md5(sourceContent) !== md5(targetContent)) {
-              overwriteItems.push({ type: contentType, path: item, content: sourceContent });
-            }
-          }
+          const contentsMatch = item.endsWith('.json') ? utils.compareObjects(sourceContent, targetContent) : md5(String(sourceContent)) === md5(String(targetContent));
+          if (!contentsMatch) overwriteItems.push({ type: contentType, path: item, content: sourceContent });
         } else {
           createItems.push({ type: contentType, path: item, content: sourceContent })
         }
@@ -90,7 +81,7 @@ async function synchronize(source, target) {
 
   // No changes, skip
   if (createItems.length === 0 && overwriteItems.length === 0 && removeItems.length === 0) {
-    console.log(chalk.green('\nNo changes'));
+    console.log(chalk.green('No changes'));
     return;
   }
 
@@ -111,10 +102,10 @@ async function synchronize(source, target) {
   }
 
   // Confirm changes
-  if (!config.getForce()) {
-    const prompt = new Confirm('Continue?');
-    if (!(await prompt.run())) return;
-  }
+  // if (!config.getForce()) {
+  //   const prompt = new Confirm('Continue?');
+  //   if (!(await prompt.run())) return;
+  // }
 
   // Start changes
   const finalBar = new SingleBar({ format: 'Synchronizing... |' + colors.cyan('{bar}') + '| {percentage}% || {value}/{total} Resources' });

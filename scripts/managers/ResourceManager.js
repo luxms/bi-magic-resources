@@ -1,5 +1,6 @@
-const ContentManager = require('./base/ContentManager');
+const mime = require('mime-types');
 const utils = require('../lib/utils');
+const ContentManager = require('./base/ContentManager');
 
 class ResourceManager extends ContentManager {
   async enumerate() {
@@ -13,7 +14,7 @@ class ResourceManager extends ContentManager {
 
       for (const file of files) {
         const fileName = typeof file === 'string' ? file : file.alt_id;
-        if (!fileName.startsWith('cubes/') && !fileName.startsWith('topic.')) {
+        if (!fileName.startsWith('.cubes/') && !fileName.startsWith('topic.')) {
           list.push(`/${schemaName}/${fileName}`);
         }
       }
@@ -31,15 +32,11 @@ class ResourceManager extends ContentManager {
     if (this.platform.type === 'server') {
       const [schemaName, altId] = utils.splitResource(path);
       const metaUrl = `api/db/${schemaName}.resources/`;
-      const metaData = this.platform.writeFile(metaUrl, {
+      await this.platform.writeFile(metaUrl, {
         alt_id: altId,
-        content_type: (mime.lookup(altId) || 'application/octet-stream').replace('application/json', 'text/plain'),
+        content_type: this._getContentType(altId),
       });
-      const id = metaData.data.id;
-      console.log('CREATED resource with id=', id);
-
-
-
+      await this.updateContent(path, content)
     } else {
       await this.platform.writeFile(path, content);
     }
@@ -50,10 +47,12 @@ class ResourceManager extends ContentManager {
       const [schemaName, altId] = utils.splitResource(path);
       const id = await this._getResourceId(path);
       const url = `srv/resources/${schemaName}/${id}`;
-      const response = this.platform.updateFile(url, content);
-      if (response.statusText === 'OK' && mime.lookup(altId).includes('application/json')) {
-        const url = `api/db/${schemaName}.resources/${id}`;
-        await this.platform.updateFile(url,  {'content_type': 'application/json'});
+      const response = await this.platform.updateFile(url, content, {
+        headers: { 'Content-Type': this._getContentType(altId) }
+      });
+      if (response.statusText === 'OK' & mime.lookup(altId).includes('application/json')) {
+        const metaUrl = `api/db/${schemaName}.resources/${id}`;
+        await this.platform.updateFile(metaUrl, { 'content_type': 'application/json' });
       }
     } else {
       await this.platform.updateFile(path, content);
@@ -73,12 +72,21 @@ class ResourceManager extends ContentManager {
 
   async _getResourceId(resource) {
     const [schemaName, altId] = utils.splitResource(resource);
-    const metaUrl = `/api/db/${schemaName}.resources/.filter(alt_id='${encodeURIComponent(altId)}')`;
-    const metaData = this.platform.readFile(metaUrl);
+    const metaUrl = `api/db/${schemaName}.resources/.filter(alt_id='${altId}')`;      
+    const metaData = await this.platform.readFile(metaUrl, { responseType: 'json' });      
     if (!metaData.length) {
       throw new Error(`Not found resource in ${schemaName} with alt_id=${altId} (${metaUrl})`);
     }
     return metaData[0].id;
+  }
+
+  _getContentType(altId) {
+    try {
+      const mimeType = mime.lookup(altId) || 'application/octet-stream';
+      return mimeType === 'application/json' ? 'text/plain' : mimeType;
+    } catch (error) {
+      return 'application/octet-stream';
+    }
   }
 }
 

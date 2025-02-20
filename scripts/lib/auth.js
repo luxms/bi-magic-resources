@@ -37,9 +37,10 @@ class Auth {
   }
 
   _logParams() {
-    this.BASE_URL = config.getServer();
+    const server = config.getServer();
+    this.BASE_URL = server.endsWith('/') ? server.slice(0, -1) : server;
     const {KERBEROS, JWT, USERNAME, PASSWORD} = config.getAuthConfig();
-    console.log('\nSERVER:', chalk.yellowBright(this.BASE_URL));
+    console.log('\nSERVER:', chalk.yellowBright(server));
     if (KERBEROS) {
       console.log('KERBEROS:', chalk.yellowBright(KERBEROS));
     } else if (JWT) {
