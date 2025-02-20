@@ -1,7 +1,6 @@
 const ContentManager = require('./base/ContentManager');
 const utils = require('../lib/utils');
 
-// TODO Доработать
 class DashboardManager extends ContentManager {
   constructor(platform) {
     super(platform);
@@ -56,7 +55,6 @@ class DashboardManager extends ContentManager {
         }
       } else {
         const fileNames = await this.platform.getFiles(schemaName);
-        fileNames.reverse();
         for (const fileName of fileNames) {
           if (fileName.startsWith('topic.')) {
             list.push(`/${schemaName}/${fileName}`);
@@ -64,7 +62,7 @@ class DashboardManager extends ContentManager {
         }
       }
     }
-    return list;
+    return list.reverse();
   }
 
   async getContent(path) {
@@ -118,7 +116,7 @@ class DashboardManager extends ContentManager {
       [path, content] = this._prepareData(path, content);
     }
     const response = await this.platform.writeFile(path, content);
-    return response.statusText === 'OK' ? response.data : null;
+    return response && response.statusText === 'OK' ? response.data : null;
   }
 
   async updateContent(path, content) {
