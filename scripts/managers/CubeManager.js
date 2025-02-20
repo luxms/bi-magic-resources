@@ -19,15 +19,14 @@ class CubeManager extends ContentManager {
   async getContent(cube) {
     if (this.platform.type === 'server') {
       const [schemaName, _, fileName] = cube.split('/').filter(Boolean);
-      const cubeId = fileName.endsWith('.json') ? fileName.slice(0, -5) : fileName;
+      const cubeId = fileName.slice(0, -5);
 
       const cubeUrl = `api/db/${schemaName}.cubes/${cubeId}`;
       const [cubeData] = await this.platform.readFile(cubeUrl, { responseType: 'json' });
 
-      const dimensionsUrl = `api/db/${schemaName}.dimensions/.filter(source_ident='${cubeData.source_ident}')`;
+      const dimensionsUrl = `api/db/${schemaName}.dimensions/.filter(source_ident='${cubeData.source_ident}'&&cube_name='${cubeData.name}')`;
       const dimensionsData = await this.platform.readFile(dimensionsUrl, { responseType: 'json' });
 
-      // Чистим от всего лишнего, todo возможно стоит вынести в хэлпер
       ['id', 'is_source_global', 'is_global'].forEach(key => delete cubeData[key]);
       ['id', 'is_cube_global', 'is_global', 'source_ident', 'cube_id', 'cube_name'].forEach((key) => {
         dimensionsData.forEach(dim => delete dim[key])
@@ -43,14 +42,13 @@ class CubeManager extends ContentManager {
 
   async createContent(path, content) {
     if (this.platform.type === 'server') {
-      const [schemaName, _, fileName] = path.split('/').filter(Boolean);
-      const cubeId = fileName.endsWith('.json') ? fileName.slice(0, -5) : fileName;
+      const [schemaName] = path.split('/').filter(Boolean);
       const { dimensions, ...cubeData } = content;
-      
+
       const cubeUrl = `api/db/${schemaName}.cubes`;
       const cubeResponse = await this.platform.writeFile(cubeUrl, cubeData);
-      
-      if (cubeResponse.statusText === 'OK' && dimensions?.length) {
+
+      if (cubeResponse.statusText === 'OK' && dimensions && dimensions.length) {
         const dimensionsUrl = `api/db/${schemaName}.dimensions`;
         for (const dimension of dimensions) {
           await this.platform.writeFile(dimensionsUrl, {
@@ -70,23 +68,59 @@ class CubeManager extends ContentManager {
     if (this.platform.type === 'server') {
       const [schemaName, _, fileName] = path.split('/').filter(Boolean);
       const cubeId = fileName.endsWith('.json') ? fileName.slice(0, -5) : fileName;
-      const { dimensions, ...cubeData } = content;
-    
+      const { dimensions: newDimensions, ...cubeData } = content;
+
+      const dimensionsUrl = `api/db/${schemaName}.dimensions/.filter(source_ident='${cubeData.source_ident}'&&cube_name='${cubeData.name}')`;
+      const currentDimensions = await this.platform.readFile(dimensionsUrl, { responseType: 'json' });
+      ['id', 'is_cube_global', 'is_global', 'source_ident', 'cube_id', 'cube_name'].forEach((key) => {
+        currentDimensions.forEach(dim => delete dim[key])
+      });
+
       const cubeUrl = `api/db/${schemaName}.cubes/${cubeId}`;
       await this.platform.updateFile(cubeUrl, cubeData);
-      
-      if (dimensions?.length) {
-        for (const dimension of dimensions) {
-          await this.platform.updateFile(
-            `api/db/${schemaName}.dimensions/${dimension.id}`,
-            {
-              ...dimension,
-              source_ident: cubeData.source_ident,
-              cube_id: cubeId,
-              cube_name: cubeData.name
-            }
-          );
-        }
+
+      // Дименшены можно изменить, удалить или добавить, и все в одном файле 
+      const currentDimensionsMap = new Map(currentDimensions.map(dim => [dim.name, dim]));
+      const newDimensionsMap = new Map(newDimensions.map(dim => [dim.name, dim]));
+
+      const createDimensions = [];
+      const updateDimensions = [];
+      const deleteDimensions = [];
+
+      for (const newDim of newDimensions) {
+        const currentDim = currentDimensionsMap.get(newDim.name);
+        if (!currentDim) createDimensions.push(newDim);
+        else if (!utils.compareObjects(currentDim, newDim)) updateDimensions.push(newDim);
+      }
+
+      for (const currentDim of currentDimensions) {
+        if (!newDimensionsMap.has(currentDim.name)) deleteDimensions.push(currentDim);
+      }
+
+      const baseUrl = `api/db/${schemaName}.dimensions`;
+
+      for (const dim of createDimensions) {
+        await this.platform.writeFile(baseUrl, {
+          ...dim,
+          source_ident: cubeData.source_ident,
+          cube_id: cubeId,
+          cube_name: cubeData.name
+        });
+      }
+
+      for (const dim of updateDimensions) {
+        const dimId = `${cubeData.source_ident}.${cubeData.name}.${dim.name}`;
+        await this.platform.updateFile(`${baseUrl}/${dimId}`, {
+          ...dim,
+          source_ident: cubeData.source_ident,
+          cube_id: cubeId,
+          cube_name: cubeData.name
+        });
+      }
+
+      for (const dim of deleteDimensions) {
+        const dimId = `${cubeData.source_ident}.${cubeData.name}.${dim.name}`;
+        await this.platform.deleteFile(`${baseUrl}/${dimId}`);
       }
     } else {
      this.platform.updateFile(path, content);
@@ -97,10 +131,8 @@ class CubeManager extends ContentManager {
     if (this.platform.type === 'server') {
       const [schemaName, _, fileName] = path.split('/').filter(Boolean);
       const cubeId = fileName.endsWith('.json') ? fileName.slice(0, -5) : fileName;
-
       const cubeUrl = `api/db/${schemaName}.cubes/${cubeId}`;
       const [cubeData] = await this.platform.readFile(cubeUrl, { responseType: 'json' });
-
       const dimensionsUrl = `api/db/${schemaName}.dimensions/.filter(source_ident='${cubeData.source_ident}')`;
       const dimensions = await this.platform.readFile(dimensionsUrl, { responseType: 'json' });
 

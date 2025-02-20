@@ -1,6 +1,7 @@
 const ContentManager = require('./base/ContentManager');
 const utils = require('../lib/utils');
 
+// TODO Доработать
 class DashboardManager extends ContentManager {
   constructor(platform) {
     super(platform);
@@ -22,7 +23,6 @@ class DashboardManager extends ContentManager {
         const fileNames = [];
         const snFolders = this.TREE_FF[schemaName] = {};
 
-        // Как и в кубах, возможно мерджинг стоит вынести в отдельную функцию
         for (let topic of topics) {
           const topicId = topic.id;
           const topicPath = `topic.${topicId}/index.json`;
@@ -56,7 +56,6 @@ class DashboardManager extends ContentManager {
         }
       } else {
         const fileNames = await this.platform.getFiles(schemaName);
-        // Эта штука важна, чтобы поднять индексовые файлы
         fileNames.reverse();
         for (const fileName of fileNames) {
           if (fileName.startsWith('topic.')) {

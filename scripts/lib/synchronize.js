@@ -28,6 +28,9 @@ async function synchronize(source, target) {
       if (config.hasOption(contentType)) {
         sourceItems[contentType] = await retryOnFail(() => source[contentType].enumerate());
         targetItems[contentType] = await retryOnFail(() => target[contentType].enumerate());
+      } else {
+        sourceItems[contentType] = [];
+        targetItems[contentType] = [];
       }
     }
   } finally {
@@ -102,10 +105,10 @@ async function synchronize(source, target) {
   }
 
   // Confirm changes
-  // if (!config.getForce()) {
-  //   const prompt = new Confirm('Continue?');
-  //   if (!(await prompt.run())) return;
-  // }
+  if (!config.getForce()) {
+    const prompt = new Confirm('Continue?');
+    if (!(await prompt.run())) return;
+  }
 
   // Start changes
   const finalBar = new SingleBar({ format: 'Synchronizing... |' + colors.cyan('{bar}') + '| {percentage}% || {value}/{total} Resources' });
