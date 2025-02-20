@@ -1,7 +1,7 @@
 const fs = require('fs');
 const fsp = fs.promises;
 const path = require('path');
-const { splitResource, filterSchemaNames } = require('../lib/utils');
+const { filterSchemaNames } = require('../lib/utils');
 const Platform = require('./base/Platform');
 
 class Local extends Platform {
@@ -81,60 +81,36 @@ class Local extends Platform {
     this.writeFile(filePath, content);
   }
 
-  _getSchemaPath(schemaName) {
-    return path.resolve(this.BASE_DIR, schemaName);
-  }
-
-  _getResourcePath(schemaName, resourceName) {
-    return path.resolve(this.BASE_DIR, schemaName, path.join(...resourceName.split('/')));
-  }
-
-  async createResourceContent(resource, content) {
-    const [schemaName, resourceName] = splitResource(resource);
-    const filePath = resourceName.split('/');
-    const fileName = filePath.pop();
-    const dirPath = path.join(this._getSchemaPath(schemaName), ...filePath);
-
-    try {
-      await fs.mkdir(dirPath, { recursive: true });
-      await fs.writeFile(path.join(dirPath, fileName), content);
-    } catch (err) {
-      throw new Error(`Failed to create resource ${resource}: ${err.message}`);
-    }
-  }
-
-  async removeResourceContent(resource) {
-    const [schemaName, resourceName] = splitResource(resource);
-    const filePath = this._getResourcePath(schemaName, resourceName);
-    const dirPath = this._getSchemaPath(schemaName);
-
-    try {
-      await fs.unlink(filePath);
-
-      // Clean up empty directories
-      const filesLeft = await fs.readdir(dirPath);
-      if (filesLeft.length === 0) {
-        await fs.rmdir(dirPath);
-      }
-    } catch (err) {
-      if (err.code !== 'ENOENT') {
-        throw err;
-      }
-    }
-  }
-
   async deleteFile(filePath) {
-    const fullPath = path.join(this.BASE_DIR, filePath);
     try {
+      const fullPath = path.join(this.BASE_DIR, filePath);
+      const fileStats = await fsp.stat(absolutePath);
+      if (!fileStats.isFile()) {
+        throw new Error('Specified path is not a file');
+      }
       await fsp.unlink(fullPath);
+      const dirPath = path.dirname(absolutePath);
+      const dirContents = await fs.readdir(dirPath);
+      if (dirContents.length === 0 && dirPath !== this.basePath) {
+        try {
+          await fsp.rmdir(dirPath);
+          let parentDir = path.dirname(dirPath);
+          while (parentDir !== this.basePath) {
+            const parentContents = await fsp.readdir(parentDir);
+            if (parentContents.length === 0) {
+              await fsp.rmdir(parentDir);
+              parentDir = path.dirname(parentDir);
+            } else {
+              break;
+            }
+          }
+        } catch (error) {
+          console.warn('Failed to remove empty directory:', error.message);
+        }
+      }
     } catch (err) {
       // File doesn't exist, ignore
     }
-  }
-
-  async makeDirectory(dirPath) {
-    const fullPath = path.join(this.BASE_DIR, dirPath);
-    await fsp.mkdir(fullPath, { recursive: true });
   }
 }
 

@@ -34,8 +34,7 @@ class Server extends Platform {
 
   async readFile(path, options) {
     try {
-      const encodedPath = path.split('/').map(part => encodeURIComponent(part)).join('/');
-      const fullPath = `${auth.BASE_URL}/${encodedPath}`;
+      const fullPath = this._getFullPath(path);
       const response = await axios.get(fullPath, {
         ...auth.REQUEST_OPTIONS,
         responseType: path.endsWith('.json') ? 'json' : 'arraybuffer',
@@ -50,108 +49,58 @@ class Server extends Platform {
     }
   }
 
-  async _getResourceId(resource) {
-    const [schemaName, altId] = splitResource(resource);
-    const url = `${auth.BASE_URL}/api/db/${schemaName}.resources/.filter(alt_id='${encodeURIComponent(altId)}')`;
-    const response = await axios.get(url, auth.REQUEST_OPTIONS);
-    if (!response.data.length) {
-      throw new Error(`Resource not found: ${resource}`);
-    }
-    return response.data[0].id;
-  }
-
-  async createResourceContent(resource, content) {
-    const [schemaName, altId] = splitResource(resource);
-    const createMetaUrl = `${auth.BASE_URL}/db/${schemaName}.resources/`;
-
-    // Create resource metadata first
-    const createMetaResponse = await axios({
-      ...auth.REQUEST_OPTIONS,
-      method: 'post',
-      url: createMetaUrl,
-      headers: {
-        ...auth.REQUEST_OPTIONS.headers,
-        'Content-Type': 'application/json'
-      },
-      data: {
-        alt_id: altId,
-        content_type: (mime.lookup(altId) || 'application/octet-stream')
-          .replace('application/json', 'text/plain')
-      }
-    });
-
-    const {id} = createMetaResponse.data;
-    console.log('Created resource with id:', id);
-
-    // Then save the content
-    await this.saveResourceContent(resource, content);
-  }
-
-  async saveResourceContent(resource, content) {
-    const [schemaName, altId] = splitResource(resource);
-    const id = await this._getResourceId(resource);
-    const contentType = mime.lookup(altId) || 'application/octet-stream';
-    const response = await axios({
-      ...auth.REQUEST_OPTIONS,
-      headers: {
-        ...auth.REQUEST_OPTIONS.headers,
-        'Content-Type': contentType.replace('application/json', 'text/plain')
-      },
-      method: 'put',
-      url: `${auth.BASE_URL}/srv/resources/${schemaName}/${id}`,
-      data: content,
-    });
-
-    // Update content type for JSON files
-    if (response.status === 200 && contentType.includes('application/json')) {
-      const metaUrl = `${auth.BASE_URL}/api/db/${schemaName}.resources/${id}`;
-      await axios({
-        method: 'put',
-        url: metaUrl,
+  async writeFile(path, content) {
+    try {
+      const fullPath = this._getFullPath(path);
+      // todo Порешать дело с заголовками и датой
+      const response = await axios({
         ...auth.REQUEST_OPTIONS,
-        data: { content_type: 'application/json' }
+        headers: {
+          ...auth.REQUEST_OPTIONS,
+          'Content-Type': 'application/json',
+        },
+        method: 'post',
+        url: fullPath,
+        data: content,
       });
+      return response;
+    } catch (err) {
+      throw err;
     }
   }
 
-  async removeResourceContent(resource) {
-    const [schemaName] = splitResource(resource);
-    const id = await this._getResourceId(resource);
-    const url = `${auth.BASE_URL}/api/db/${schemaName}.resources/${id}`;
-    await axios.delete(url, auth.REQUEST_OPTIONS);
+  async updateFile(path, content) {
+    try {
+      const fullPath = this._getFullPath(path);
+      // todo Порешать дело с заголовками и датой
+      const response = await axios({
+        ...auth.REQUEST_OPTIONS,
+        headers: {
+          ...auth.REQUEST_OPTIONS.headers,
+          'Content-Type': contentType.replace('application/json', 'text/plain')
+        },
+        method: 'put',
+        url: fullPath,
+        data: content,
+      });
+      return response;
+    } catch (err) {
+      throw err;
+    }
   }
 
-  // Server-specific HTTP methods that managers will use
-  async get(endpoint, options = {}) {
-    const url = `${auth.BASE_URL}/${endpoint}`;
-    return axios.get(url, {
+  async deleteFile(path) {
+    const fullPath = this._getFullPath(path);
+    await axios({
       ...auth.REQUEST_OPTIONS,
-      ...options,
+      method: 'delete',
+      url: fullPath,
     });
   }
 
-  async post(endpoint, data, options = {}) {
-    const url = `${auth.BASE_URL}/${endpoint}`;
-    return axios.post(url, data, {
-      ...auth.REQUEST_OPTIONS,
-      ...options,
-    });
-  }
-
-  async put(endpoint, data, options = {}) {
-    const url = `${auth.BASE_URL}/${endpoint}`;
-    return axios.put(url, data, {
-      ...auth.REQUEST_OPTIONS,
-      ...options,
-    });
-  }
-
-  async delete(endpoint, options = {}) {
-    const url = `${auth.BASE_URL}/${endpoint}`;
-    return axios.delete(url, {
-      ...auth.REQUEST_OPTIONS,
-      ...options,
-    });
+  _getFullPath(path) {
+    const encodedPath = path.split('/').map(part => encodeURIComponent(part)).join('/');
+    return `${auth.BASE_URL}/${encodedPath}`;
   }
 }
 

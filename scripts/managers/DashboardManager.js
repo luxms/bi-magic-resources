@@ -115,51 +115,48 @@ class DashboardManager extends ContentManager {
   }
 
   async createContent(path, content) {
-    return this.platform.writeFile(path, content);
+    if (this.platform.type === 'server') {
+      [path, content] = this._prepareData(path, content);
+    }
+    const response = await this.platform.writeFile(path, content);
+    return response.statusText === 'OK' ? response.data : null;
   }
 
   async updateContent(path, content) {
-    return this.platform.updateFile(path, content);
+    if (this.platform.type === 'server') {
+      [path, content] = this._prepareData(path, content);
+    }
+    await this.platform.updateFile(path, content);
   }
 
   async deleteContent(path) {
-    return this.platform.removeJSONContent(path);
+    if (this.platform.type === 'server') {
+      [path] = this._prepareData(path);
+    }
+    await this.platform.deleteFile(path);
   }
 
-  /**
-   * Creates a new topic
-   * @param {Object} params
-   * @returns {Promise<Object|null>}
-   */
-  async createTopic({ schemaName, id, content }) {
-    return this.platform.createTopic({ schemaName, id, content });
-  }
+  _prepareData(path, content) {
+    const [schemaName, altId] = utils.splitResource(path);
+    const tempArr = altId.split('/');
+    const [topicName, dashboardName, fileName] = tempArr;
 
-  /**
-   * Creates a new dashboard
-   * @param {Object} params
-   * @returns {Promise<Object|null>}
-   */
-  async createDashboard({ schemaName, topicId, id, content }) {
-    return this.platform.createDashboard({ schemaName, topicId, id, content });
-  }
+    let relativePath, id;
+    if (fileName && !fileName.includes('index.json')) {
+      id = fileName.substring(0, fileName.indexOf('.'));
+      relativePath = `dashlets/${id}`;
+    } else if (fileName && fileName.includes('index.json')) {
+      id = dashboardName.substring(dashboardName.indexOf('.') + 1, dashboardName.length);
+      relativePath = `dashboards/${id}`;
+    } else if (dashboardName.includes('index.json')) {
+      id = topicName.substring(topicName.indexOf('.') + 1, topicName.length);
+      relativePath = `dashboard_topics/${id}`;
+    }
 
-  /**
-   * Creates a new dashlet
-   * @param {Object} params
-   * @returns {Promise<Object|null>}
-   */
-  async createDashlet({ schemaName, topicId, dashboardId, id, content }) {
-    return this.platform.createDashlet({ schemaName, topicId, dashboardId, id, content });
-  }
-
-  /**
-   * Gets all topic IDs for a schema
-   * @param {string} schemaName
-   * @returns {Promise<number[]>}
-   */
-  async getTopicIds(schemaName) {
-    return this.platform.getTopicsId(schemaName);
+    return [
+      `api/db/${schemaName}.${relativePath}`,
+      {...content, id: parseInt(id)},
+    ];
   }
 }
 
