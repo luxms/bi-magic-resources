@@ -10,7 +10,7 @@ function authMiddleware(req, res, next) {
     }).catch(err => {
       res.end(JSON.stringify({message: 'error'}));
     });
-  } else if (req.url === '/api/auth/login') {                                                     // stub
+  } else if (req.url === '/api/auth/login') {
     res.setHeader('Set-Cookie', auth.getCookies());
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
 
@@ -19,7 +19,7 @@ function authMiddleware(req, res, next) {
     }).catch(err => {
       res.end(JSON.stringify({message: 'error'}));
     });
-  } else if (req.url === '/api/auth/logout') {                                                    // stub
+  } else if (req.url === '/api/auth/logout') {
     res.setHeader('Set-Cookie', 'LuxmsBI-User-Session=; expires=Mon, 22 Sep 2014 00:00:00 GMT; path=/');
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
 

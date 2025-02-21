@@ -9,4 +9,4 @@ const local = new Local();
 let args = process.argv.slice(2);
 args = args.map(arg => arg.includes('--') ? arg.split('=')[1] : arg);
 
-auth.init(() => createEntity(local, server, ...args))
+auth.init(() => createEntity(local, server, ...args));

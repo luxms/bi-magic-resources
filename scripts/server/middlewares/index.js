@@ -11,4 +11,4 @@ module.exports = {
   dashboardMiddleware,
   dashletMiddleware,
   RtMiddleware,
-}
+};

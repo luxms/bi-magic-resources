@@ -1,7 +1,10 @@
+const parse = require('url-parse')
+const createEntity = require('../../lib/createEntity');
 const Local = require('../../platforms/Local');
-const express = require('express');
+const Server = require('../../platforms/Local');
 
-const local = new Local('src'); // src ли?
+const local = new Local('src');
+const server = new Server();
 
 async function dashboardMiddleware(req, res, next) {
   try {
@@ -10,28 +13,31 @@ async function dashboardMiddleware(req, res, next) {
     resource = resource.replace('/', '');
     const dashboardId = parseInt(resource);
 
-    const schema_name = req.params.schema_name;
+    const schemaName = req.params.schema_name;
     const validSchemas = await local.getSchemaNames();
-
-    if (!validSchemas.includes(schema_name)) {
+    if (!validSchemas.includes(schemaName)) {
       next();
       return;
     }
-    const paths = await local.getConfigs(schema_name);
-    const topicsId = await local.getTopicsId(schema_name);
+
+    const paths = await local.dashboards.enumerate(schemaName);
+    const topicsId = await local.dashboards.getTopicsId(schemaName);
+
     let topicId;
     if (!isNaN(dashboardId)) {
       const path = paths.find((t) => t.includes(`dashboard.${dashboardId}/`));
       const [topicName] = path.split('/');
       topicId = parseInt(topicName.substring(topicName.indexOf('.') + 1, topicName.length));
     }
-    let dashboards = await local.getDashboards(schema_name);
+
+    let dashboards = await local.dashboards.getDashboards(schemaName);
     if (dashboards === null) {
       res.statusCode = 404;
       res.setHeader('Content-Type', 'text/plain');
       res.end(`Not found: ${resource}`);
       return;
     }
+
     let contents = dashboards.map((r) => r.content);
     switch (method) {
       case 'GET': {
@@ -52,7 +58,7 @@ async function dashboardMiddleware(req, res, next) {
           const data = chunk;
           const jsonBody = { id: dashboardId, ...JSON.parse(data) };
           const db = dashboards.find((r) => r.config.includes(`dashboard.${resource}/index.json`));
-          await local.saveJSONContent(db.config, jsonBody);
+          await local.dashboards.updateContent(db.config, jsonBody);
           res.setHeader('Content-Type', 'application/json');
           res.end(Buffer.from(JSON.stringify(jsonBody)));
         })
@@ -64,26 +70,23 @@ async function dashboardMiddleware(req, res, next) {
           let jsonBody = { ...JSON.parse(data) };
           if (!topicId) {
             if (data.hasOwnProperty('topic_id')) topicId = data.topic_id;
-            else {
-              if (topicsId.length) topicId = topicsId[0];
-            }
+            else if (topicsId.length) topicId = topicsId[0];
           }
-          jsonBody = await commands.createEntity(local, server, schema_name, topicId, undefined, jsonBody);
+          jsonBody = await createEntity(local, server, schemaName, topicId, undefined, jsonBody);
           if (jsonBody) {
             res.setHeader('Content-Type', 'application/json');
             res.end(Buffer.from(JSON.stringify(jsonBody)));
           } else {
-            throw new Error(`Failed to create a dashboard`);
+            throw new Error('Failed to create a dashboard');
           }
         })
-
       }
         break;
       case 'DELETE': {
         const db = dashboards.find((r) => r.config.includes(`topic.${topicId}/dashboard.${resource}/`));
-        await local.removeFolder(db.config);
+        await local.dashboards.deleteContent(db.config);
         res.setHeader('Content-Type', 'application/json');
-        res.end(Buffer.from(JSON.stringify("The dashboard was removed")));
+        res.end(Buffer.from(JSON.stringify('The dashboard was removed')));
       }
         break;
       default: {
@@ -104,20 +107,21 @@ async function dashletMiddleware(req, res, next) {
     resource = resource.replace('/', '');
     const dashletdId = parseInt(resource);
 
-    const schema_name = req.params.schema_name;
+    const schemaName = req.params.schema_name;
     const validSchemas = await local.getSchemaNames();
-
-    if (!validSchemas.includes(schema_name)) {
+    if (!validSchemas.includes(schemaName)) {
       next();
       return;
     }
-    let dashlets = await local.getDashlets(schema_name);
+
+    let dashlets = await local.dashboards.getDashlets(schemaName);
     if (dashlets === null) {
       res.statusCode = 404;
       res.setHeader('Content-Type', 'text/plain');
       res.end(`Not found: ${resource}`);
       return;
     }
+
     let dashContents = dashlets.map((r) => r.content);
     switch (method) {
       case 'GET': {
@@ -136,38 +140,38 @@ async function dashletMiddleware(req, res, next) {
           const data = chunk;
           const jsonBody = {id: dashletdId, ...JSON.parse(data)};
           const dash = dashlets.find((r) => r.config.includes(`${resource}.json`));
-          await local.saveJSONContent(dash.config, jsonBody);
+          await local.dashboards.updateContent(dash.config, jsonBody);
           res.setHeader('Content-Type', 'application/json');
           res.end(Buffer.from(JSON.stringify(jsonBody)));
         })
-
       }
         break;
       case 'POST': {
         req.on('data', async function (chunk) {
           const data = chunk;
           let jsonBody = {...JSON.parse(data)};
-          const paths = await local.getConfigs(schema_name);
-          const topicsId = await local.getTopicsId(schema_name);
+          const paths = await local.dashboards.enumerate(schemaName);
+          const topicsId = await local.dashboards.getTopicsId(schemaName);
+
           let topicId;
           let dashboard_id = jsonBody.hasOwnProperty('dashboard_id') ? jsonBody['dashboard_id'] : undefined;
-
-          let dashboards = await local.getDashboards(schema_name);
+          let dashboards = await local.dashboards.getDashboards(schemaName);
           if (dashboard_id) {
             const path = paths.find((c) => c.includes(`dashboard.${dashboard_id}/`));
             const [topicName] = path.split('/');
             topicId = parseInt(topicName.substring(topicName.indexOf('.') + 1, topicName.length));
           }
+
           let exist = dashboard_id && dashboards.some((d) => d.config.includes(`dashboard.${dashboard_id}/`));
           if (!exist) {
             if (!topicId) {
               if (topicsId.length) topicId = topicsId[0];
-              else topicId = await server.getId({schemaName: schema_name});
+              else topicId = await server.dashboards.getId({schemaName});
             }
-            dashboard_id = await server.getId({schemaName: schema_name, topicId});
+            dashboard_id = await server.dashboards.getId({schemaName, topicId});
           }
 
-          jsonBody = await commands.createEntity(local, server, schema_name, topicId, dashboard_id, jsonBody);
+          jsonBody = await createEntity(local, server, schemaName, topicId, dashboard_id, jsonBody);
           if (jsonBody) {
             res.setHeader('Content-Type', 'application/json');
             res.end(Buffer.from(JSON.stringify(jsonBody)));
@@ -179,9 +183,9 @@ async function dashletMiddleware(req, res, next) {
         break;
       case 'DELETE': {
         const dash = dashlets.find((r) => r.config.includes(`${resource}.json`));
-        await local.removeJSONContent(dash.config);
+        await local.dashboards.deleteContent(dash.config);
         res.setHeader('Content-Type', 'application/json');
-        res.end(Buffer.from(JSON.stringify("The dashboard was removed")));
+        res.end(Buffer.from(JSON.stringify('The dashboard was removed')));
       }
         break;
       default: {

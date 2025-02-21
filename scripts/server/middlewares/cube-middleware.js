@@ -1,8 +1,7 @@
 const Local = require('../../platforms/Local');
 const lpe = require('../../lib/lpe');
-const express = require('express');
 
-const local = new Local('src'); // src ли?
+const local = new Local('src');
 
 // глобальные кубы --- koob.cubes/
 // локальные кубы --- :schema_name.cubes/.filter(is_global=0)

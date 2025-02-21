@@ -6,4 +6,4 @@ const auth = require('./lib/auth');
 const server = new Server();
 const local = new Local('dist');
 
-auth.init(() => synchronize(local, server))
+auth.init(() => synchronize(local, server));

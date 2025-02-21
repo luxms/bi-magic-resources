@@ -1,32 +1,33 @@
-async function createEntity(local, server, type, schema_name, topicId, dashboard_id, content) {
-  if (!schema_name) {
+const chalk = require('chalk');
+
+async function createEntity(local, server, type, schemaName, topicId, dashboardId, content) {
+  if (!schemaName) {
     console.error('You have not typed schema_name');
     return;
   }
 
-  const topicsId = await local.getTopicsId(schema_name);
+  const topicsId = await local.dashboards.getTopicsId(schemaName);
   let res;
+
   switch (type) {
     case 'topic': {
-      const id = await server.getId({ schemaName: schema_name });
-      res = await local.createTopic({ schemaName: schema_name, id, content });
+      const id = await server.dashboards.getId({ schemaName });
+      res = await local.dashboards.createTopic({ schemaName, id, content });
       console.log(chalk.green(`\nThe topic has been created with id=${id}`));
       return res;
     }
-      break;
     case 'dashboard': {
       if (!topicId) topicId = topicsId[0];
-      const id = await server.getId({ schemaName: schema_name, topicId });
-      res = await local.createDashboard({ schemaName: schema_name, topicId, id, content });
+      const id = await server.dashboards.getId({ schemaName, topicId });
+      res = await local.dashboards.createDashboard({ schemaName, topicId, id, content });
       console.log(chalk.green(`\nThe dashboard has been created with id=${id}`));
       return res;
     }
-      break;
     default: {
       if (!topicId) topicId = topicsId[0];
-      if (!dashboard_id) dashboard_id = await server.getId({ schemaName: schema_name, topicId });
-      const id = await server.getId({ schemaName: schema_name, topicId, dashboardId: dashboard_id });
-      res = await local.createDashlet({ schemaName: schema_name, topicId, dashboardId: dashboard_id, id, content });
+      if (!dashboardId) dashboardId = await server.dashboards.getId({ schemaName, topicId });
+      const id = await server.dashboards.getId({ schemaName, topicId, dashboardId });
+      res = await local.dashboards.createDashlet({ schemaName, topicId, dashboardId, id, content });
       console.log(chalk.green(`\nThe dashlet has been created with id=${id}`));
       return res;
     }

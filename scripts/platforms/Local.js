@@ -88,18 +88,24 @@ class Local extends Platform {
   async deleteFile(filePath) {
     try {
       const fullPath = path.join(this.BASE_DIR, filePath);
-      const fileStats = await fsp.stat(absolutePath);
-      if (!fileStats.isFile()) {
-        throw new Error('Specified path is not a file');
+      const fileStats = await fsp.stat(fullPath);
+
+      if (!dirStats.isDirectory()) {
+        await fsp.rmdir(fullPath);
+      } else if (fileStats.isFile()) {
+        await fsp.unlink(fullPath);
+      } else {
+        throw new Error('Specified path is not a file');        
       }
-      await fsp.unlink(fullPath);
-      const dirPath = path.dirname(absolutePath);
-      const dirContents = await fs.readdir(dirPath);
-      if (dirContents.length === 0 && dirPath !== this.basePath) {
+
+      const dirPath = path.dirname(fullPath);
+      const dirContents = await fsp.readdir(dirPath);
+
+      if (dirContents.length === 0 && dirPath !== this.BASE_DIR) {
         try {
           await fsp.rmdir(dirPath);
           let parentDir = path.dirname(dirPath);
-          while (parentDir !== this.basePath) {
+          while (parentDir !== this.BASE_DIR) {
             const parentContents = await fsp.readdir(parentDir);
             if (parentContents.length === 0) {
               await fsp.rmdir(parentDir);

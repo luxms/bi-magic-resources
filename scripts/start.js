@@ -5,7 +5,6 @@ const webpackConfig = require('../webpack.config');
 const auth = require('./lib/auth');
 const config = require('./lib/config');
 const { filterSchemaNames } = require('./lib/utils');
-const Local = require('./platforms/Local');
 const {
   authMiddleware,
   cubeMiddleware,
@@ -16,7 +15,6 @@ const {
   RtMiddleware,
 } = require('./server/middlewares');
 
-const local = new Local('src');
 const ONLINE = !config.hasNoLogin();
 const SERVER = config.getServer();
 const PORT = config.getPort();
@@ -40,7 +38,7 @@ const startDev = () => {
       server: require.resolve('./server/CustomServer'),
     },
     before(app) {
-      app.use(authMiddleware());
+      app.use(authMiddleware);
 
       if (config.hasResources()) {
         app.use('/api/db/:schema_name.resources/', (req, res, next) => {
