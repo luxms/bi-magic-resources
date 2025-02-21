@@ -1,4 +1,5 @@
 const Local = require('../../platforms/Local');
+const auth = require('../../lib/auth');
 const lpe = require('../../lib/lpe');
 
 const local = new Local('src');

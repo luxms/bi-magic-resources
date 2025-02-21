@@ -88,11 +88,11 @@ class Local extends Platform {
   async deleteFile(filePath) {
     try {
       const fullPath = path.join(this.BASE_DIR, filePath);
-      const fileStats = await fsp.stat(fullPath);
+      const stats = await fsp.stat(fullPath);
 
-      if (!dirStats.isDirectory()) {
+      if (!stats.isDirectory()) {
         await fsp.rmdir(fullPath);
-      } else if (fileStats.isFile()) {
+      } else if (stats.isFile()) {
         await fsp.unlink(fullPath);
       } else {
         throw new Error('Specified path is not a file');        
@@ -120,6 +120,16 @@ class Local extends Platform {
       }
     } catch (err) {
       // File doesn't exist, ignore
+    }
+  }
+
+  async checkFileExists(filePath) {
+    try {
+      const fullPath = path.join(this.BASE_DIR, filePath);
+      await fsp.stat(fullPath);
+      return true;
+    } catch (err) {
+      return false;
     }
   }
 }

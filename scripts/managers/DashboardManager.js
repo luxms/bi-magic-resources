@@ -1,6 +1,20 @@
 const ContentManager = require('./base/ContentManager');
 const utils = require('../lib/utils');
 
+const DEFAULT_TOPIC = {
+  title: ''
+};
+
+const DEFAULT_DASHBOARD = {
+  title: '',
+  config: {}
+};
+
+const DEFAULT_DASHLET = {
+  dashboard_id: 0,
+  view_class: ''
+};
+
 class DashboardManager extends ContentManager {
   constructor(platform) {
     super(platform);
@@ -172,105 +186,100 @@ class DashboardManager extends ContentManager {
   }
 
   async getDashboards(schemaName) {
-    const paths = (await this.enumerate(schemaName))
-      .filter((c) => c.includes('index.json') && c.includes('dashboard.'))
-      .map((c) => `/${schemaName}/${c}`);
-    const promises = [];
-    paths.forEach((path) => promises.push(this.getContent(path)));
-    const files = await Promise.all(promises);
+    const allPaths = await this.enumerate(schemaName);
+    const dashboards = allPaths.filter((c) => c.includes('index.json') && c.includes('dashboard.'));
     const result = [];
-    for (let i = 0; i < paths.length; i++) {
-      const id = this._makeIdfromString(paths[i]);
-      result.push({config: paths[i], content: {id, ...files[i]}});
+    for (let dashboard of dashboards) {
+      const fileContent = await this.platform.readFile(dashboard);
+      const id = this._makeIdfromString(dashboard);
+      result.push({
+        config: dashboards, 
+        content: { id, ...fileContent },
+      });
     }
     return result.length ? result : null;
   }
 
   async getDashlets(schemaName) {
-    const configs = (await this.enumerate(schemaName))
-      .filter((c) => !c.includes('index.json'))
-      .map((c) => `/${schemaName}/${c}`);
-    const promises = [];
-    configs.forEach((con) => promises.push(this.getContent(con)));
-    const files = await Promise.all(promises);
+    const allPaths = await this.enumerate(schemaName);
+    const dashlets = allPaths.filter((c) => !c.includes('index.json'));
     const result = [];
-    for (let i = 0; i < configs.length; i++) {
-      const id = this._makeIdfromString(configs[i], 'dashlet');
-      result.push({config: configs[i], content: {id, ...files[i]}});
+    for (let dashlet of dashlets) {
+      const fileContent = await this.platform.readFile(dashlet);
+      const id = this._makeIdfromString(dashlet, 'dashlet');
+      result.push({
+        config: dashlet, 
+        content: { id, ...fileContent },
+      });
     }
     return result.length ? result : null;
   }
 
   async createTopic(payload) {
-    const {schemaName, id, content} = payload;
-    const altId = `topic.${id}/index.json`;
-    const filePath = altId.split('/').slice(0, -1);
-    const dir = path.join(getSchemaPath(schemaName), ...filePath);
-  
-    try {
-      await fsp.stat(dir);
-    } catch (err) {
-      await fsp.mkdir(dir, {recursive: true});
-    }
-  
-    if (!fs.existsSync(getResourcePath(schemaName, altId))) {
-      const jsonBody = {...DEFAULT_TOPIC,...content};
-      await fsp.writeFile(getResourcePath(schemaName, altId), JSON.stringify(jsonBody, null, 2), 'utf-8');
-      return {id, ...jsonBody};
-    } else {
-      console.log(`The index.json has already exist in the folder /${schemaName}/topic.${id}/`,'\n');
+    const { schemaName, id, content } = payload;
+    const filePath = `${schemaName}/topic.${id}/index.json`;
+
+    const fileExists = await this.platform.checkFileExists(filePath);
+    if (fileExists) {
+      console.log(`The index.json already exists in the folder /${schemaName}/topic.${id}/`, '\n');
       return null;
     }
+
+    const topicContent = { ...DEFAULT_TOPIC, ...content };
+    await this.platform.writeFile(filePath, topicContent);
+    return { id, ...topicContent };
   }
 
   async createDashboard(payload) {
-    const {schemaName, topicId, id, content} = payload;
-    const altId = `topic.${topicId}/dashboard.${id}/index.json`;
-    const filePath = altId.split('/').slice(0, -1);
-    const dir = path.join(getSchemaPath(schemaName), ...filePath);
-  
-    try {
-      await fsp.stat(dir);
-    } catch (err) {
-      await fsp.mkdir(dir, {recursive: true});
+    const { schemaName, topicId, id, content } = payload;
+    const filePath = `${schemaName}/topic.${topicId}/dashboard.${id}/index.json`;
+    const topicPath = `${schemaName}/topic.${topicId}/index.json`;
+
+    const topicExists = await this.platform.checkFileExists(topicPath);
+    if (!topicExists) {
+      await this.createTopic({ schemaName, id: topicId });
     }
-  
-    if (!fs.existsSync(getResourcePath(schemaName, `topic.${topicId}/index.json`)))  {
-      await createTopic({schemaName, id: topicId});
-    }
-  
-    if (!fs.existsSync(getResourcePath(schemaName, altId))) {
-      const jsonBody = {...DEFAULT_DASHBOARD,...content, topic_id: topicId};
-      await fsp.writeFile(getResourcePath(schemaName, altId), JSON.stringify(jsonBody, null, 2), 'utf-8');
-      return {id, ...jsonBody};
-    } else {
-      console.log(`The index.json has already exist in the folder /topic.${topicId}/${schemaName}/dashboard.${id}/`,'\n');
+
+    const fileExists = await this.platform.checkFileExists(filePath);
+    if (fileExists) {
+      console.log(`The index.json already exists in the folder /${schemaName}/topic.${topicId}/dashboard.${id}/`, '\n');
       return null;
     }
+
+    const dashboardContent = { 
+      ...DEFAULT_DASHBOARD, 
+      ...content, 
+      topic_id: topicId 
+    };
+
+    await this.platform.writeFile(filePath, dashboardContent);    
+    return { id, ...dashboardContent };
   }
   
   async createDashlet(payload) {
-    const {schemaName, topicId, dashboardId, id, content} = payload;
-    const altId = `topic.${topicId}/dashboard.${dashboardId}/${id}.json`;
-    const filePath = altId.split('/').slice(0, -1);
-    const dir = path.join(getSchemaPath(schemaName), ...filePath);
-  
-    try {
-      await fsp.stat(dir);
-    } catch (err) {
-      await fsp.mkdir(dir, {recursive: true});
+    const { schemaName, topicId, dashboardId, id, content } = payload;
+    const filePath = `${schemaName}/topic.${topicId}/dashboard.${dashboardId}/${id}.json`;
+    const dashboardPath = `${schemaName}/topic.${topicId}/dashboard.${dashboardId}/index.json`;
+
+    const dashboardExists = await this.platform.checkFileExists(dashboardPath);
+    if (!dashboardExists) {
+      await this.createDashboard({ schemaName, topicId, id: dashboardId });
     }
-  
-    if (!fs.existsSync(getResourcePath(schemaName, `topic.${topicId}/dashboard.${dashboardId}/index.json`))) await createDashboard({schemaName, topicId, id: dashboardId});
-  
-    if (!fs.existsSync(getResourcePath(schemaName, altId))) {
-      const configDash = {...DEFAULT_DASHLET, ...content, dashboard_id: parseInt(dashboardId)};
-      await fsp.writeFile(getResourcePath(schemaName, altId), JSON.stringify(configDash, null, 2), 'utf-8');
-      return {id, ...configDash};
-    } else {
-      console.log(`The ${id}.json has already exist in the folder /${schemaName}/topic.${topicId}/dashboard.${dashboardId}/`,'\n');
+
+    const fileExists = await this.platform.checkFileExists(filePath);
+    if (fileExists) {
+      console.log(`The ${id}.json already exists in the folder /${schemaName}/topic.${topicId}/dashboard.${dashboardId}/`, '\n');
       return null;
     }
+
+    const dashletContent = { 
+      ...DEFAULT_DASHLET, 
+      ...content, 
+      dashboard_id: parseInt(dashboardId) 
+    };
+
+    await this.platform.writeFile(filePath, dashletContent);    
+    return { id, ...dashletContent };
   }  
 
   _getIdfromStr (str, search) {

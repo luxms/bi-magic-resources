@@ -61,6 +61,7 @@ function compareObjects(x, y) {
 }
 
 function cleanPropertyMembers(o) {
+  if (o == null) return null;
   const result = {};
   Object.keys(o)
     .filter(key => !key.startsWith('_'))
