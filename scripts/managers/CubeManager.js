@@ -2,9 +2,9 @@ const ContentManager = require('./base/ContentManager');
 const utils = require('../lib/utils');
 
 class CubeManager extends ContentManager {
-  async enumerate() {
+  async enumerate(schemaName) {
     const list = [];
-    const schemaNames = await this.platform.getSchemaNames();
+    const schemaNames = schemaName ? [schemaName] : await this.platform.getSchemaNames();
     for (const schemaName of schemaNames) {
       const folderName = this.platform.type === 'server' ? 'cubes' : '.cubes';
       const files = await this.platform.getFiles(schemaName, folderName);
@@ -144,6 +144,25 @@ class CubeManager extends ContentManager {
     } else {
      this.platform.deleteFile(path);
     }
+  }
+
+  async getDataSources(schemaName) {
+    const url = `api/db/${schemaName}.data_sources/` + (schemaName !== 'adm' ? '.filter(is_global=0)' : '');
+    return this.platform.readFile(url);
+  }
+
+  async getDataSourceData(schemaName, sql, ident, isLocal) {
+    const url = 'api/ipc/service';
+    const response = await this.platform.writeFile(url, {
+      args: [
+        isLocal ? `source://connector/${ident}?atlas=${schemaName}` : `source://connector/${ident}`,
+        sql,
+        1024,
+        0
+      ],
+      service: "DataSourceInspectorService.sampleFirstRows"
+    });
+    return response.data;
   }
 }
 

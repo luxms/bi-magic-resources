@@ -13,6 +13,7 @@ class Auth {
     this.LOGIN_PROMISE = null;
     this.COOKIE_JAR = new tough.CookieJar();
     this.JWT = null;
+    this.USER_ID = null;
     this.REQUEST_OPTIONS = {
       jar: this.COOKIE_JAR,
       withCredentials: true,
@@ -80,6 +81,7 @@ class Auth {
     authSpinner.start();
     try {
       const result = await this._getAuthenticationMethod();
+      this.USER_ID = result.id;
       authSpinner.stop();
       console.log('SUCCESS');
       return result;
