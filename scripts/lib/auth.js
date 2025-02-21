@@ -25,42 +25,30 @@ class Auth {
    * @returns {Promise<void>}
    */
   async init(callback) {
-    this._logParams();
+    config.logAuthParams();
+    this._setBaseUrl(config.getServer());
     try {
-      await this._login();
+      await this.login();
       await callback();
     } catch (err) {
       this._handleError(err);
     } finally {
-      await this._logout();
+      await this.logout();
     }
   }
 
-  _logParams() {
-    const server = config.getServer();
-    this.BASE_URL = server.endsWith('/') ? server.slice(0, -1) : server;
-    const {KERBEROS, JWT, USERNAME, PASSWORD} = config.getAuthConfig();
-    console.log('\nSERVER:', chalk.yellowBright(server));
-    if (KERBEROS) {
-      console.log('KERBEROS:', chalk.yellowBright(KERBEROS));
-    } else if (JWT) {
-      console.log('JWT:', chalk.yellowBright(`${JWT.slice(0, 16)}...`));
-    } else {
-      console.log('USERNAME:', chalk.yellowBright(USERNAME));
-      console.log('PASSWORD:', chalk.yellowBright(PASSWORD.split('').map(_ => '*').join('')), '\n');
-    }
-    const checkMark = (v) => v ? '☑' : '☐';
-    console.log(`${checkMark(config.hasResources())} resources    ${checkMark(config.hasDashboards())} dashboards    ${checkMark(config.hasCubes())} cubes\n`);
+  _setBaseUrl(baseUrl) {
+    this.BASE_URL = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
   }
 
-  async _login() {
+  async login() {
     if (!this.LOGIN_PROMISE) {
       this.LOGIN_PROMISE = this._performLogin();
     }
     return this.LOGIN_PROMISE;
   }
 
-  async _logout() {
+  async logout() {
     try {
       const url = `${this.BASE_URL}/api/auth/logout`;
       await axios.get(url, {
@@ -169,6 +157,10 @@ class Auth {
       withCredentials: true,
     });
     return result.data;
+  }
+
+  getCookies() {
+    return this.COOKIE_JAR.getCookiesSync(this.BASE_URL).join('; ');
   }
 }
 

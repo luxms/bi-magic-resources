@@ -1,4 +1,3 @@
-const WebSocketServer = require('websocket').server;
 const BaseServer = require('webpack-dev-server/lib/servers/BaseServer');
 const ws = require('ws');
 

@@ -32,6 +32,21 @@ class Config {
     return {JWT, KERBEROS, USERNAME, PASSWORD};
   }
 
+  logAuthParams() {
+    const {KERBEROS, JWT, USERNAME, PASSWORD} = this.getAuthConfig();
+    console.log('\nSERVER:', chalk.yellowBright(this.getServer()));
+    if (KERBEROS) {
+      console.log('KERBEROS:', chalk.yellowBright(KERBEROS));
+    } else if (JWT) {
+      console.log('JWT:', chalk.yellowBright(`${JWT.slice(0, 16)}...`));
+    } else {
+      console.log('USERNAME:', chalk.yellowBright(USERNAME));
+      console.log('PASSWORD:', chalk.yellowBright(PASSWORD.split('').map(_ => '*').join('')), '\n');
+    }
+    const checkMark = (v) => v ? '☑' : '☐';
+    console.log(`${checkMark(this.hasResources())} resources    ${checkMark(this.hasDashboards())} dashboards    ${checkMark(this.hasCubes())} cubes\n`);
+  }
+
   getServer() {
     return this.getOption('server', 'Enter server URL: ');
   }
@@ -53,23 +68,23 @@ class Config {
   }
 
   hasNoLogin() {
-    return !!this.getOption('noLogin');
+    return this.hasOption('noLogin');
   }
 
   hasNoRemove() {
-    return !!this.getOption('noRemove');
+    return this.hasOption('noRemove');
   }
 
   hasResources() {
-    return !!this.getOption('resources');
+    return this.hasOption('resources');
   }
 
   hasDashboards() {
-    return !!this.getOption('dashboards');
+    return this.hasOption('dashboards');
   }
 
   hasCubes() {
-    return !!this.getOption('cubes');
+    return this.hasOption('cubes');
   }
 
   hasOption(name) {

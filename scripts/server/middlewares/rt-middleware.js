@@ -1,11 +1,10 @@
 const RSocketWebsocketServer = require('rsocket-websocket-server').default;
-const {RSocketServer, BufferEncoders, Utf8Encoders, JsonSerializers} = require('rsocket-core');
-const {encodeMetadata, getService, getMethod} = require("rsocket-rpc-frames");
+const {RSocketServer, BufferEncoders} = require('rsocket-core');
+const {getService, getMethod} = require("rsocket-rpc-frames");
 const {RequestHandlingRSocket} = require('rsocket-rpc-core');
-const {Single, Flowable} = require('rsocket-flowable');
+const {Flowable} = require('rsocket-flowable');
 
 const APP = 'com.luxms.bi.rt';
-
 
 class RtMiddleware {
   constructor(server) {
@@ -160,6 +159,5 @@ class RtMiddleware {
     })));
   }
 }
-
 
 module.exports = RtMiddleware;
