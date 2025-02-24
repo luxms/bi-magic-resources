@@ -40,31 +40,51 @@ async function cubeMiddleware(req, res, next) {
       }
         break;
       case 'PUT': {
-        let body = [];
         req.on('data', async function (chunk) {
-          body.push(chunk);
-        }).on('end', async () => {
-          body = Buffer.concat(body).toString();
-          body = JSON.parse(body);
-          const cubePath = paths.find(path => path.includes(cube));
-          console.log('put cubes', body)
+          const jsonBody = JSON.parse(chunk);
+          const cubeId = cube.slice(1);
+          const cubePath = `/${schema_name}/.cubes/${cubeId}.json`;
+          if (paths.includes(cubePath)) {
+            const cubeContent = await local.cubes.getContent(cubePath);
+            const newContent = {...cubeContent, ...jsonBody};
+            const dimensions = [...cubeContent.dimensions];
+            await local.cubes.updateContent(cubePath, {...newContent, dimensions});
+            if (newContent.hasOwnProperty('dimensions')) delete newContent.dimensions;
+            const contentBuffer = Buffer.from(JSON.stringify(newContent));
+            res.setHeader('Content-Type', 'application/json');
+            res.end(contentBuffer);
+          }
         });
       }
         break;
       case 'POST': {
         req.on('data', async function (chunk) {
-          const data = chunk;
-          const jsonBody = JSON.parse(data);
+          const jsonBody = JSON.parse(chunk);
           const newCubePath = `/${schema_name}/.cubes/${jsonBody.source_ident}.${jsonBody.name}.json`;
+          // todo привести данные к нужному формату
+          const newContent = {...jsonBody};
           await local.cubes.createContent(newCubePath, jsonBody);
+          const contentBuffer = Buffer.from(JSON.stringify(newContent));
           res.setHeader('Content-Type', 'application/json');
-          res.end(Buffer.from(JSON.stringify(jsonBody)));
+          res.end(contentBuffer);
         });
       }
         break;
       case 'DELETE': {
-        const cubePath = paths.find(path => path.includes(cube));
-        console.log('delete cubes', cube)
+        const cubeId = cube.slice(1);
+        const cubePath = `/${schema_name}/.cubes/${cubeId}.json`;
+        if (paths.includes(cubePath)) {
+          const cubeContent = await local.cubes.getContent(cubePath);
+          await local.cubes.deleteContent(cubePath);
+          if (cubeContent.hasOwnProperty('dimensions')) delete cubeContent.dimensions;
+          const contentBuffer = Buffer.from(JSON.stringify(cubeContent));
+          res.setHeader('Content-Type', 'application/json');
+          res.end(contentBuffer);
+        } else {
+          res.statusCode = 404;
+          res.setHeader('Content-Type', 'text/plain');
+          res.end(`Not found: ${cubeId}`);
+        }
       }
         break;
       default: {
