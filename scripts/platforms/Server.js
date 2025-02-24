@@ -33,7 +33,7 @@ class Server extends Platform {
 
   async readFile(path, options) {
     try {
-      const fullPath = this._getFullPath(path);
+      const fullPath = `${auth.BASE_URL}/${path}`;
       const response = await axios.get(fullPath, {
         responseType: path.endsWith('.json') ? 'json' : 'arraybuffer',
         ...auth.REQUEST_OPTIONS,

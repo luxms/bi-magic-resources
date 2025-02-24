@@ -173,9 +173,9 @@ class DashboardManager extends ContentManager {
   async getId(payload) {
     const {schemaName, topicId, dashboardId} = payload;
     let metaUrl = `api/db/${schemaName}.dashboard_topics?next_id`;
-    if (topicId) metaUrl = `api/db/${schemaName}.dashboards?next_id`;
-    if (dashboardId) metaUrl = `api/db/${schemaName}.dashlets?next_id`;
-    const data = await this.platform.readFile(metaUrl);
+    if (topicId !== undefined) metaUrl = `api/db/${schemaName}.dashboards?next_id`;
+    if (dashboardId !== undefined) metaUrl = `api/db/${schemaName}.dashlets?next_id`;
+    const data = await this.platform.readFile(metaUrl, { responseType: 'json' }, true);
     return data.hasOwnProperty('id') ? data.id : null;
   }
 
@@ -190,10 +190,10 @@ class DashboardManager extends ContentManager {
     const dashboards = allPaths.filter((c) => c.includes('index.json') && c.includes('dashboard.'));
     const result = [];
     for (let dashboard of dashboards) {
-      const fileContent = await this.platform.readFile(dashboard);
+      const fileContent = await this.getContent(dashboard);
       const id = this._makeIdfromString(dashboard);
       result.push({
-        config: dashboards, 
+        config: dashboard, 
         content: { id, ...fileContent },
       });
     }
@@ -205,7 +205,7 @@ class DashboardManager extends ContentManager {
     const dashlets = allPaths.filter((c) => !c.includes('index.json'));
     const result = [];
     for (let dashlet of dashlets) {
-      const fileContent = await this.platform.readFile(dashlet);
+      const fileContent = await this.getContent(dashlet);
       const id = this._makeIdfromString(dashlet, 'dashlet');
       result.push({
         config: dashlet, 

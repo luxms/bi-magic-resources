@@ -17,16 +17,16 @@ async function createEntity(local, server, type, schemaName, topicId, dashboardI
       return res;
     }
     case 'dashboard': {
-      if (!topicId) topicId = topicsId[0];
+      if (topicId === undefined) topicId = topicsId[0];
       const id = await server.dashboards.getId({ schemaName, topicId });
       res = await local.dashboards.createDashboard({ schemaName, topicId, id, content });
       console.log(chalk.green(`\nThe dashboard has been created with id=${id}`));
       return res;
     }
     default: {
-      if (!topicId) topicId = topicsId[0];
-      if (!dashboardId) dashboardId = await server.dashboards.getId({ schemaName, topicId });
-      const id = await server.dashboards.getId({ schemaName, topicId, dashboardId });
+      if (topicId === undefined) topicId = topicsId[0];
+      if (dashboardId === undefined) dashboardId = await server.dashboards.getId({ schemaName, topicId });
+      const id = content.hasOwnProperty('id') ? content.id : await server.dashboards.getId({ schemaName, topicId, dashboardId });
       res = await local.dashboards.createDashlet({ schemaName, topicId, dashboardId, id, content });
       console.log(chalk.green(`\nThe dashlet has been created with id=${id}`));
       return res;

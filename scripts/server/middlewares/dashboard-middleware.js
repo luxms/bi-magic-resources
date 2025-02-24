@@ -1,7 +1,7 @@
 const parse = require('url-parse')
 const createEntity = require('../../lib/createEntity');
 const Local = require('../../platforms/Local');
-const Server = require('../../platforms/Local');
+const Server = require('../../platforms/Server');
 
 const local = new Local('src');
 const server = new Server();
@@ -52,8 +52,6 @@ async function dashboardMiddleware(req, res, next) {
       }
         break;
       case 'PUT': {
-        // пришлось так сделать, чтобы добраться до тела запроса
-        // при других решениях запрос cube весит в статусе pending
         req.on('data', async function (chunk) {
           const data = chunk;
           const jsonBody = { id: dashboardId, ...JSON.parse(data) };
@@ -68,11 +66,11 @@ async function dashboardMiddleware(req, res, next) {
         req.on('data', async function (chunk) {
           const data = chunk;
           let jsonBody = { ...JSON.parse(data) };
-          if (!topicId) {
-            if (data.hasOwnProperty('topic_id')) topicId = data.topic_id;
+          if (topicId === undefined) {
+            if (jsonBody.hasOwnProperty('topic_id')) topicId = jsonBody.topic_id;
             else if (topicsId.length) topicId = topicsId[0];
           }
-          jsonBody = await createEntity(local, server, schemaName, topicId, undefined, jsonBody);
+          jsonBody = await createEntity(local, server, 'dashboard', schemaName, topicId, undefined, jsonBody);
           if (jsonBody) {
             res.setHeader('Content-Type', 'application/json');
             res.end(Buffer.from(JSON.stringify(jsonBody)));
@@ -106,7 +104,6 @@ async function dashletMiddleware(req, res, next) {
     let resource = parse(url, true).pathname;
     resource = resource.replace('/', '');
     const dashletdId = parseInt(resource);
-
     const schemaName = req.params.schema_name;
     const validSchemas = await local.getSchemaNames();
     if (!validSchemas.includes(schemaName)) {
@@ -156,13 +153,13 @@ async function dashletMiddleware(req, res, next) {
           let topicId;
           let dashboard_id = jsonBody.hasOwnProperty('dashboard_id') ? jsonBody['dashboard_id'] : undefined;
           let dashboards = await local.dashboards.getDashboards(schemaName);
-          if (dashboard_id) {
+          if (dashboard_id !== undefined) {
             const path = paths.find((c) => c.includes(`dashboard.${dashboard_id}/`));
-            const [topicName] = path.split('/');
+            const [schemaName, topicName] = path.split('/').filter(Boolean);
             topicId = parseInt(topicName.substring(topicName.indexOf('.') + 1, topicName.length));
           }
 
-          let exist = dashboard_id && dashboards.some((d) => d.config.includes(`dashboard.${dashboard_id}/`));
+          let exist = dashboard_id !== undefined && dashboards.some((d) => d.config.includes(`dashboard.${dashboard_id}/`));
           if (!exist) {
             if (!topicId) {
               if (topicsId.length) topicId = topicsId[0];
@@ -171,7 +168,7 @@ async function dashletMiddleware(req, res, next) {
             dashboard_id = await server.dashboards.getId({schemaName, topicId});
           }
 
-          jsonBody = await createEntity(local, server, schemaName, topicId, dashboard_id, jsonBody);
+          jsonBody = await createEntity(local, server, 'dashlet', schemaName, topicId, dashboard_id, jsonBody);
           if (jsonBody) {
             res.setHeader('Content-Type', 'application/json');
             res.end(Buffer.from(JSON.stringify(jsonBody)));
