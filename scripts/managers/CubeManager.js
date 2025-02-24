@@ -148,7 +148,7 @@ class CubeManager extends ContentManager {
 
   async getDataSources(schemaName) {
     const url = `api/db/${schemaName}.data_sources/` + (schemaName !== 'adm' ? '.filter(is_global=0)' : '');
-    return this.platform.readFile(url);
+    return this.platform.readFile(url, { responseType: 'json' });
   }
 
   async getDataSourceData(schemaName, sql, ident, isLocal) {
