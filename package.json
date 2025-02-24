@@ -43,7 +43,8 @@
   "dependencies": {
     "format-number-with-string": "^0.0.2",
     "iscroll": "^5.2.0",
-    "jquery": "^3.6.0"
+    "jquery": "^3.6.0",
+    "uuid": "^11.1.0"
   },
   "optionalDependencies": {
     "node-expose-sspi": "^0.1.60"

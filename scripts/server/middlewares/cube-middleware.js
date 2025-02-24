@@ -1,4 +1,5 @@
 const parse = require('url-parse')
+const { v4: uuidv4 } = require('uuid');
 const Local = require('../../platforms/Local');
 const Server = require('../../platforms/Server');
 const auth = require('../../lib/auth');
@@ -20,6 +21,8 @@ async function cubeMiddleware(req, res, next) {
     const paths = await local.cubes.enumerate(schema_name);
     switch (method) {
       case 'GET': {
+        // глобальные кубы --- koob.cubes/
+        // локальные кубы --- :schema_name.cubes/.filter(is_global=0)
         let content;
         if (cube === '/.filter(is_global=0)') {
           content = [];
@@ -61,9 +64,16 @@ async function cubeMiddleware(req, res, next) {
         req.on('data', async function (chunk) {
           const jsonBody = JSON.parse(chunk);
           const newCubePath = `/${schema_name}/.cubes/${jsonBody.source_ident}.${jsonBody.name}.json`;
-          // todo привести данные к нужному формату
-          const newContent = {...jsonBody};
-          await local.cubes.createContent(newCubePath, jsonBody);
+          const guid = uuidv4();
+          const createContent = {...jsonBody, guid, dimensions: []};
+          await local.cubes.createContent(newCubePath, createContent);
+          const newContent = {
+            ...jsonBody,
+            id: `${jsonBody.source_ident}.${jsonBody.name}`,
+            is_global: 0,
+            is_source_global: 0,
+            guid,
+          };
           const contentBuffer = Buffer.from(JSON.stringify(newContent));
           res.setHeader('Content-Type', 'application/json');
           res.end(contentBuffer);
@@ -117,7 +127,7 @@ async function dimensionMiddleware(req, res, next) {
         const cubePath = `/${schema_name}/.cubes/${cubeId}.json`;
         if (cubeId && paths.includes(cubePath)) {
           content = await local.cubes.getContent(cubePath);
-          const dimensions = content.dimensions?.map(d => ({
+          const dimensions = content.dimensions.map(d => ({
             ...d,
             source_ident: content.source_ident,
             cube_id: cubeId,
@@ -125,7 +135,7 @@ async function dimensionMiddleware(req, res, next) {
             is_cube_global: 0,
             is_global: 0,
             id: `${cubeId}.${d.name}`
-          }))
+          }));
           const contentBuffer = Buffer.from(JSON.stringify(dimensions));
           res.setHeader('Content-Type', 'application/json');
           res.end(contentBuffer);
@@ -139,8 +149,9 @@ async function dimensionMiddleware(req, res, next) {
       case 'PUT': {
         req.on('data', async function (chunk) {
           const jsonBody = JSON.parse(chunk);
+          const dims = Array.isArray(jsonBody) ? jsonBody : [jsonBody];
           let result = [];
-          for (let dim of jsonBody) {
+          for (let dim of dims) {
             const [source_ident, cube_name, dimension_name] = dim.id.split('.');
             const cube_id = `${source_ident}.${cube_name}`;
             const cubePath = `/${schema_name}/.cubes/${cube_id}.json`;
@@ -163,8 +174,9 @@ async function dimensionMiddleware(req, res, next) {
       case 'POST': {
         req.on('data', async function (chunk) {
           const jsonBody = JSON.parse(chunk);
+          const dims = Array.isArray(jsonBody) ? jsonBody : [jsonBody];
           let result = [];
-          for (let dim of jsonBody) {
+          for (let dim of dims) {
             const cube_id = `${dim.source_ident}.${dim.cube_name}`;
             const cubePath = `/${schema_name}/.cubes/${cube_id}.json`;
             if (paths.includes(cubePath)) {
@@ -245,25 +257,22 @@ async function dataMiddleware(req, res, next) {
           const cubeId = body.with;
           if (cubeId) {
             const cubeContent = await local.cubes.getContent(`${schema_name}/.cubes/${cubeId}.json`);
+            const localSources = await server.cubes.getDataSources(schema_name);
+            const globalSources = await server.cubes.getDataSources('adm');
+            const currentDS = [...localSources, ...globalSources].find(ds => ds.ident === cubeContent.source_ident);
+            const isLocal = localSources.includes(currentDS);
             const cubeSql = lpe.generate_koob_sql(body, {
               _dimensions: cubeContent.dimensions.map(d => ({...d, id: `${cubeContent.source_ident}.${cubeContent.name}.${d.name}`})),
               _cube: cubeContent,
               _user_id: auth.USER_ID,
               _user_info: {},
-              _target_database: 'postgresql' // потом заполним adm.data_sources.config->_connection->>flavor
+              _target_database: currentDS.config._connection.flavor,
             });
-
-            const localSources = await server.cubes.getDataSources(schema_name);
-            const globalSources = await server.cubes.getDataSources('adm');
-            const currentDS = [...localSources, ...globalSources].find(ds => ds.ident === cubeContent.source_ident);
-            const isLocal = localSources.includes(currentDS);
-
             const data = await server.cubes.getDataSourceData(schema_name, cubeSql, cubeContent.source_ident, isLocal);
             const result = data.rows.map(row => data.columns.reduce((acc, col, index) => {
               acc[col.name] = row[index];
               return acc;
             }, {}));
-
             const contentBuffer = Buffer.from(result.map(JSON.stringify).join('\n'));
             res.setHeader('Content-Type', 'application/x-ndjson;charset=utf-8');
             res.end(contentBuffer);
