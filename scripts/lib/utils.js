@@ -71,9 +71,7 @@ function compareObjects(x, y) {
 function cleanPropertyMembers(o) {
   if (o == null) return null;
   const result = {};
-  Object.keys(o)
-    .filter(key => !key.startsWith('_'))
-    .forEach(key => result[key] = o[key]);
+  Object.keys(o).filter(key => !key.startsWith('_')).forEach(key => result[key] = o[key]);
   return result;
 }
 

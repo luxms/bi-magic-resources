@@ -117,7 +117,7 @@ async function synchronize(source, target) {
   try {
     for (const item of createItems) {
       const newEntity = await target[item.type].createContent(item.path, item.content);
-      if (newEntity) await fromModule.createContent(item.path, newEntity);
+      if (item.type === 'dashboards' && newEntity) await fromModule.createContent(item.path, newEntity);
       finalBar.increment();
     }
 

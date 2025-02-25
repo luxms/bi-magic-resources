@@ -69,7 +69,7 @@ class Local extends Platform {
       const dirPath = path.dirname(fullPath);
       await fsp.mkdir(dirPath, { recursive: true });
 
-      if (normalizedPath.endsWith('.json')) {
+      if (fullPath.endsWith('.json')) {
         await fsp.writeFile(fullPath, JSON.stringify(content, null, 2), 'utf-8');
       } else {
         await fsp.writeFile(fullPath, content);

@@ -3,26 +3,6 @@ const utils = require('../lib/utils');
 const ContentManager = require('./base/ContentManager');
 
 class ResourceManager extends ContentManager {
-  async enumerate() {
-    const list = [];
-    const schemaNames = await this.platform.getSchemaNames();
-
-    for (const schemaName of  schemaNames) {
-      const dirName = this.platform.type === 'server' ? 'resources' : '';
-      const files = await this.platform.getFiles(schemaName, dirName);
-
-      for (const file of files) {
-        const fileName = typeof file === 'string' ? file : file.alt_id;
-        if (!fileName.startsWith('.cubes/') && !fileName.startsWith('topic.')) {
-          const encodedFileName = utils.encodePath(fileName);
-          list.push(`/${schemaName}/${encodedFileName}`);
-        }
-      }
-    }
-
-    return list.sort();
-  }
-
   async getContent(resource) {
     const path = this.platform.type === 'server' ? `srv/resources${resource}` : resource;
     return await this.platform.readFile(path);
@@ -87,6 +67,16 @@ class ResourceManager extends ContentManager {
     } catch (error) {
       return 'application/octet-stream';
     }
+  }
+
+  getDirName() {
+    return this.platform.type === 'server' ? 'resources' : '';
+  }
+
+  createPath(schemaName, resource) {
+    const fileName = typeof resource === 'string' ? resource : resource.alt_id;
+    if (fileName.startsWith('.cubes/') || fileName.startsWith('topic.')) return null;
+    return `/${schemaName}/${utils.encodePath(fileName)}`;
   }
 }
 
