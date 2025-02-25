@@ -116,7 +116,7 @@ class CubeManager extends ContentManager {
         0
       ],
       service: "DataSourceInspectorService.sampleFirstRows"
-    });
+    }, { responseType: 'json' });
     return response.data;
   }
 

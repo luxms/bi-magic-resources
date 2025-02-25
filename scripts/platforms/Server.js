@@ -14,9 +14,8 @@ class Server extends Platform {
     try {
       const response = await axios.get(url, auth.REQUEST_OPTIONS);
       return filterSchemaNames(response.data.map(item => item.schema_name));
-    } catch (err) {
-      console.warn(`Failed to get schema names: ${err.message}`);
-      throw err;
+    } catch (error) {
+      throw new Error(`Failed to get schema names by URL ${url}: ${error.message}`);
     }
   }
 
@@ -27,13 +26,13 @@ class Server extends Platform {
       return response.data;
     } catch (error) {
       if (err.response?.status === 404) return [];
-      throw new Error(`Failed to fetch files for schema ${schemaName}: ${error.message}`);
+      throw new Error(`Failed to get files by URL ${url}: ${error.message}`);
     }
   }
 
   async readFile(path, options) {
+    const fullPath = `${auth.BASE_URL}/${path}`;
     try {
-      const fullPath = `${auth.BASE_URL}/${path}`;
       const response = await axios.get(fullPath, {
         responseType: path.endsWith('.json') ? 'json' : 'arraybuffer',
         ...auth.REQUEST_OPTIONS,
@@ -44,18 +43,16 @@ class Server extends Platform {
         },
       });
       return response.data;
-    } catch (err) {
-      if (err.response?.status === 404) {
-        return null;
-      }
-      throw err;
+    } catch (error) {
+      if (err.response?.status === 404) return null;
+      throw new Error(`Failed to read file by URL ${fullPath}: ${error.message}`);
     }
   }
 
   async writeFile(path, content, options) {
+    const fullPath = this._getFullPath(path);
     try {
-      const fullPath = this._getFullPath(path);
-      const response = await axios({
+      return await axios({
         ...auth.REQUEST_OPTIONS,
         headers: {
           'Content-Type': 'application/json',
@@ -66,15 +63,14 @@ class Server extends Platform {
         url: fullPath,
         data: content,
       });
-      return response;
-    } catch (err) {
-      throw err;
+    } catch (error) {
+      throw new Error(`Failed to write file by URL ${fullPath}: ${error.message}`);
     }
   }
 
   async updateFile(path, content, options) {
+    const fullPath = this._getFullPath(path);
     try {
-      const fullPath = this._getFullPath(path);
       const response = await axios({
         ...auth.REQUEST_OPTIONS,
         headers: {
@@ -86,18 +82,22 @@ class Server extends Platform {
         data: content,
       });
       return response;
-    } catch (err) {
-      throw err;
+    } catch (error) {
+      throw new Error(`Failed to update file by URL ${fullPath}: ${error.message}`);
     }
   }
 
   async deleteFile(path) {
     const fullPath = this._getFullPath(path);
-    await axios({
-      ...auth.REQUEST_OPTIONS,
-      method: 'delete',
-      url: fullPath,
-    });
+    try {
+      await axios({
+        ...auth.REQUEST_OPTIONS,
+        method: 'delete',
+        url: fullPath,
+      });
+    } catch (error) {
+      throw new Error(`Failed to delete file by URL ${fullPath}: ${error.message}`);
+    }
   }
 
   _getFullPath(path) {

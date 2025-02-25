@@ -43,6 +43,10 @@ class ContentManager {
   createPath(schemaName, fileName) {
     return `/${schemaName}/${utils.encodePath(fileName)}`;
   }
+
+  splitPath(path) {
+    throw new Error('Method splitPath must be implemented');
+  }
 }
 
 module.exports = ContentManager;
