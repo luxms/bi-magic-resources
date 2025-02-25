@@ -71,7 +71,8 @@ class DashboardManager extends ContentManager {
         const fileNames = await this.platform.getFiles(schemaName);
         for (const fileName of fileNames) {
           if (fileName.startsWith('topic.')) {
-            list.push(`/${schemaName}/${fileName}`);
+            const encodedFileName = utils.encodePath(fileName);
+            list.push(`/${schemaName}/${encodedFileName}`);
           }
         }
       }
@@ -81,11 +82,6 @@ class DashboardManager extends ContentManager {
 
   async getContent(path) {
     if (this.platform.type === 'server') {
-      if (!path?.startsWith('/')) {
-        console.error('Invalid path format in getContent');
-        return null;
-      }
-
       const [, schemaName, topic, dashboard, dash] = path.split('/');
 
       if (!schemaName || !topic || !dashboard) {

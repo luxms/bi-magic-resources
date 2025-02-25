@@ -1,14 +1,14 @@
 const fs = require('fs');
 const fsp = fs.promises;
 const path = require('path');
-const { filterSchemaNames } = require('../lib/utils');
+const utils = require('../lib/utils');
 const Platform = require('./base/Platform');
 
 class Local extends Platform {
   constructor(baseDir = 'src') {
     super();
-    this.BASE_DIR = path.resolve(__dirname, '..', '..', baseDir);
     this.type = 'local';
+    this.setBaseDir(baseDir);
   }
 
   setBaseDir(dir) {
@@ -17,7 +17,7 @@ class Local extends Platform {
 
   async getSchemaNames() {
     const entries = await fsp.readdir(this.BASE_DIR, { withFileTypes: true });
-    const schemaNames = filterSchemaNames(
+    const schemaNames = utils.filterSchemaNames(
       entries
         .filter(entry => entry.isDirectory())
         .map(entry => entry.name)
@@ -49,7 +49,7 @@ class Local extends Platform {
 
   async readFile(filePath) {
     try {
-      const fullPath = path.join(this.BASE_DIR, filePath);
+      const fullPath = this._getFullPath(filePath);
       await fsp.stat(fullPath);
 
       if (filePath.endsWith('.json')) {
@@ -65,8 +65,7 @@ class Local extends Platform {
 
   async writeFile(filePath, content) {
     try {
-      const normalizedPath = filePath.startsWith('/') ? filePath.slice(1) : filePath;
-      const fullPath = path.join(this.BASE_DIR, normalizedPath);
+      const fullPath = this._getFullPath(filePath);
       const dirPath = path.dirname(fullPath);
       await fsp.mkdir(dirPath, { recursive: true });
 
@@ -87,7 +86,7 @@ class Local extends Platform {
 
   async deleteFile(filePath) {
     try {
-      const fullPath = path.join(this.BASE_DIR, filePath);
+      const fullPath = this._getFullPath(filePath);
       const stats = await fsp.stat(fullPath);
 
       if (!stats.isDirectory()) {
@@ -125,12 +124,17 @@ class Local extends Platform {
 
   async checkFileExists(filePath) {
     try {
-      const fullPath = path.join(this.BASE_DIR, filePath);
+      const fullPath = this._getFullPath(filePath);
       await fsp.stat(fullPath);
       return true;
     } catch (err) {
       return false;
     }
+  }
+
+  _getFullPath(filePath) {
+    const decodedPath = utils.decodePath(filePath);
+    return path.resolve(this.BASE_DIR, decodedPath.slice(1));
   }
 }
 

@@ -91,17 +91,17 @@ async function synchronize(source, target) {
   // Success, enumerate files to change
   if (createItems.length) {
     console.log('CREATE:');
-    createItems.forEach(item => console.log('    ', chalk.green(decodeURIComponent(item.path))));
+    createItems.forEach(item => console.log('    ', chalk.green(utils.decodePath(item.path))));
   }
 
   if (overwriteItems.length) {
     console.log('OVERWRITE:');
-    overwriteItems.forEach(item => console.log('    ', chalk.yellow(decodeURIComponent(item.path))));
+    overwriteItems.forEach(item => console.log('    ', chalk.yellow(utils.decodePath(item.path))));
   }
 
   if (removeItems.length) {
     console.log('REMOVE:');
-    removeItems.forEach(item => console.log('    ', chalk.red(decodeURIComponent(item.path))));
+    removeItems.forEach(item => console.log('    ', chalk.red(utils.decodePath(item.path))));
   }
 
   // Confirm changes

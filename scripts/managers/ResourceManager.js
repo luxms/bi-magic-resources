@@ -8,14 +8,14 @@ class ResourceManager extends ContentManager {
     const schemaNames = await this.platform.getSchemaNames();
 
     for (const schemaName of  schemaNames) {
-      const files = this.platform.type === 'server'
-        ? await this.platform.getFiles(schemaName, 'resources')
-        : await this.platform.getFiles(schemaName);
+      const dirName = this.platform.type === 'server' ? 'resources' : '';
+      const files = await this.platform.getFiles(schemaName, dirName);
 
       for (const file of files) {
         const fileName = typeof file === 'string' ? file : file.alt_id;
         if (!fileName.startsWith('.cubes/') && !fileName.startsWith('topic.')) {
-          list.push(`/${schemaName}/${fileName}`);
+          const encodedFileName = utils.encodePath(fileName);
+          list.push(`/${schemaName}/${encodedFileName}`);
         }
       }
     }

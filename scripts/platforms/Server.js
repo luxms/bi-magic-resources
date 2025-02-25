@@ -101,12 +101,7 @@ class Server extends Platform {
   }
 
   _getFullPath(path) {
-    const parts = path.split('/').filter(Boolean);
-    const encodedPath = parts.map(part => {
-      const decodedPart = decodeURIComponent(part);
-      return encodeURIComponent(decodedPart);
-    }).join('/');
-    return`${auth.BASE_URL}/${encodedPath}`;
+    return`${auth.BASE_URL}/${path}`;
   }
 }
 

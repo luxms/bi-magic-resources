@@ -16,13 +16,6 @@ class Platform {
     throw new Error('Method getSchemaNames must be implemented');
   }
 
-  // todo Пока все методы немного по-разному хэндлят путь к файлам, возможно стоит как-то его унифицировать
-  // Вот такой вариант вроде ничего:
-  // const path = this.platform.type === 'server' ? `srv/resources${resource}` : resource;
-  // и потом в платформах:
-  // const fullPath = path.join(this.BASE_DIR, path);
-  // const fullPath = `${auth.BASE_URL}/${path}`;
-
   async getFiles(...pathSegments) {
     throw new Error('Method getFiles must be implemented');
   }

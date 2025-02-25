@@ -12,6 +12,14 @@ function splitResource(resource) {
   return [schemaName, decodeURIComponent(resourceName)];
 }
 
+function encodePath(path) {
+  return path.replace(/\\/g, '/').split('/').map(segment => encodeURIComponent(segment)).join('/');
+}
+
+function decodePath(path) {
+  return path.split('/').map(segment => decodeURIComponent(segment)).join('/');
+}
+
 function filterSchemaNames(schema_names) {
   if (config.getInclude()) {
     const rInclude = new RegExp(config.getInclude());
@@ -107,5 +115,7 @@ module.exports = {
   fixResourceIdToName,
   getExtension,
   getFileNameWithoutExt,
-  makePathTsxJsx
+  makePathTsxJsx,
+  encodePath,
+  decodePath,
 };
