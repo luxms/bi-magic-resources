@@ -3,7 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const yargs = require('yargs');
-const CopyPlugin = require("copy-webpack-plugin");
+const CopyPlugin = require('copy-webpack-plugin');
 const pkg = require('./package.json');
 const env = yargs.argv.env;                                                                         // use --env with webpack 2
 const mode = (env === 'build') ? 'production' : 'development';

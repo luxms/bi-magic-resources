@@ -41,7 +41,8 @@
   },
   "homepage": "https://gito.luxms.com/luxmsbi/luxmsbi-web-internal",
   "dependencies": {
-    "format-number-with-string": "^0.0.2"
+    "format-number-with-string": "^0.0.2",
+    "uuid": "^11.1.0"
   },
   "optionalDependencies": {
     "node-expose-sspi": "^0.1.60"

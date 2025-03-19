@@ -1,6 +1,9 @@
-const local = require('./lib/local');
-const server = require('./lib/server');
-const { synchronize, pullPushInit, synchronizeII } = require('./lib/commands');
+const Server = require('./platforms/Server');
+const Local = require('./platforms/Local');
+const synchronize = require('./lib/synchronize');
+const auth = require('./lib/auth');
 
-local.setBaseDir('src');
-pullPushInit(() => synchronizeII(server, local));
+const server = new Server();
+const local = new Local('src');
+
+auth.init(() => synchronize(server, local));
