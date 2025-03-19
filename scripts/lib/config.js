@@ -68,6 +68,10 @@ class Config {
     return this.getOption('exclude');
   }
 
+  getJWT() {
+    return this.getOption('jwt');
+  }
+
   hasNoLogin() {
     return this.hasOption('noLogin');
   }

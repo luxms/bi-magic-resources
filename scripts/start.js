@@ -1,5 +1,6 @@
-const WebpackDevServer = require('webpack-dev-server');
 const webpack = require('webpack');
+const WebpackDevServer = require('webpack-dev-server');
+const { createProxyMiddleware } = require('http-proxy-middleware');
 const mime = require('mime-types');
 const webpackConfig = require('../webpack.config');
 const auth = require('./lib/auth');
@@ -13,11 +14,13 @@ const {
   dashboardMiddleware,
   dashletMiddleware,
   RtMiddleware,
+  RtMiddlewareRSocket,
 } = require('./server/middlewares');
 
 const ONLINE = !config.hasNoLogin();
 const SERVER = config.getServer();
 const PORT = config.getPort();
+const JWT = config.getJWT();
 
 const startDev = () => {
   const options = {
@@ -26,7 +29,9 @@ const startDev = () => {
     port: PORT,
     hot: true,
     inline: false,
-    stats: {colors: true},
+    stats: {
+      colors: true
+    },
     publicPath: '/',
     watchOptions: {
       ignored: /node_modules/,
@@ -60,6 +65,19 @@ const startDev = () => {
         app.use('/api/v3/:schema_name/data/', dataMiddleware);
       }
 
+      if (JWT) {
+        app.use('/api/', createProxyMiddleware({
+          target: `${SERVER}/api/`,
+          changeOrigin: true,
+          secure: false,
+          on: {
+            proxyReq: (proxyReq) => {
+              proxyReq.setHeader('Authorization', `Bearer ${JWT}`);
+            },
+          }
+        }))
+      }
+
       // поскольку есть copy plugin, теперь не нужно сервить статику специальным образом
       // app.use('/srv/resources/', express.static(path.resolve(__dirname, '..', 'src')));
     },
@@ -84,6 +102,27 @@ const startDev = () => {
 
 
   let rtMiddleware = new RtMiddleware(webpackDevServer.listeningApp);                                 // rt must be initialized with httpServer object
+  let rtMiddlewareRSocket = new RtMiddlewareRSocket(webpackDevServer.listeningApp);
+  // Поскольку сейчас висит два обработчика на вебсокетах, то требуется вручную их роутить
+  webpackDevServer.listeningApp.on('upgrade', (request, socket, head) => {
+    const srvbi = rtMiddleware._wsServer;
+    const srvrt = rtMiddlewareRSocket._wsServer;
+
+    const pathname = request.url;
+
+    if (pathname === '/srv/bI/') {
+      srvbi.handleUpgrade(request, socket, head, (ws) => {
+        srvbi.emit('connection', ws);
+      });
+    } else if (pathname === '/srv/rt/') {
+      srvrt.handleUpgrade(request, socket, head, (ws) => {
+        srvrt.emit('connection', ws);
+      });
+    } else {
+      socket.destroy();
+    }
+  });
+
   let ASSETS = {}, _id = 1;
 
   webpackDevServer.compiler.hooks.done.tap('webpack-dev-server', (stats) => {
@@ -115,10 +154,18 @@ const startDev = () => {
         updated: now,
         created: now
       });
-      groupBySchemaNames(addedIds).forEach(({schema_name, ids}) => rtMiddleware.addResources(schema_name, ids.map(id => ASSETS[id])));
+
+      groupBySchemaNames(addedIds).forEach(({schema_name, ids}) => {
+        rtMiddleware.addResources(schema_name, ids.map(id => ASSETS[id]));
+        rtMiddlewareRSocket.addResources(schema_name, ids.map(id => ASSETS[id]));
+      });
 
       modifiedIds.forEach(asset => ASSETS[asset].updated = now);
-      groupBySchemaNames(modifiedIds).forEach(({schema_name, ids}) => rtMiddleware.modifyResources(schema_name, ids.map(id => ASSETS[id])));
+
+      groupBySchemaNames(modifiedIds).forEach(({schema_name, ids}) => {
+        rtMiddleware.modifyResources(schema_name, ids.map(id => ASSETS[id]));
+        rtMiddlewareRSocket.modifyResources(schema_name, ids.map(id => ASSETS[id]));
+      });
 
     } catch (err) {
       console.error(err);
