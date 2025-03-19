@@ -1,6 +1,7 @@
 {
   "port": 3003,
-  "server": "",
+  "server": "http://lomaster/",
+  "include": "ds_23690",
   "dashboards": true,
   "resources": true,
   "cubes": true

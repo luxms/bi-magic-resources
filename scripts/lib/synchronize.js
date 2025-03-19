@@ -125,7 +125,7 @@ async function synchronize(source, target) {
       await target[item.type].updateContent(item.path, item.content);
       finalBar.increment();
     }
-  
+
     for (const item of removeItems) {
       await target[item.type].deleteContent(item.path);
       finalBar.increment();
