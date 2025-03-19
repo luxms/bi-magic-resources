@@ -6,23 +6,39 @@ class CustomServer extends BaseServer {
     super(server);
     this.wsServer = new ws.Server({
       noServer: true,
-      // path: '/srv/rt',
-      path: this.server.sockPath,
+      path: '/srv/bI',
+    });
+    this.wsServerRSocket = new ws.Server({
+      noServer: true,
+      path: '/srv/rt',
     });
 
     this.server.listeningApp.on('upgrade', (req, sock, head) => {
       console.log('UPGRADE');
-      if (!this.wsServer.shouldHandle(req)) {
-        console.log('Should NOT handle', req.url);
+
+      if (this.wsServer.shouldHandle(req)) {
+        this.wsServer.handleUpgrade(req, sock, head, (connection) => {
+          this.wsServer.emit('connection', connection, req);
+        });
         return;
       }
 
-      this.wsServer.handleUpgrade(req, sock, head, (connection) => {
-        this.wsServer.emit('connection', connection, req);
-      });
+      if (this.wsServerRSocket.shouldHandle(req)) {
+        this.wsServerRSocket.handleUpgrade(req, sock, head, (connection) => {
+          this.wsServerRSocket.emit('connection', connection, req);
+        });
+        return;
+      }
+
+      console.log('Should NOT handle', req.url);
     });
 
     this.wsServer.on('error', (err) => {
+      console.log('error', err);
+      this.server.log.error(err.message);
+    });
+
+    this.wsServerRSocket.on('error', (err) => {
       console.log('error', err);
       this.server.log.error(err.message);
     });
@@ -31,6 +47,15 @@ class CustomServer extends BaseServer {
 
     setInterval(() => {
       this.wsServer.clients.forEach((socket) => {
+        if (socket.isAlive === false) {
+          return socket.terminate();
+        }
+
+        socket.isAlive = false;
+        socket.ping(noop);
+      });
+
+      this.wsServerRSocket.clients.forEach((socket) => {
         if (socket.isAlive === false) {
           return socket.terminate();
         }
@@ -48,13 +73,11 @@ class CustomServer extends BaseServer {
       });
     };
 
-
     if (server.compiler.compilers) {
       server.compiler.compilers.forEach(addHooks);
     } else {
       addHooks(server.compiler);
     }
-
   }
 
   send(connection, message) {
@@ -75,6 +98,15 @@ class CustomServer extends BaseServer {
   onConnection(f) {
     this.wsServer.on('connection', (connection, req) => {
       console.log('NEW CONNECTION');
+      connection.isAlive = true;
+      connection.on('pong', () => {
+        connection.isAlive = true;
+      });
+      f(connection, req.headers);
+    });
+
+    this.wsServerRSocket.on('connection', (connection, req) => {
+      console.log('NEW CONNECTION RSocket Deprecated');
       connection.isAlive = true;
       connection.on('pong', () => {
         connection.isAlive = true;

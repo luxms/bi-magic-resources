@@ -1,144 +1,130 @@
-const RSocketWebsocketServer = require('rsocket-websocket-server').default;
-const {RSocketServer, BufferEncoders} = require('rsocket-core');
-const {getService, getMethod} = require("rsocket-rpc-frames");
-const {RequestHandlingRSocket} = require('rsocket-rpc-core');
-const {Flowable} = require('rsocket-flowable');
+const WebSocket = require('ws');
 
-const APP = 'com.luxms.bi.rt';
+
+const Text_Decoder = new TextDecoder();
+const Text_Encoder = new TextEncoder();
+
+const NATS_PROTOCOL_MESSAGES = {
+  SUB: 'SUB',
+  UNSUB: 'UNSUB',
+
+  PING: 'PING',
+  PONG: 'PONG',
+
+  PUB: 'PUB',
+  HPUB: 'HPUB',
+
+  MSG: 'MSG',
+  HMSG: 'HMSG',
+};
+
+const NATS_PROTOCOL = '\r\n';
+const START_MESSAGE = 'INFO {"server_id":"NDMLATIAFFSCKBQV7RLKIAPNXFDVYPMGF26KXFAMXSKL7WZETVROTPTF","server_name":"luxmsbi-nats","version":"2.10.11","proto":1,"go":"go1.21.1","host":"::","port":3003,"headers":true,"auth_required":true,"max_payload":16777216,"jetstream":false,"client_id":51338,"client_ip":"127.0.0.1","xkey":"XDZD5ED7TKEEKUDNTQZWMJXBJ667J3YIMHO46YEXMSMMYKPUXG3FME4M"}';
+
 
 class RtMiddleware {
+  _wsServer;
+
   constructor(server) {
-    const transportOpts = {server: server, path: '/srv/rt/'};
-    const transport = new RSocketWebsocketServer(transportOpts, BufferEncoders);
-
-    const serverConfig = {
-      getRequestHandler: this._getRequestHandler,
-      // serializers: JsonSerializers,
-      transport,
-      setup: {
-        keepAlive: 60000,                                                                         // ms btw sending keepalive to server
-        lifetime: 180000,                                                                         // ms timeout if no keepalive response
-        dataMimeType: 'application/json',                                                         // format of `data`
-        // metadataMimeType: 'application/json',                                                     // format of `metadata`
-        metadataMimeType: 'message/x.rsocket.routing.v0',
-      },
-      errorHandler: (error) => {
-        console.error('[realtime  ] Server: error', error);
-      },
-    };
-    const rSocketServer = new RSocketServer(serverConfig);
-    rSocketServer.start();
+    // this._wsServer = new WebSocket.Server({server, autoPong: true, path: '/srv/bI/'});
+    this._wsServer = new WebSocket.Server({noServer: true, autoPong: true, path: '/srv/bI/'});
+    this._natsConnect();
   }
 
-  _schemaSubscriptions = {};
+  _natsConnect = () => {
+    this._wsServer.on('connection', wsConnection => {
+      wsConnection._schemaSubscriptions = {}
+      wsConnection._schemaSubscriptionsNatsSids = {}
 
-  _addSchemaSubscription = (schema_name, connectionId, callback) => {
-    if (!(schema_name in this._schemaSubscriptions)) {
-      this._schemaSubscriptions[schema_name] = [];
-      console.log(`[realtime  ] Creating first subscription on ${schema_name}`);
-      // this._options.subscribeSchema(schema_name);
-    }
-    let schemaSubscription = {
-      dispose: () => {
-        console.log(`[realtime  ] Disposing ${schema_name} subscription`);
-        if (!(schema_name in this._schemaSubscriptions)) return;
-        let idx = this._schemaSubscriptions[schema_name].indexOf(schemaSubscription);
-        if (idx !== -1) {
-          this._schemaSubscriptions[schema_name].splice(idx, 1);
-        }
-        if (this._schemaSubscriptions[schema_name].length === 0) {
-          console.log(`[realtime  ] No more subscriptions on ${schema_name}`);
-          delete this._schemaSubscriptions[schema_name];
-          // this._options.unsubscribeSchema(schema_name);
-        }
-      },
-      connectionId,
-      callback,
-    };
-    this._schemaSubscriptions[schema_name].push(schemaSubscription);
+      this._natsErrorHandler(wsConnection);
+      this._natsCloseHandler(wsConnection);
+      this._natsMessageHandler(wsConnection);
 
-    console.log(`[realtime  ] Now ${this._schemaSubscriptions[schema_name].length} subscriptions on ${schema_name}`);
-    return schemaSubscription;
-  }
-
-
-  connectionsCount = 0;
-
-  _getRequestHandler = () => {
-    const connectionId = ++this.connectionsCount;
-    const service = new RequestHandlingRSocket();
-    service.addService(APP, {
-      fireAndForget: (frame) => {
-        const {metadata, data} = frame;
-        const service = getService(metadata), method = getMethod(metadata);
-        const body = JSON.parse(String(data));
-        console.log('[realtime  ] fireAndForget, service=', service, ' method=', method);
-      },
-      requestResponse: (frame) => {
-        console.log('[realtime  ] requestResponse');
-      },
-      requestStream: (frame) => {
-        const {metadata, data} = frame;
-        const service = getService(metadata), method = getMethod(metadata);
-        console.log('[realtime  ] requestStream', service, method);
-
-        let rSubscriber = null;
-        let schemaSubscription = this._addSchemaSubscription(method, connectionId, message => {
-          if (rSubscriber === null) {
-            // Maybe error?!
-            return;
-          }
-          rSubscriber.onNext({
-            data: Buffer.from(JSON.stringify(message)),
-          });
-          // rSubscriber.onComplete();
-        });
-
-        return new Flowable(subscriber => {
-          subscriber.onSubscribe({
-            request: n => {
-              rSubscriber = subscriber;
-            },
-            cancel: () => {
-              schemaSubscription.dispose();
-              schemaSubscription = null;
-            }
-          });
-        });
-
-      },
-      requestChannel: (payloads) => {
-        console.log('[realtime  ] requestChannel');
-      },
-      metadataPush: (payload) => {
-        console.log('[realtime  ] metadataPush');
-      }
+      this._natsSendMessage(START_MESSAGE, wsConnection);
     });
-
-    return service;
   }
+
+  _natsCloseHandler = (wsConnection) => {
+    wsConnection.on('close', (code) => {
+      console.log('CLOSE CONNECTION', code);
+    });
+  };
+
+  _natsErrorHandler(wsConnection) {
+    wsConnection.on('error', console.error);
+  }
+
+  _natsSendMessage = (message, wsConnection) => {
+    wsConnection.send(Text_Encoder.encode(message + NATS_PROTOCOL));
+  }
+
+  _natsSendMessageToAllClients = (message) => {
+    this._wsServer.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) this._natsSendMessage(message, client);
+    });
+  }
+
+  _natsMessageHandler = (wsConnection) => {
+    wsConnection.on('message', (data) => {
+      const message = Text_Decoder.decode(data)?.trim();
+      const commandArray = message.split('\r\n').filter(Boolean);
+
+
+      commandArray.forEach((message, index) => {
+        const [command, subjectOrSid, sidOrBytes] = message.split(' ');
+        const isPUB = command === NATS_PROTOCOL_MESSAGES.PUB;
+        let data = [];
+
+        if (!NATS_PROTOCOL_MESSAGES[command]) return;
+        if (isPUB && !!commandArray[index + 1]) data = commandArray[index + 1];
+
+
+        switch (command) {
+          case NATS_PROTOCOL_MESSAGES.SUB:
+            wsConnection._schemaSubscriptions[subjectOrSid] = sidOrBytes;
+            wsConnection._schemaSubscriptionsNatsSids[sidOrBytes] = subjectOrSid;
+            break;
+          case NATS_PROTOCOL_MESSAGES.PUB:
+            const subjectSid = wsConnection._schemaSubscriptions[subjectOrSid];
+            const msgMessage = `${NATS_PROTOCOL_MESSAGES.MSG} ${subjectOrSid} ${subjectSid} ${sidOrBytes}` + NATS_PROTOCOL + data;
+
+            this._natsSendMessageToAllClients(msgMessage);
+            break;
+          case NATS_PROTOCOL_MESSAGES.UNSUB:
+            const subj = wsConnection._schemaSubscriptionsNatsSids[subjectOrSid];
+
+            delete wsConnection._schemaSubscriptions[subj];
+            delete wsConnection._schemaSubscriptionsNatsSids[subjectOrSid];
+            break;
+          case NATS_PROTOCOL_MESSAGES.PING:
+            this._natsSendMessage(NATS_PROTOCOL_MESSAGES.PONG, wsConnection);
+            break;
+          default:
+            console.log('Unknown message type');
+        }
+      });
+    });
+  }
+
 
   _notifySchemaBut(excludeConnectionId, schema_name, payload) {
-    if (!(schema_name in this._schemaSubscriptions)) return;
-    const subscriptions = this._schemaSubscriptions[schema_name];
-    for (let s of subscriptions) {
-      if (s.connectionId !== excludeConnectionId) {
-        try {
-          s.callback(payload);
-        } catch (err) {
-          console.log('[realtime  ] Error notifying', err);
-        }
-      }
-    }
+    this._wsServer.clients.forEach((client) => {
+      const subject = `bi.rt.${schema_name}`;
+      if (!(subject in client._schemaSubscriptions)) return;
+      if (client.readyState !== WebSocket.OPEN) return;
+
+      const
+        sid = client._schemaSubscriptions[subject],
+        data = JSON.stringify(payload),
+        bytes = Text_Encoder.encode(data).length,
+        msgMessage = `${NATS_PROTOCOL_MESSAGES.MSG} ${subject} ${sid} ${bytes}` + NATS_PROTOCOL + data;
+
+      this._natsSendMessage(msgMessage, client);
+    });
   }
 
   publishSchemaMessage(schema_name, data) {
     this._notifySchemaBut(null, schema_name, data);
-  }
-
-  deleteResources(schema_name, resources) {
-    if (!resources.length) return;
-    // TODO
   }
 
   addResources(schema_name, resources) {
@@ -159,5 +145,6 @@ class RtMiddleware {
     })));
   }
 }
+
 
 module.exports = RtMiddleware;
