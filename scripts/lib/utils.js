@@ -1,6 +1,5 @@
 const config = require('./config');
 
-
 /**
  * extract schemaName and resource name from resource identifier
  * @param {string} resource
@@ -13,23 +12,25 @@ function splitResource(resource) {
   return [schemaName, decodeURIComponent(resourceName)];
 }
 
-
-function filterSchemaNames(schema_names) {
-  const include = config.getInclude();
-  if (include) {
-    const rInclude = new RegExp(include);
-    schema_names = schema_names.filter(schema_name => schema_name.match(rInclude));
-  }
-
-  const exclude = config.getExclude();
-  if (exclude) {
-    const rExclude = new RegExp(exclude);
-    schema_names = schema_names.filter(schema_name => !schema_name.match(rExclude));
-  }
-
-  return schema_names;
+function encodePath(path) {
+  return path.replace(/\\/g, '/').split('/').map(segment => encodeURIComponent(segment)).join('/');
 }
 
+function decodePath(path) {
+  return path.split('/').map(segment => decodeURIComponent(segment)).join('/');
+}
+
+function filterSchemaNames(schema_names) {
+  if (config.getInclude()) {
+    const rInclude = new RegExp(config.getInclude());
+    schema_names = schema_names.filter(schema_name => schema_name.match(rInclude));
+  }
+  if (config.getExclude()) {
+    const rExclude = new RegExp(config.getExclude());
+    schema_names = schema_names.filter(schema_name => !schema_name.match(rExclude));
+  }
+  return schema_names;
+}
 
 async function retryOnFail(fn) {
   let error = null;
@@ -68,10 +69,9 @@ function compareObjects(x, y) {
 }
 
 function cleanPropertyMembers(o) {
+  if (o == null) return null;
   const result = {};
-  Object.keys(o)
-    .filter(key => !key.startsWith('_'))
-    .forEach(key => result[key] = o[key]);
+  Object.keys(o).filter(key => !key.startsWith('_')).forEach(key => result[key] = o[key]);
   return result;
 }
 
@@ -113,5 +113,7 @@ module.exports = {
   fixResourceIdToName,
   getExtension,
   getFileNameWithoutExt,
-  makePathTsxJsx
+  makePathTsxJsx,
+  encodePath,
+  decodePath,
 };

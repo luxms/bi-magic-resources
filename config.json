@@ -1,4 +1,7 @@
 {
   "port": 3003,
-  "server": ""
+  "server": "",
+  "dashboards": false,
+  "resources": true,
+  "cubes": false
 }
