@@ -1,0 +1,124 @@
+@use 'functions' as *;
+@use 'sass:math';
+
+// colors variables
+$white: #fff;
+$black: #000;
+$light-black: #000c;
+$light-black2: #00000080;
+$platinum: #e6e6e6;
+$disabled-grey: #d3d3d3;
+$charmed-chalice: #a1a1a1;
+$noghrei-silver: #bdbdbd;
+$grey: #909caa;
+$cold-morning: #e5e5e5;
+$ultimate-grey: #a9a9a9;
+$fresh-green: #78d64b;
+$vanadyl-blue: #00a3e0;
+$angry-flamingo: #f15342;
+$orange: #ff6900;
+$rzd-red: #cd202c;
+$neutral: #303f4b;
+$cemetery-ash: #bfc5ce;
+$placid-blue: #8ab0d2;
+$azure-sky: #b3e4f6;
+$white-blue: #b0dcf4;
+$azure-sky: #b2e3f6;
+$malibu: #61b9e9;
+$clear-chill: #1890ff;
+$turquoise: #007fb1;
+$diver-lady: #24556c;
+$light-turquoise: #2f87b6;
+$dark-turquoise: #00507c;
+$anchors-aweigh: #28343e;
+$dark-blue: #007fb180;
+$night-dive: #003356;
+$night-gray: #68798b;
+$dark-gray: #ffffff1a;
+$light-grey: #00000026;
+$infinite-deep-sea: #455d70;
+$midnight-dream: #394a58;
+$midnight-navy: #33434f;
+$outer-space: #2e3c47;
+$dark-spell: #313f4b;
+$anchors-aweigh: #293640;
+$soft-silver: rgb(191 197 206);
+$silver-text: #828282;
+$positive: #78d64b;
+$negative: #e21a1a;
+$tag: #bfc5ce4d;
+$success-text: #008000;
+$error-text: #f00;
+$silver-sand: #c4c4c4;
+$pandanus: #626b45;
+$legend-item-grey: #d1d1d126;
+$indicators-table-odd-bg: #0000000d;
+$indicators-table-blue-bg: #b0dcf480;
+$indicators-table-green-bg: #78d64b80;
+$indicators-table-red-bg: #ff690080;
+$indicators-table-yellow-bg: #e8e14480;
+$indicators-table-positive-bg: #78d64b;
+$indicators-table-negative-bg: #ff6900;
+$indicators-table-neutral-bg: #68798b;
+$indicators-table-right-background: #f2faff;
+$indicators-table-yearPlan-cell: #b8b8b880;
+$indicators-table-madeByDate-cell: #78d64b80;
+$indicators-table-notCompletedByDate-cell: #ff690080;
+$indicators-table-monthBeforeDeadline-cell: #d1ebf9;
+$indicators-table-yearPlan-cell-even: #e1e1e166;
+$indicators-table-madeByDate-cell-even: #78d64b40;
+$indicators-table-notCompletedByDate-cell-even: #ff690040;
+$indicators-table-monthBeforeDeadline-cell-even: #e2f3fc;
+
+// sizes
+$header-tabs-height: 2.5rem;
+$min-column-width: 18.75rem;
+$column-width: 28.5rem;
+$buttons-border-radius: 0.5rem;
+$border-line-width: 0.125rem;
+
+// light theme variables
+$input-border-color: #b3b3b3;
+$edit-button-light: rgb(39 120 165);
+$button-bg-color-hover-light: #d7edf9;
+$table-odd-row-bg-light: #0000001a;
+$table-even-row-bg-light: #0000000d;
+$panel-bg-light: #bfc5ce40;
+
+// dark theme variables
+$input-background-color: $white;
+$edit-button-dark: rgba(0 114 159);
+$button-bg-color-hover-dark: #0066a1;
+$table-odd-row-bg-dark: rgb(255 255 255 / 10%);
+$table-even-row-bg-dark: rgb(255 255 255 / 5%);
+
+:root {
+  --font-family-main: Arial, Helvetica, sans-serif;
+}
+
+$font-size-xxs: as-rem(10); // 0.625
+$font-size-xs: as-rem(12); // 0.75
+$font-line-xxs: as-rem(10); // 0.625
+$font-line-xs: as-rem(14); // 0.875
+$font-xs: #{$font-size-xs} / #{$font-line-xs} var(--font-family-main);
+$font-size-s: as-rem(14); // 0.875
+$font-line-s: as-rem(16);
+$font-s: #{$font-size-s} / #{$font-line-s} var(--font-family-main);
+$font-size-m: as-rem(16);
+$font-line-m: as-rem(18);
+$font-m: #{$font-size-m} / #{$font-line-m} var(--font-family-main);
+$font-size-l: as-rem(18);
+$font-line-l: as-rem(20);
+$font-l: #{$font-size-l} / #{$font-line-l} var(--font-family-main);
+$font-size-xl: as-rem(20);
+$font-line-xl: as-rem(23);
+$font-xl: #{$font-size-xl} / #{$font-line-xl} var(--font-family-main);
+$font-size-xxl: as-rem(24);
+$font-line-xxl: as-rem(27);
+$font-size-xxxl: as-rem(32);
+$font-xxl: #{$font-size-xxl} / #{$font-line-xxl} var(--font-family-main);
+$font-weight-400: 400;
+$font-weight-500: 500;
+$font-weight-600: 600;
+$font-weight-700: 700;
+$font-weight-900: 900;

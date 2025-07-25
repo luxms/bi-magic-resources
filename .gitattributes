@@ -1,2 +1,9 @@
 * text=false
-
+* text eol=lf
+*.png binary
+*.pdf binary
+*.jar binary
+*.xlsx binary
+*.woff binary
+*.woff2 binary
+*.ttf binary

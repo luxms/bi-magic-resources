@@ -1,0 +1,9 @@
+@use 'sass:math';
+
+@function as-rem($size) {
+  @if math.is-unitless($size) {
+    @return math.div($size, 16) * 1rem;
+  } @else {
+    @error 'Передавайте в функцию только число';
+  }
+}

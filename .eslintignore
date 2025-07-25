@@ -1,0 +1,5 @@
+**/*.config.js
+**/*.config.ts
+**/*.spec.js
+**/*.spec.ts
+*.cjs
