@@ -23,6 +23,38 @@ async function synchronize(source, target) {
 
   let sourceItems = {}, targetItems = {};
 
+  const sortCreate = (a, b) => {
+    const typeWeight = {
+      resources: 1,
+      dashboards: 2,
+      cubes: 3
+    }
+    let result
+    if (typeWeight[a.type] > typeWeight[b.type]) result = 1
+    if (typeWeight[a.type] === typeWeight[b.type]) result = 0
+    if (typeWeight[a.type] < typeWeight[b.type]) result = -1
+
+    return result
+  }
+
+  const sortDashboardsConfig = (a, b) => {
+    let result
+    const aId = a.path.split('/')[a.path.split('/').length - 1].split('.')[0]
+    const bId = b.path.split('/')[b.path.split('/').length - 1].split('.')[0]
+
+    if (aId !== 'index' && bId === 'index') result = 1
+    if (aId === 'index' && bId === 'index') result = 0
+    if (aId === 'index' && bId !== 'index') result = -1
+
+    if (aId !== 'index' && bId !== 'index') {
+      if (Number(aId) > Number(bId)) result = 1
+      if (Number(aId) === Number(bId)) result = 0
+      if (Number(aId) < Number(bId)) result = -1
+    }
+
+    return result
+  }
+
   try {
     for (const contentType of contentTypes) {
       if (config.hasOption(contentType)) {
@@ -59,10 +91,11 @@ async function synchronize(source, target) {
           if (!contentsMatch) overwriteItems.push({ type: contentType, path: item, content: sourceContent });
         } else {
           createItems.push({ type: contentType, path: item, content: sourceContent })
-        }
 
+        }
         bar.increment();
       }
+
 
       if (!config.hasNoRemove()) {
         for (const item of targetItems[contentType]) {
@@ -78,7 +111,12 @@ async function synchronize(source, target) {
         }
       }
     }
+    if (contentType === 'dashboards' ) {
+      createItems.sort(sortDashboardsConfig)
+      overwriteItems.sort(sortDashboardsConfig)
+    }
   }
+  createItems.sort(sortCreate)
 
   bar.stop();
 
@@ -86,6 +124,11 @@ async function synchronize(source, target) {
   if (createItems.length === 0 && overwriteItems.length === 0 && removeItems.length === 0) {
     console.log(chalk.green('No changes'));
     return;
+  }
+
+  if (removeItems.length) {
+    console.log('REMOVE:');
+    removeItems.forEach(item => console.log('    ', chalk.red(utils.decodePath(item.path))));
   }
 
   // Success, enumerate files to change
@@ -99,11 +142,6 @@ async function synchronize(source, target) {
     overwriteItems.forEach(item => console.log('    ', chalk.yellow(utils.decodePath(item.path))));
   }
 
-  if (removeItems.length) {
-    console.log('REMOVE:');
-    removeItems.forEach(item => console.log('    ', chalk.red(utils.decodePath(item.path))));
-  }
-
   // Confirm changes
   if (!config.getForce()) {
     const prompt = new Confirm('Continue?');
@@ -115,19 +153,19 @@ async function synchronize(source, target) {
   finalBar.start(createItems.length + overwriteItems.length + removeItems.length, 0);
 
   try {
+    for (const item of removeItems) {
+      await target[item.type].deleteContent(item.path);
+      finalBar.increment();
+    }
+
     for (const item of createItems) {
       const newEntity = await target[item.type].createContent(item.path, item.content);
-      if (item.type === 'dashboards' && newEntity) await fromModule.createContent(item.path, newEntity);
+      //if (item.type === 'dashboards' && newEntity) await fromModule.createContent(item.path, newEntity);
       finalBar.increment();
     }
 
     for (const item of overwriteItems) {
       await target[item.type].updateContent(item.path, item.content);
-      finalBar.increment();
-    }
-
-    for (const item of removeItems) {
-      await target[item.type].deleteContent(item.path);
       finalBar.increment();
     }
   } finally {
