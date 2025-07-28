@@ -1,0 +1,42 @@
+@use './variables';
+@use './mixins';
+
+.dropdownMenu {
+  border-radius: 0 !important;
+  background: variables.$white-blue !important;
+
+  svg {
+    path {
+      fill: variables.$midnight-dream;
+    }
+  }
+
+  [class='ant-dropdown-menu-title-content'] {
+    color: variables.$midnight-dream;
+    @include mixins.russian-rail-font-family;
+  }
+
+  .ant-dropdown-menu-item-disabled {
+    opacity: 0.5;
+  }
+
+  .ant-dropdown-menu-item-disabled:hover {
+    background-color: transparent !important;
+  }
+}
+
+body[class*='app_dark'] {
+  .dropdownMenu {
+    background: variables.$dark-spell !important;
+
+    svg {
+      path {
+        fill: variables.$white;
+      }
+    }
+
+    [class='ant-dropdown-menu-title-content'] {
+      color: variables.$white;
+    }
+  }
+}

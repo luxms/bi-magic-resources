@@ -1,0 +1,2003 @@
+openapi: 3.0.3
+info:
+  title: OpenAPI definition
+  version: 0.1.0
+servers:
+- url: /
+paths:
+  /api/all/actions:
+    post:
+      summary: route_id100
+      description: route_id100
+      operationId: post-api-all-actions
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+  /api/all/cubes:
+    get:
+      summary: route_id99
+      description: route_id99
+      operationId: get-api-all-cubes
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+  /api/all/dashboards:
+    get:
+      summary: route_id101
+      description: route_id101
+      operationId: get-api-all-dashboards
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+  /api/all/dashlets:
+    get:
+      summary: route_id102
+      description: route_id102
+      operationId: get-api-all-dashlets
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+  /api/all/data_sources:
+    get:
+      summary: route_id98
+      description: route_id98
+      operationId: get-api-all-data_sources
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+  /api/all/presentations:
+    get:
+      summary: route_id42
+      description: route_id42
+      operationId: get-api-all-presentations
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+  /api/asku_report_possible_users/{dataset}/dashboard/{id}:
+    get:
+      summary: route_id97
+      description: route_id97
+      operationId: get-api-asku_report_possible_users-dataset-dashboard-id
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: dataset
+      required: true
+      schema:
+        type: string
+      style: simple
+    - in: path
+      name: id
+      required: true
+      schema:
+        type: integer
+      style: simple
+  /api/auth/2fa/login1:
+    get:
+      summary: route_id29
+      description: route_id29
+      operationId: get-api-auth-2fa-login1
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    post:
+      summary: route_id30
+      description: route_id30
+      operationId: post-api-auth-2fa-login1
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+  /api/auth/2fa/login2:
+    get:
+      summary: route_id31
+      description: route_id31
+      operationId: get-api-auth-2fa-login2
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    post:
+      summary: route_id32
+      description: route_id32
+      operationId: post-api-auth-2fa-login2
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+  /api/auth/2fa/resend-factor2:
+    get:
+      summary: route_id21
+      description: route_id21
+      operationId: get-api-auth-2fa-resend-factor2
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+  /api/auth/check:
+    get:
+      summary: route_id22
+      description: route_id22
+      operationId: get-api-auth-check
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+  /api/auth/check-no-sso:
+    get:
+      summary: route_id23
+      description: route_id23
+      operationId: get-api-auth-check-no-sso
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+  /api/auth/databoring/jwt:
+    get:
+      summary: route_id18
+      description: route_id18
+      operationId: get-api-auth-databoring-jwt
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+  /api/auth/login:
+    get:
+      summary: route_id24
+      description: route_id24
+      operationId: get-api-auth-login
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    post:
+      summary: route_id25
+      description: route_id25
+      operationId: post-api-auth-login
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+  /api/auth/logout:
+    get:
+      summary: route_id26
+      description: route_id26
+      operationId: get-api-auth-logout
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+  /api/auth/otp/{path}:
+    get:
+      summary: route_id28
+      description: route_id28
+      operationId: get-api-auth-otp-path
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    post:
+      summary: route_id27
+      description: route_id27
+      operationId: post-api-auth-otp-path
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: path
+      required: true
+      schema:
+        type: string
+        pattern: (.*)
+      style: simple
+  /api/auth/user/audit_track_active_session:
+    get:
+      summary: route_id17
+      description: route_id17
+      operationId: get-api-auth-user-audit_track_active_session
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+  /api/bookmarks:
+    get:
+      summary: route_id13
+      description: route_id13
+      operationId: get-api-bookmarks
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    post:
+      summary: route_id15
+      description: route_id15
+      operationId: post-api-bookmarks
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+  /api/bookmarks/{id}:
+    get:
+      summary: route_id14
+      description: route_id14
+      operationId: get-api-bookmarks-id
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: id
+      required: true
+      schema:
+        type: string
+        pattern: (.*)
+      style: simple
+  /api/can/edit_atlas/{dataset}:
+    get:
+      summary: route_id93
+      description: route_id93
+      operationId: get-api-can-edit_atlas-dataset
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: dataset
+      required: true
+      schema:
+        type: string
+      style: simple
+  /api/can/edit_dashboards/{dataset}:
+    get:
+      summary: route_id94
+      description: route_id94
+      operationId: get-api-can-edit_dashboards-dataset
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: dataset
+      required: true
+      schema:
+        type: string
+      style: simple
+  /api/can/i:
+    post:
+      summary: route_id92
+      description: route_id92
+      operationId: post-api-can-i
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+  /api/change_password:
+    post:
+      summary: route_id91
+      description: route_id91
+      operationId: post-api-change_password
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+  /api/chats:
+    get:
+      summary: route_id50
+      description: route_id50
+      operationId: get-api-chats
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    post:
+      summary: route_id52
+      description: route_id52
+      operationId: post-api-chats
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+  /api/chats/{id}:
+    get:
+      summary: route_id51
+      description: route_id51
+      operationId: get-api-chats-id
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: id
+      required: true
+      schema:
+        type: string
+        pattern: (.*)
+      style: simple
+  /api/chats/{id}/possible_users:
+    get:
+      summary: route_id53
+      description: route_id53
+      operationId: get-api-chats-id-possible_users
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: id
+      required: true
+      schema:
+        type: integer
+      style: simple
+  /api/clone/{dataset}:
+    post:
+      summary: route_id103
+      description: route_id103
+      operationId: post-api-clone-dataset
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: dataset
+      required: true
+      schema:
+        type: string
+      style: simple
+  /api/clone/{dataset}.cubes/{id}:
+    post:
+      summary: route_id104
+      description: route_id104
+      operationId: post-api-clone-dataset-.-cubes-id
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: dataset
+      required: true
+      schema:
+        type: string
+        pattern: ([0-9]+|[a-zA-Z0-9_]+|[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12})
+      style: simple
+    - in: path
+      name: id
+      required: true
+      schema:
+        type: string
+        pattern: (.*)
+      style: simple
+  /api/clone/manifest/{dataset}:
+    get:
+      summary: route_id105
+      description: route_id105
+      operationId: get-api-clone-manifest-dataset
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: dataset
+      required: true
+      schema:
+        type: string
+      style: simple
+  /api/databoring/nodes/list:
+    post:
+      summary: route_id65
+      description: route_id65
+      operationId: post-api-databoring-nodes-list
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+  /api/databoring/{tail}:
+    get:
+      summary: route_id62
+      description: route_id62
+      operationId: get-api-databoring-tail
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    put:
+      summary: route_id63
+      description: route_id63
+      operationId: put-api-databoring-tail
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    post:
+      summary: route_id61
+      description: route_id61
+      operationId: post-api-databoring-tail
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    delete:
+      summary: route_id64
+      description: route_id64
+      operationId: delete-api-databoring-tail
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: tail
+      required: true
+      schema:
+        type: string
+        pattern: (.*)
+      style: simple
+  /api/data/{dataset}/aggregate:
+    post:
+      summary: route_id35
+      description: route_id35
+      operationId: post-api-data-dataset-aggregate
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: dataset
+      required: true
+      schema:
+        type: string
+        pattern: ([0-9]+|[a-zA-Z0-9_]+|[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12})
+      style: simple
+  /api/data/{dataset}/colors:
+    post:
+      summary: route_id57
+      description: route_id57
+      operationId: post-api-data-dataset-colors
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: dataset
+      required: true
+      schema:
+        type: string
+        pattern: ([0-9]+|[a-zA-Z0-9_]+|[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12})
+      style: simple
+  /api/data/{dataset}/cube:
+    post:
+      summary: route_id33
+      description: route_id33
+      operationId: post-api-data-dataset-cube
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: dataset
+      required: true
+      schema:
+        type: string
+        pattern: ([0-9]+|[a-zA-Z0-9_]+|[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12})
+      style: simple
+  /api/data/{dataset}/norms:
+    post:
+      summary: route_id34
+      description: route_id34
+      operationId: post-api-data-dataset-norms
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: dataset
+      required: true
+      schema:
+        type: string
+        pattern: ([0-9]+|[a-zA-Z0-9_]+|[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12})
+      style: simple
+  /api/data/{dataset}/push:
+    post:
+      summary: route_id36
+      description: route_id36
+      operationId: post-api-data-dataset-push
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: dataset
+      required: true
+      schema:
+        type: string
+        pattern: ([0-9]+|[a-zA-Z0-9_]+|[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12})
+      style: simple
+  /api/data/{dataset}/telemetry:
+    post:
+      summary: route_id58
+      description: route_id58
+      operationId: post-api-data-dataset-telemetry
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: dataset
+      required: true
+      schema:
+        type: string
+        pattern: ([0-9]+|[a-zA-Z0-9_]+|[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12})
+      style: simple
+  /api/datagate/contest:
+    post:
+      summary: route_id66
+      description: route_id66
+      operationId: post-api-datagate-contest
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+  /api/datagate{tail}:
+    get:
+      summary: route_id80
+      description: route_id80
+      operationId: get-api-datagate-tail
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    post:
+      summary: route_id81
+      description: route_id81
+      operationId: post-api-datagate-tail
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: tail
+      required: true
+      schema:
+        type: string
+        pattern: (.*)
+      style: simple
+  /api/dataset/{dataset}/data:
+    delete:
+      summary: route_id10
+      description: route_id10
+      operationId: delete-api-dataset-dataset-data
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: dataset
+      required: true
+      schema:
+        type: string
+        pattern: ([0-9]+|[a-zA-Z0-9_]+|[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12})
+      style: simple
+  /api/datasets:
+    get:
+      summary: route_id19
+      description: route_id19
+      operationId: get-api-datasets
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+  /api/datasets/{dataset}:
+    get:
+      summary: route_id20
+      description: route_id20
+      operationId: get-api-datasets-dataset
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: dataset
+      required: true
+      schema:
+        type: string
+        pattern: ([0-9]+|[a-zA-Z0-9_]+|[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12})
+      style: simple
+  /api/db/{dataset}.{table}:
+    get:
+      summary: route_id2
+      description: route_id2
+      operationId: get-api-db-dataset-.-table
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    put:
+      summary: route_id6
+      description: route_id6
+      operationId: put-api-db-dataset-.-table
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    post:
+      summary: route_id4
+      description: route_id4
+      operationId: post-api-db-dataset-.-table
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    patch:
+      summary: route_id9
+      description: route_id9
+      operationId: patch-api-db-dataset-.-table
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: dataset
+      required: true
+      schema:
+        type: string
+        pattern: ([0-9]+|[a-zA-Z0-9_]+|[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12})
+      style: simple
+    - in: path
+      name: table
+      required: true
+      schema:
+        type: string
+      style: simple
+  /api/db/{dataset}.{table}.{column}/{id}:
+    patch:
+      summary: route_id8
+      description: route_id8
+      operationId: patch-api-db-dataset-.-table-.-column-id
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: dataset
+      required: true
+      schema:
+        type: string
+        pattern: ([0-9]+|[a-zA-Z0-9_]+|[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12})
+      style: simple
+    - in: path
+      name: table
+      required: true
+      schema:
+        type: string
+      style: simple
+    - in: path
+      name: column
+      required: true
+      schema:
+        type: string
+      style: simple
+    - in: path
+      name: id
+      required: true
+      schema:
+        type: string
+        pattern: ([^/?]+)
+      style: simple
+  /api/db/{dataset}.{table}/{id}:
+    get:
+      summary: route_id3
+      description: route_id3
+      operationId: get-api-db-dataset-.-table-id
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    delete:
+      summary: route_id7
+      description: route_id7
+      operationId: delete-api-db-dataset-.-table-id
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: dataset
+      required: true
+      schema:
+        type: string
+        pattern: ([0-9]+|[a-zA-Z0-9_]+|[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12})
+      style: simple
+    - in: path
+      name: table
+      required: true
+      schema:
+        type: string
+      style: simple
+    - in: path
+      name: id
+      required: true
+      schema:
+        type: string
+        pattern: (.*)
+      style: simple
+  /api/enquiries:
+    get:
+      summary: route_id54
+      description: route_id54
+      operationId: get-api-enquiries
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    post:
+      summary: route_id56
+      description: route_id56
+      operationId: post-api-enquiries
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+  /api/enquiries/{id}:
+    get:
+      summary: route_id55
+      description: route_id55
+      operationId: get-api-enquiries-id
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: id
+      required: true
+      schema:
+        type: string
+        pattern: (.*)
+      style: simple
+  /api/export/jwt/{id}:
+    get:
+      summary: route_id75
+      description: route_id75
+      operationId: get-api-export-jwt-id
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: id
+      required: true
+      schema:
+        type: integer
+      style: simple
+  /api/gigachat/{tail}:
+    get:
+      summary: route_id112
+      description: route_id112
+      operationId: get-api-gigachat-tail
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    post:
+      summary: route_id113
+      description: route_id113
+      operationId: post-api-gigachat-tail
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: tail
+      required: true
+      schema:
+        type: string
+        pattern: (.*)
+      style: simple
+  /api/gigachat/v2/oauth-proxy:
+    post:
+      summary: route_id114
+      description: route_id114
+      operationId: post-api-gigachat-v2-oauth-proxy
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+  /api/healthcheck:
+    get:
+      summary: route_id90
+      description: route_id90
+      operationId: get-api-healthcheck
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    head:
+      summary: route_id89
+      description: route_id89
+      operationId: head-api-healthcheck
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+  /api/import:
+    get:
+      summary: route_id77
+      description: route_id77
+      operationId: get-api-import
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    post:
+      summary: route_id76
+      description: route_id76
+      operationId: post-api-import
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+  /api/koob/model2sql:
+    post:
+      summary: route_id115
+      description: route_id115
+      operationId: post-api-koob-model2sql
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+  /api/koob{tail}:
+    get:
+      summary: route_id82
+      description: route_id82
+      operationId: get-api-koob-tail
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    post:
+      summary: route_id83
+      description: route_id83
+      operationId: post-api-koob-tail
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: tail
+      required: true
+      schema:
+        type: string
+        pattern: (.*)
+      style: simple
+  /api/list_reports:
+    get:
+      summary: route_id95
+      description: route_id95
+      operationId: get-api-list_reports
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+  /api/lookup/{dataset}/{id}:
+    post:
+      summary: route_id67
+      description: route_id67
+      operationId: post-api-lookup-dataset-id
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: dataset
+      required: true
+      schema:
+        type: string
+        pattern: ([0-9]+|[a-zA-Z0-9_]+|[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12})
+      style: simple
+    - in: path
+      name: id
+      required: true
+      schema:
+        type: integer
+      style: simple
+  /api/lookup/{dataset}/{id}/{extension}:
+    post:
+      summary: route_id68
+      description: route_id68
+      operationId: post-api-lookup-dataset-id-extension
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: dataset
+      required: true
+      schema:
+        type: string
+        pattern: ([0-9]+|[a-zA-Z0-9_]+|[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12})
+      style: simple
+    - in: path
+      name: id
+      required: true
+      schema:
+        type: integer
+      style: simple
+    - in: path
+      name: extension
+      required: true
+      schema:
+        type: string
+      style: simple
+  /api/lookup/executeQuery:
+    post:
+      summary: route_id71
+      description: route_id71
+      operationId: post-api-lookup-executequery
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+  /api/madlib:
+    post:
+      summary: route_id116
+      description: route_id116
+      operationId: post-api-madlib
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+  /api/password_policy/{id}/new_password:
+    get:
+      summary: route_id111
+      description: route_id111
+      operationId: get-api-password_policy-id-new_password
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: id
+      required: true
+      schema:
+        type: integer
+      style: simple
+  /api/presentations:
+    get:
+      summary: route_id41
+      description: route_id41
+      operationId: get-api-presentations
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+  /api/presentations/{id}/possible_users:
+    get:
+      summary: route_id43
+      description: route_id43
+      operationId: get-api-presentations-id-possible_users
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: id
+      required: true
+      schema:
+        type: integer
+      style: simple
+  /api/publish/accept/{id}:
+    post:
+      summary: route_id107
+      description: route_id107
+      operationId: post-api-publish-accept-id
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: id
+      required: true
+      schema:
+        type: integer
+      style: simple
+  /api/publish/chats:
+    get:
+      summary: route_id109
+      description: route_id109
+      operationId: get-api-publish-chats
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+  /api/publish/publish/{dataset}:
+    post:
+      summary: route_id108
+      description: route_id108
+      operationId: post-api-publish-publish-dataset
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: dataset
+      required: true
+      schema:
+        type: string
+      style: simple
+  /api/publish/request/{dataset}:
+    post:
+      summary: route_id106
+      description: route_id106
+      operationId: post-api-publish-request-dataset
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: dataset
+      required: true
+      schema:
+        type: string
+      style: simple
+  /api/reorder/{dataset}.{table}/{id}:
+    put:
+      summary: route_id40
+      description: route_id40
+      operationId: put-api-reorder-dataset-.-table-id
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: dataset
+      required: true
+      schema:
+        type: string
+        pattern: ([0-9]+|[a-zA-Z0-9_]+|[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12})
+      style: simple
+    - in: path
+      name: table
+      required: true
+      schema:
+        type: string
+      style: simple
+    - in: path
+      name: id
+      required: true
+      schema:
+        type: string
+        pattern: (.*)
+      style: simple
+  /api/report_possible_users/{dataset}:
+    get:
+      summary: route_id96
+      description: route_id96
+      operationId: get-api-report_possible_users-dataset
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: dataset
+      required: true
+      schema:
+        type: string
+      style: simple
+  /api/reports/data:
+    post:
+      summary: route_id85
+      description: route_id85
+      operationId: post-api-reports-data
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+  /api/search/fts:
+    get:
+      summary: route_id88
+      description: route_id88
+      operationId: get-api-search-fts
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+  /api/summary:
+    get:
+      summary: route_id49
+      description: route_id49
+      operationId: get-api-summary
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+  /api/swap/{dataset}.{table}/{id1}/{id2}:
+    put:
+      summary: route_id39
+      description: route_id39
+      operationId: put-api-swap-dataset-.-table-id1-id2
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: dataset
+      required: true
+      schema:
+        type: string
+        pattern: ([0-9]+|[a-zA-Z0-9_]+|[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12})
+      style: simple
+    - in: path
+      name: table
+      required: true
+      schema:
+        type: string
+      style: simple
+    - in: path
+      name: id1
+      required: true
+      schema:
+        type: integer
+      style: simple
+    - in: path
+      name: id2
+      required: true
+      schema:
+        type: integer
+      style: simple
+  /api/sync:
+    post:
+      summary: route_id133
+      description: route_id133
+      operationId: post-api-sync
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+  /api/tasks:
+    get:
+      summary: route_id46
+      description: route_id46
+      operationId: get-api-tasks
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    post:
+      summary: route_id48
+      description: route_id48
+      operationId: post-api-tasks
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+  /api/tasks/{id}:
+    get:
+      summary: route_id47
+      description: route_id47
+      operationId: get-api-tasks-id
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: id
+      required: true
+      schema:
+        type: string
+        pattern: (.*)
+      style: simple
+  /api/tm/jobs/enqueue:
+    post:
+      summary: route_id73
+      description: route_id73
+      operationId: post-api-tm-jobs-enqueue
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+  /api/tm/taskpass/{id}:
+    get:
+      summary: route_id74
+      description: route_id74
+      operationId: get-api-tm-taskpass-id
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: id
+      required: true
+      schema:
+        type: integer
+      style: simple
+  /api/track-user:
+    post:
+      summary: route_id11
+      description: route_id11
+      operationId: post-api-track-user
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+  /api/user/{id}/new_password:
+    get:
+      summary: route_id110
+      description: route_id110
+      operationId: get-api-user-id-new_password
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: id
+      required: true
+      schema:
+        type: integer
+      style: simple
+  /api/v3/data/{dataset}/norms:
+    post:
+      summary: route_id120
+      description: route_id120
+      operationId: post-api-v3-data-dataset-norms
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: dataset
+      required: true
+      schema:
+        type: string
+        pattern: ([0-9]+|[a-zA-Z0-9_]+|[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12})
+      style: simple
+  /api/v3/{dataset}/{datasource}.{cube}:
+    post:
+      summary: route_id130
+      description: route_id130
+      operationId: post-api-v3-dataset-datasource-.-cube
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: dataset
+      required: true
+      schema:
+        type: string
+      style: simple
+    - in: path
+      name: datasource
+      required: true
+      schema:
+        type: string
+      style: simple
+    - in: path
+      name: cube
+      required: true
+      schema:
+        type: string
+      style: simple
+  /api/v3/{dataset}/{datasource}.{cube}/{lpe}:
+    put:
+      summary: route_id126
+      description: route_id126
+      operationId: put-api-v3-dataset-datasource-.-cube-lpe
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    delete:
+      summary: route_id128
+      description: route_id128
+      operationId: delete-api-v3-dataset-datasource-.-cube-lpe
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: dataset
+      required: true
+      schema:
+        type: string
+      style: simple
+    - in: path
+      name: datasource
+      required: true
+      schema:
+        type: string
+      style: simple
+    - in: path
+      name: cube
+      required: true
+      schema:
+        type: string
+      style: simple
+    - in: path
+      name: lpe
+      required: true
+      schema:
+        type: string
+        pattern: (.*)
+      style: simple
+  /api/v3/{dataset}/count:
+    post:
+      summary: route_id124
+      description: route_id124
+      operationId: post-api-v3-dataset-count
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: dataset
+      required: true
+      schema:
+        type: string
+        pattern: ([0-9]+|[a-zA-Z0-9_]+|[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12})
+      style: simple
+  /api/v3/{dataset}/data:
+    post:
+      summary: route_id122
+      description: route_id122
+      operationId: post-api-v3-dataset-data
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: dataset
+      required: true
+      schema:
+        type: string
+        pattern: ([0-9]+|[a-zA-Z0-9_]+|[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12})
+      style: simple
+  /api/v3/dataset-groups:
+    get:
+      summary: route_id117
+      description: route_id117
+      operationId: get-api-v3-dataset-groups
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+  /api/v3/datasets:
+    get:
+      summary: route_id118
+      description: route_id118
+      operationId: get-api-v3-datasets
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+  /api/v3/koob/cube:
+    post:
+      summary: route_id125
+      description: route_id125
+      operationId: post-api-v3-koob-cube
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+  /api/v3/koob/{meta}:
+    get:
+      summary: route_id121
+      description: route_id121
+      operationId: get-api-v3-koob-meta
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: meta
+      required: true
+      schema:
+        type: string
+        pattern: (.*)
+      style: simple
+  /api/v3/server-info:
+    get:
+      summary: route_id119
+      description: route_id119
+      operationId: get-api-v3-server-info
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+  /api/v3/writeback/batch/{dataset}/{datasource}.{cube}:
+    post:
+      summary: route_id132
+      description: route_id132
+      operationId: post-api-v3-writeback-batch-dataset-datasource-.-cube
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: dataset
+      required: true
+      schema:
+        type: string
+      style: simple
+    - in: path
+      name: datasource
+      required: true
+      schema:
+        type: string
+      style: simple
+    - in: path
+      name: cube
+      required: true
+      schema:
+        type: string
+      style: simple
+  /api/v3/writeback/{dataset}/{datasource}.{cube}:
+    post:
+      summary: route_id131
+      description: route_id131
+      operationId: post-api-v3-writeback-dataset-datasource-.-cube
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: dataset
+      required: true
+      schema:
+        type: string
+      style: simple
+    - in: path
+      name: datasource
+      required: true
+      schema:
+        type: string
+      style: simple
+    - in: path
+      name: cube
+      required: true
+      schema:
+        type: string
+      style: simple
+  /api/v3/writeback/{dataset}/{datasource}.{cube}/{lpe}:
+    put:
+      summary: route_id127
+      description: route_id127
+      operationId: put-api-v3-writeback-dataset-datasource-.-cube-lpe
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    delete:
+      summary: route_id129
+      description: route_id129
+      operationId: delete-api-v3-writeback-dataset-datasource-.-cube-lpe
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: dataset
+      required: true
+      schema:
+        type: string
+      style: simple
+    - in: path
+      name: datasource
+      required: true
+      schema:
+        type: string
+      style: simple
+    - in: path
+      name: cube
+      required: true
+      schema:
+        type: string
+      style: simple
+    - in: path
+      name: lpe
+      required: true
+      schema:
+        type: string
+        pattern: (.*)
+      style: simple
+  /api/vcp/{dataset}/actions:
+    post:
+      summary: route_id37
+      description: route_id37
+      operationId: post-api-vcp-dataset-actions
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: dataset
+      required: true
+      schema:
+        type: string
+        pattern: ([0-9]+|[a-zA-Z0-9_]+|[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12})
+      style: simple
+  /api/vcp/log/{dataset}.{table}:
+    post:
+      summary: route_id38
+      description: route_id38
+      operationId: post-api-vcp-log-dataset-.-table
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: dataset
+      required: true
+      schema:
+        type: string
+        pattern: ([0-9]+|[a-zA-Z0-9_]+|[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12})
+      style: simple
+    - in: path
+      name: table
+      required: true
+      schema:
+        type: string
+      style: simple
+  /srv/bm/{short_bookmark}:
+    get:
+      summary: route_id16
+      description: route_id16
+      operationId: get-srv-bm-short_bookmark
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: short_bookmark
+      required: true
+      schema:
+        type: string
+      style: simple
+  /srv/dashboard/{extsystem}:
+    get:
+      summary: route_id79
+      description: route_id79
+      operationId: get-srv-dashboard-extsystem
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: extsystem
+      required: true
+      schema:
+        type: string
+      style: simple
+  /srv/dash/{extsystem}:
+    get:
+      summary: route_id78
+      description: route_id78
+      operationId: get-srv-dash-extsystem
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: extsystem
+      required: true
+      schema:
+        type: string
+      style: simple
+  /srv/export/{key}/{filename}:
+    get:
+      summary: route_id123
+      description: route_id123
+      operationId: get-srv-export-key-filename
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: key
+      required: true
+      schema:
+        type: string
+      style: simple
+    - in: path
+      name: filename
+      required: true
+      schema:
+        type: string
+        pattern: (.*)
+      style: simple
+  /srv/imagifier/presentations{tail}:
+    get:
+      summary: route_id44
+      description: route_id44
+      operationId: get-srv-imagifier-presentations-tail
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: tail
+      required: true
+      schema:
+        type: string
+        pattern: (.*)
+      style: simple
+  /srv/imagifier/{tail}:
+    get:
+      summary: route_id45
+      description: route_id45
+      operationId: get-srv-imagifier-tail
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: tail
+      required: true
+      schema:
+        type: string
+        pattern: (.*)
+      style: simple
+  /srv/lookup/{dataset}/{id}.xlsx:
+    get:
+      summary: route_id70
+      description: route_id70
+      operationId: get-srv-lookup-dataset-id-.-xlsx
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: dataset
+      required: true
+      schema:
+        type: string
+        pattern: ([0-9]+|[a-zA-Z0-9_]+|[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12})
+      style: simple
+    - in: path
+      name: id
+      required: true
+      schema:
+        type: string
+        pattern: (.*)
+      style: simple
+  /srv/lookup/{id}.xlsx:
+    get:
+      summary: route_id69
+      description: route_id69
+      operationId: get-srv-lookup-id-.-xlsx
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: id
+      required: true
+      schema:
+        type: string
+        pattern: (.*)
+      style: simple
+  /srv/presentations/{presenatation}:
+    get:
+      summary: route_id12
+      description: route_id12
+      operationId: get-srv-presentations-presenatation
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: presenatation
+      required: true
+      schema:
+        type: string
+        pattern: '[a-zA-Z0-9_-]*'
+      style: simple
+  /srv/report/{dataset}/{id}:
+    get:
+      summary: route_id72
+      description: route_id72
+      operationId: get-srv-report-dataset-id
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: dataset
+      required: true
+      schema:
+        type: string
+        pattern: ([0-9]+|[a-zA-Z0-9_]+|[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12})
+      style: simple
+    - in: path
+      name: id
+      required: true
+      schema:
+        type: string
+        pattern: (.*)
+      style: simple
+  /srv/reports/{id}.xlsx:
+    get:
+      summary: route_id84
+      description: route_id84
+      operationId: get-srv-reports-id-.-xlsx
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: id
+      required: true
+      schema:
+        type: string
+        pattern: (.*)
+      style: simple
+  /srv/resources/{dataset}/{id}:
+    get:
+      summary: route_id60
+      description: route_id60
+      operationId: get-srv-resources-dataset-id
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    put:
+      summary: route_id59
+      description: route_id59
+      operationId: put-srv-resources-dataset-id
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+    parameters:
+    - in: path
+      name: dataset
+      required: true
+      schema:
+        type: string
+        pattern: ([0-9]+|[a-zA-Z0-9_]+|[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12})
+      style: simple
+    - in: path
+      name: id
+      required: true
+      schema:
+        type: string
+        pattern: (.*)
+      style: simple
+  /srv/source/download:
+    get:
+      summary: route_id86
+      description: route_id86
+      operationId: get-srv-source-download
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+  /srv/source/upload:
+    post:
+      summary: route_id87
+      description: route_id87
+      operationId: post-srv-source-upload
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+  /srv/welcome:
+    get:
+      summary: route_id1
+      description: route_id1
+      operationId: get-srv-welcome
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Bad Request
+components:
+
+  securitySchemes:
+    JWT_auth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    api_key:
+      type: apiKey
+      name: api_key
+      in: header

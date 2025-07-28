@@ -55,7 +55,7 @@ class DashboardManager extends ContentManager {
                 if (d.dashboard_id === dashboardId) {
                   const dashletId = d.id;
                   fileNames.push(`topic.${topicId}/dashboard.${dashboardId}/${dashletId}.json`);
-                  
+
                   const { id, updated, ...dashletData } = d;
                   cd[dashletId] = dashletData;
                 }
@@ -123,7 +123,7 @@ class DashboardManager extends ContentManager {
 
   async createContent(path, content) {
     if (this.platform.type === 'server') {
-      [path, content] = this._prepareData(path, content);
+      [path, content] = this._prepareData(path, content, true);
     }
     const response = await this.platform.writeFile(path, content);
     return response && response.statusText === 'OK' ? response.data : null;
@@ -143,7 +143,7 @@ class DashboardManager extends ContentManager {
     await this.platform.deleteFile(path);
   }
 
-  _prepareData(path, content) {
+  _prepareData(path, content, isCreate = false) {
     const [schemaName, altId] = utils.splitResource(path);
     const tempArr = altId.split('/');
     const [topicName, dashboardName, fileName] = tempArr;
@@ -151,13 +151,13 @@ class DashboardManager extends ContentManager {
     let relativePath, id;
     if (fileName && !fileName.includes('index.json')) {
       id = fileName.substring(0, fileName.indexOf('.'));
-      relativePath = `dashlets/${id}`;
+      relativePath = `dashlets/${isCreate ? '' : id}`;
     } else if (fileName && fileName.includes('index.json')) {
       id = dashboardName.substring(dashboardName.indexOf('.') + 1, dashboardName.length);
-      relativePath = `dashboards/${id}`;
+      relativePath = `dashboards/${isCreate ? '' : id}`;
     } else if (dashboardName.includes('index.json')) {
       id = topicName.substring(topicName.indexOf('.') + 1, topicName.length);
-      relativePath = `dashboard_topics/${id}`;
+      relativePath = `dashboard_topics/${isCreate ? '' : id}`;
     }
 
     return [
@@ -189,7 +189,7 @@ class DashboardManager extends ContentManager {
       const fileContent = await this.getContent(dashboard);
       const id = this._makeIdfromString(dashboard);
       result.push({
-        config: dashboard, 
+        config: dashboard,
         content: { id, ...fileContent },
       });
     }
@@ -204,7 +204,7 @@ class DashboardManager extends ContentManager {
       const fileContent = await this.getContent(dashlet);
       const id = this._makeIdfromString(dashlet, 'dashlet');
       result.push({
-        config: dashlet, 
+        config: dashlet,
         content: { id, ...fileContent },
       });
     }
@@ -242,16 +242,16 @@ class DashboardManager extends ContentManager {
       return null;
     }
 
-    const dashboardContent = { 
-      ...DEFAULT_DASHBOARD, 
-      ...content, 
-      topic_id: topicId 
+    const dashboardContent = {
+      ...DEFAULT_DASHBOARD,
+      ...content,
+      topic_id: topicId
     };
 
-    await this.platform.writeFile(filePath, dashboardContent);    
+    await this.platform.writeFile(filePath, dashboardContent);
     return { id, ...dashboardContent };
   }
-  
+
   async createDashlet(payload) {
     const { schemaName, topicId, dashboardId, id, content } = payload;
     const filePath = `${schemaName}/topic.${topicId}/dashboard.${dashboardId}/${id}.json`;
@@ -268,15 +268,15 @@ class DashboardManager extends ContentManager {
       return null;
     }
 
-    const dashletContent = { 
-      ...DEFAULT_DASHLET, 
-      ...content, 
-      dashboard_id: parseInt(dashboardId) 
+    const dashletContent = {
+      ...DEFAULT_DASHLET,
+      ...content,
+      dashboard_id: parseInt(dashboardId)
     };
 
-    await this.platform.writeFile(filePath, dashletContent);    
+    await this.platform.writeFile(filePath, dashletContent);
     return { id, ...dashletContent };
-  }  
+  }
 
   _getIdfromStr (str, search) {
     const tempArr = str.split('/');

@@ -1,0 +1,40 @@
+{
+  "overrides": [
+    {
+      "files": ["**/*.scss"],
+      "customSyntax": "postcss-scss"
+    }
+  ],
+  "extends": [
+    "stylelint-config-standard-scss",
+    "stylelint-config-prettier-scss",
+    "stylelint-config-idiomatic-order"
+  ],
+  "plugins": ["stylelint-order", "stylelint-declaration-strict-value"],
+  "rules": {
+    "selector-class-pattern": null,
+    "scss/at-mixin-pattern": null,
+    "scss/dollar-variable-pattern": null,
+    "declaration-block-no-duplicate-properties": true,
+    "selector-pseudo-class-no-unknown": [
+      true,
+      {
+        "ignorePseudoClasses": ["global"]
+      }
+    ],
+    "value-keyword-case": ["lower", {
+      "ignoreKeywords": ["/^\\$/"],
+      "ignoreProperties": ["/^--/"]
+    }],
+    "scale-unlimited/declaration-strict-value": [
+      ["color", "background-color", "font-size", "font-weight", "font-family", "filter"],
+      {
+        "ignoreValues": ["currentColor", "unset", "inherit", "initial", "transparent"]
+      }
+    ]
+  }
+}
+
+
+
+

@@ -1,0 +1,102 @@
+/* stylelint-disable scale-unlimited/declaration-strict-value */
+@use 'sass:math';
+@use './variables';
+
+@mixin russian-rail-font-family($important: false) {
+  $font-decoration: if($important, '!important', '');
+
+  font-family:
+    'RussianRail_G_PRO',
+    'RussianRail_G_PRO_extended',
+    sans-serif #{$font-decoration};
+}
+
+@mixin roboto($important: false) {
+  $font-decoration: if($important, '!important', '');
+
+  font-family:
+    'Roboto',
+    Arial,
+    Helvetica,
+    sans-serif #{$font-decoration};
+}
+
+@mixin inter($important: false) {
+  $font-decoration: if($important, '!important', '');
+
+  font-family:
+    'Inter',
+    Arial,
+    Helvetica,
+    sans-serif #{$font-decoration};
+}
+
+@mixin arial($important: false) {
+  $font-decoration: if($important, '!important', '');
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif #{$font-decoration};
+}
+
+@mixin ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  word-break: keep-all;
+}
+
+@mixin panelStyling {
+  padding: 0.5rem;
+  border-radius: variables.$buttons-border-radius;
+  gap: 1.25rem;
+
+  & > [class*='header'] {
+    // background: transparent;
+  }
+
+  & > [class*='content'] {
+    padding: 0 0.25rem 0.25rem !important;
+    background-color: unset;
+  }
+}
+
+@mixin panelContentScroll {
+  overflow: hidden auto;
+  height: 0;
+  min-height: 0;
+  flex-basis: auto;
+  flex-grow: 1;
+}
+
+@mixin horizontalBarChartAxisSetup {
+  [class*='echarts-for-react'] {
+    g {
+      path:first-child {
+        transform: translate(-1px);
+      }
+
+      path:nth-child(2),
+      path:nth-child(3),
+      path:nth-child(4) {
+        display: none;
+      }
+    }
+  }
+}
+
+@mixin antdTableFitWrapperSpace {
+  .ant-table,
+  .ant-spin-nested-loading,
+  .ant-spin-container,
+  .ant-table-container,
+  .ant-table-content,
+  table {
+    height: 100% !important;
+  }
+
+  table {
+    table-layout: auto !important;
+  }
+}

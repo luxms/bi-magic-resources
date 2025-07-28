@@ -1,8 +1,8 @@
 {
-  "port": 3003,
-  "server": "",
-  "dashboards": true,
+  "port": 3000,
+  "server": "http://10.82.0.22/",
   "resources": true,
+  "dashboards": true,
   "cubes": true,
   "force": false,
   "noRemove": false,
