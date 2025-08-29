@@ -6,9 +6,9 @@ class CubeManager extends ContentManager {
   async getContent(cubePath) {
     if (this.platform.type === 'server') {
       const [schemaName, cubeId] = this.splitPath(cubePath);
-      const cubeUrl = `api/db/${schemaName}.cubes/${cubeId}`;
+      const cubeUrl = `api/db/${encodeURIComponent(schemaName)}.cubes/${encodeURIComponent(cubeId)}`;
       const [cube] = await this.platform.readFile(cubeUrl, { responseType: 'json' });
-      const dimensionsUrl = `api/db/${schemaName}.dimensions/.filter(source_ident='${cube.source_ident}'&&cube_name='${cube.name}')`;
+      const dimensionsUrl = `api/db/${encodeURIComponent(schemaName)}.dimensions/.filter(source_ident='${encodeURIComponent(cube.source_ident)}'&&cube_name='${encodeURIComponent(cube.name)}')`;
       const dimensions = await this.platform.readFile(dimensionsUrl, { responseType: 'json' });
       const result = this.toLocalFormat(cube, dimensions);
       return utils.cleanPropertyMembers(result);
@@ -89,7 +89,7 @@ class CubeManager extends ContentManager {
       const [schemaName, cubeId] = this.splitPath(cubePath);
       const currentContent = await this.getContent(cubePath);
       const [_, dimensions] = this.toServerFormat(currentContent);
-      
+
       for (const dimension of dimensions) {
         await this.platform.deleteFile(`api/db/${schemaName}.dimensions/${dimension.id}`);
       }

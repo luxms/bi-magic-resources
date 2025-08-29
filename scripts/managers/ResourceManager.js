@@ -52,8 +52,8 @@ class ResourceManager extends ContentManager {
 
   async _getResourceId(resource) {
     const [schemaName, altId] = utils.splitResource(resource);
-    const metaUrl = `api/db/${schemaName}.resources/.filter(alt_id='${altId}')`;      
-    const metaData = await this.platform.readFile(metaUrl, { responseType: 'json' });      
+    const metaUrl = `api/db/${schemaName}.resources/.filter(alt_id='${altId}')`;
+    const metaData = await this.platform.readFile(metaUrl, { responseType: 'json' });
     if (!metaData.length) {
       throw new Error(`Not found resource in ${schemaName} with alt_id=${altId} (${metaUrl})`);
     }

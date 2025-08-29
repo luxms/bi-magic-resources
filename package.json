@@ -2,16 +2,28 @@
   "name": "@luxms/bi-resources",
   "version": "9.0.0",
   "description": "Resources editor",
-  "main": "dist/bootstrap.js",
   "scripts": {
     "pull": "node scripts/pull.js",
-    "push": "yon build && yon _push",
-    "start": "node scripts/start.js",
-    "test": "jest --passWithNoTests",
-    "build": "rimraf dist && webpack --env build",
+    "pull:dev": "node scripts/pull.js --env development",
+    "pull:prod": "node scripts/pull.js --env production",
     "_push": "node scripts/push.js",
-    "//dev": "webpack --progress --watch --env dev",
-    "//start-wds": "webpack serve --config webpack.config.js --progress --watch",
+    "push": "yon build && yon _push",
+    "push:dev": "rimraf dist_development  && yarn test && webpack --env development && node scripts/push.js --env development",
+    "push:prod": "rimraf dist_production  && yarn test && webpack --env production  && node scripts/push.js --env production",
+    "start": "node scripts/start.js",
+    "check:ts": "tsc -p tsconfig.json --noEmit",
+    "lint:ts": "eslint \"**/*.{ts,tsx}\"",
+    "lint-fix:ts": "eslint --fix \"**/*.{ts,tsx}\"",
+    "lint:scss": "npx stylelint \"**/*.scss\"",
+    "lint-fix:scss": "npx stylelint --fix \"**/*.scss\"",
+    "lint": "eslint src/**/*.{js,jsx,ts,tsx,json}",
+    "test": "jest --passWithNoTests",
+    "build": "rimraf dist && webpack --env production",
+    "build:dev": "rimraf dist_development && yarn test && webpack --env development",
+    "build:prod": "rimraf dist_production && yarn test && webpack --env production",
+    "format": "prettier --write 'src/**/*.{js,jsx,ts,tsx,json,scss}'  --config ./.prettierrc",
+    "prepare": "npx husky install && shx chmod +x .husky/*",
+    "playwright": "playwright test --ui",
     "create-topic": "node scripts/create.js topic",
     "create-dashboard": "node scripts/create.js dashboard",
     "create-dashlet": "node scripts/create.js dashlet"
@@ -20,9 +32,6 @@
     "bi-internal"
   ],
   "private": true,
-  "files": [
-    "/dist/**/*"
-  ],
   "repository": {
     "type": "git",
     "url": "git@gito.luxms.com:luxmsbi/luxmsbi-web-resources.git"
@@ -39,26 +48,23 @@
   "bugs": {
     "url": "https://gito.luxms.com/luxmsbi/luxmsbi-web-internal/-/issues"
   },
-  "homepage": "https://gito.luxms.com/luxmsbi/luxmsbi-web-internal",
-  "dependencies": {
-    "format-number-with-string": "^0.0.2",
-    "uuid": "^11.1.0"
-  },
+  "homepage": "https://github.com/luxms/bi-magic-resources",
   "optionalDependencies": {
     "node-expose-sspi": "^0.1.60"
   },
   "peerDependencies": {
     "react": "^18.2.0"
   },
+  "dependencies": {
+    "format-number-with-string": "^0.0.2",
+    "uuid": "^11.1.0"
+  },
   "devDependencies": {
     "@babel/cli": "7.12.10",
-    "@babel/core": "^7.24.0",
-    "@babel/helper-string-parser": "^7.23.4",
-    "@babel/plugin-proposal-class-properties": "7.12.1",
-    "@babel/plugin-proposal-decorators": "^7.15.4",
-    "@babel/plugin-syntax-dynamic-import": "^7.8.3",
-    "@babel/plugin-transform-async-to-generator": "^7.14.5",
-    "@babel/plugin-transform-runtime": "^7.15.0",
+    "@babel/core": "7.24.5",
+    "@babel/plugin-proposal-decorators": "^7.28.0",
+    "@babel/plugin-syntax-dynamic-import": "7.8.3",
+    "@babel/plugin-transform-runtime": "7.15.0",
     "@babel/preset-env": "7.12.11",
     "@babel/preset-react": "7.12.10",
     "@babel/preset-typescript": "7.12.7",

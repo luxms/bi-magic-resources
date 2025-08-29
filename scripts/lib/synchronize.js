@@ -23,6 +23,38 @@ async function synchronize(source, target) {
 
   let sourceItems = {}, targetItems = {};
 
+  const sortCreate = (a, b) => {
+    const typeWeight = {
+      resources: 1,
+      dashboards: 2,
+      cubes: 3
+    }
+    let result
+    if (typeWeight[a.type] > typeWeight[b.type]) result = 1
+    if (typeWeight[a.type] === typeWeight[b.type]) result = 0
+    if (typeWeight[a.type] < typeWeight[b.type]) result = -1
+
+    return result
+  }
+
+  const sortDashboardsConfig = (a, b) => {
+    let result
+    const aId = a.path.split('/')[a.path.split('/').length - 1].split('.')[0]
+    const bId = b.path.split('/')[b.path.split('/').length - 1].split('.')[0]
+
+    if (aId !== 'index' && bId === 'index') result = 1
+    if (aId === 'index' && bId === 'index') result = 0
+    if (aId === 'index' && bId !== 'index') result = -1
+
+    if (aId !== 'index' && bId !== 'index') {
+      if (Number(aId) > Number(bId)) result = 1
+      if (Number(aId) === Number(bId)) result = 0
+      if (Number(aId) < Number(bId)) result = -1
+    }
+
+    return result
+  }
+
   try {
     for (const contentType of contentTypes) {
       if (config.hasOption(contentType)) {
@@ -60,7 +92,6 @@ async function synchronize(source, target) {
         } else {
           createItems.push({ type: contentType, path: item, content: sourceContent })
         }
-
         bar.increment();
       }
 
@@ -78,7 +109,12 @@ async function synchronize(source, target) {
         }
       }
     }
+    if (contentType === 'dashboards' ) {
+      createItems.sort(sortDashboardsConfig)
+      overwriteItems.sort(sortDashboardsConfig)
+    }
   }
+  createItems.sort(sortCreate)
 
   bar.stop();
 

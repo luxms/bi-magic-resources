@@ -3,5 +3,9 @@
   "server": "",
   "dashboards": true,
   "resources": true,
-  "cubes": true
+  "cubes": true,
+  "force": false,
+  "noRemove": false,
+  "include": "^ds_\\w+$",
+  "exclude": ""
 }

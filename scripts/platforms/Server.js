@@ -3,6 +3,7 @@ const {filterSchemaNames} = require('../lib/utils');
 const Platform = require('./base/Platform');
 const auth = require('../lib/auth');
 
+
 class Server extends Platform {
   constructor() {
     super();
@@ -44,7 +45,7 @@ class Server extends Platform {
       });
       return response.data;
     } catch (error) {
-      if (err.response?.status === 404) return null;
+      if (error.response?.status === 404) return null;
       throw new Error(`Failed to read file by URL ${fullPath}: ${error.message}`);
     }
   }

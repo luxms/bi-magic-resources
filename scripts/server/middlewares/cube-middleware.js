@@ -156,7 +156,7 @@ async function dimensionMiddleware(req, res, next) {
                 result.push({...d, ...dim, id: dim.id, source_ident, cube_name, cube_id, is_global: 0, is_cube_global: 0});
                 return {...d, ...dim};
               });
-              await local.cubes.updateContent(cubePath, {...cubeContent, dimensions}); 
+              await local.cubes.updateContent(cubePath, {...cubeContent, dimensions});
             }
           }
 
@@ -171,7 +171,7 @@ async function dimensionMiddleware(req, res, next) {
           const dimensions = Array.isArray(jsonBody) ? jsonBody : [jsonBody];
           const cubes = await local.cubes.enumerate(schema_name);
           let result = [];
-  
+
           for (let dim of dimensions) {
             const cubeId = `${dim.source_ident}.${dim.cube_name}`;
             const cubePath = local.cubes.createPath(schema_name, cubeId);
@@ -245,7 +245,7 @@ async function dimensionMiddleware(req, res, next) {
 async function dataMiddleware(req, res, next) {
   try {
     const {method, url, params: {schema_name}} = req;
-    
+
     if (url.endsWith('DatePickerMaxMin')) {
       res.statusCode = 500;
       res.end('Request failed');
@@ -283,15 +283,21 @@ async function dataMiddleware(req, res, next) {
               _target_database: currentDS.config._connection.flavor,
             });
 
-            const data = await server.cubes.getDataSourceData(schema_name, cubeSql, cubeContent.source_ident, isLocal);
-            const result = data.rows.map(row => data.columns.reduce((acc, col, index) => {
-              acc[col.name] = row[index];
-              return acc;
-            }, {}));
-  
-            const contentBuffer = Buffer.from(result.map(JSON.stringify).join('\n'));
-            res.setHeader('Content-Type', 'application/x-ndjson;charset=utf-8');
-            res.end(contentBuffer);
+            try {
+              const data = await server.cubes.getDataSourceData(schema_name, cubeSql, cubeContent.source_ident, isLocal);
+              const result = data.rows.map(row => data.columns.reduce((acc, col, index) => {
+                acc[col.name] = row[index];
+                return acc;
+              }, {}));
+
+              const contentBuffer = Buffer.from(result.map(JSON.stringify).join('\n'));
+              res.setHeader('Content-Type', 'application/x-ndjson;charset=utf-8');
+              res.end(contentBuffer);
+            } catch (err) {
+              res.statusCode = 500;
+              res.end('Error: ' + err.message);
+              console.error(err);
+            }
           }});
         }
         break;
