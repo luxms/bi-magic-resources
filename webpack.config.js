@@ -67,6 +67,7 @@ module.exports = {
   },
   externals: {
     'react': 'react',
+    'react/jsx-runtime': 'react/jsx-runtime',
     'react-dom': 'react-dom',
     'react-dom/client': 'react-dom/client',
     'react-latex-next': 'react-latex-next',

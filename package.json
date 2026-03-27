@@ -48,7 +48,7 @@
     "node-expose-sspi": "^0.1.60"
   },
   "peerDependencies": {
-    "react": "^18.2.0"
+    "react": "^19.0.0"
   },
   "devDependencies": {
     "@babel/cli": "7.12.10",
@@ -62,7 +62,7 @@
     "@babel/preset-env": "7.12.11",
     "@babel/preset-react": "7.12.10",
     "@babel/preset-typescript": "7.12.7",
-    "@types/react": "^18.2.64",
+    "@types/react": "^19.0.0",
     "axios": "^0.21.1",
     "axios-cookiejar-support": "^1.0.1",
     "babel-loader": "^9.1.3",
@@ -90,6 +90,7 @@
     "mime-types": "^2.1.32",
     "mocha": "^4.0.1",
     "prompt-confirm": "^2.0.4",
+    "react": "^19.0.0",
     "readline-sync": "^1.4.10",
     "rimraf": "^3.0.2",
     "rsocket-core": "^0.0.27",
