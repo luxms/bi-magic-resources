@@ -8,6 +8,108 @@ const { retryOnFail } = require('./utils');
 const server = require('./server');
 const config = require('./config');
 const utils = require('./utils');
+import fs from "fs";
+import path from "path";
+
+const HOOKS = [
+  'useState',
+  'useEffect',
+  'useContext',
+  'useReducer',
+  'useCallback',
+  'useMemo',
+  'useRef',
+  'useImperativeHandle',
+  'useLayoutEffect',
+  'useDebugValue',
+  'useId',
+  'useTransition',
+  'useDeferredValue',
+  'useService',
+  'useServiceItself'
+];
+
+function findCustomHooks(content) {
+  const matches = content.match(/\buse[A-Z][A-Za-z0-9_]*/g);
+
+  if (!matches) return [];
+
+  const unique = [...new Set(matches)];
+
+  return unique.filter(name => !HOOKS.includes(name));
+}
+
+function scanFile(filePath, CHECKS) {
+  const content = fs.readFileSync(filePath, 'utf8');
+  const found = [];
+
+  for (const check of CHECKS) {
+    if (check.pattern && content.includes(check.pattern)) {
+      found.push({
+        ...check,
+        match: check.pattern,
+      });
+      continue;
+    }
+
+    if (check.regex) {
+      const matches = content.match(check.regex);
+
+      if (matches && matches.length) {
+        const uniqueMatches = [...new Set(matches)];
+
+        for (const match of uniqueMatches) {
+          found.push({
+            ...check,
+            match,
+          });
+        }
+      }
+    }
+  }
+
+  const customHooks = findCustomHooks(content);
+
+  if (!found.length && !customHooks.length) return null;
+
+  return {
+    filePath,
+    found,
+    customHooks,
+  };
+}
+
+function getJsFiles(dir) {
+  const result = [];
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+
+  for (const entry of entries) {
+    const fullPath = path.join(dir, entry.name);
+
+    if (entry.isDirectory()) {
+      result.push(...getJsFiles(fullPath));
+      continue;
+    }
+
+    if (entry.isFile() && fullPath.endsWith('.js')) {
+      result.push(fullPath);
+    }
+  }
+
+  return result;
+}
+
+function getStatusFile(pattern, priority) {
+  switch (priority) {
+    case 'high':
+      return chalk.redBright(pattern);
+    case 'medium':
+      return chalk.yellowBright(pattern);
+    case 'low':
+    default:
+      return chalk.greenBright(pattern);
+  }
+}
 
 async function _loginWithSpinner() {
   const {SERVER, USERNAME, PASSWORD, KERBEROS, JWT} = config.getSUPConfig();
@@ -396,5 +498,9 @@ module.exports = {
   pullPushInit,
   synchronize,
   synchronizeII,
-  createEntity
+  createEntity,
+  findCustomHooks,
+  scanFile,
+  getJsFiles,
+  getStatusFile,
 };

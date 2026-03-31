@@ -72,7 +72,7 @@ class Local extends Platform {
       if (fullPath.endsWith('.json')) {
         await fsp.writeFile(fullPath, JSON.stringify(content, null, 2), 'utf-8');
       } else {
-        await fsp.writeFile(fullPath, content);
+        await fsp.writeFile(fullPath, content ?? '');
       }
     } catch (error) {
       console.error('WriteFile failed:', error);
@@ -94,7 +94,7 @@ class Local extends Platform {
       } else if (stats.isFile()) {
         await fsp.unlink(fullPath);
       } else {
-        throw new Error('Specified path is not a file');        
+        throw new Error('Specified path is not a file');
       }
 
       const dirPath = path.dirname(fullPath);
