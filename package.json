@@ -14,7 +14,8 @@
     "//start-wds": "webpack serve --config webpack.config.js --progress --watch",
     "create-topic": "node scripts/create.js topic",
     "create-dashboard": "node scripts/create.js dashboard",
-    "create-dashlet": "node scripts/create.js dashlet"
+    "create-dashlet": "node scripts/create.js dashlet",
+    "react19:scan": "node scripts/react19-scan.js"
   },
   "workspaces": [
     "bi-internal"
