@@ -69,6 +69,41 @@ const CHECKS = [
     title: 'Custom React version check in code'
   },
 
+  // React.createFactory
+  {
+    regex: /\b[A-Za-z_$][\w$]*(?:\(\))?\.createFactory\s*\(/g,
+    priority: 'high',
+    title: 'Possible deprecated React API: createFactory() was removed in React 19'
+  },
+
+  // ReactDOM.render
+  {
+    regex: /\b(?:ReactDOM|[A-Za-z_$][\w$]*\(\))\.render\s*\(/g,
+    priority: 'high',
+    title: 'Possible deprecated ReactDOM API: render() was removed in React 19'
+  },
+
+  // ReactDOM.hydrate
+  {
+    regex: /\b[A-Za-z_$][\w$]*(?:\(\))?\.hydrate\s*\(/g,
+    priority: 'high',
+    title: 'Possible deprecated ReactDOM API: hydrate() was removed in React 19'
+  },
+
+  // ReactDOM.unmountComponentAtNode
+  {
+    regex: /\b[A-Za-z_$][\w$]*(?:\(\))?\.unmountComponentAtNode\s*\(/g,
+    priority: 'high',
+    title: 'Possible deprecated ReactDOM API: unmountComponentAtNode() was removed in React 19, use root.unmount() instead'
+  },
+
+  // ReactDOM.findDOMNode
+  {
+    regex: /\b[A-Za-z_$][\w$]*(?:\(\))?\.findDOMNode\s*\(/g,
+    priority: 'high',
+    title: 'Possible legacy ReactDOM API: findDOMNode() is not supported in React 19'
+  },
+
   // MEDIUM
   {
     regex: /\bforwardRef\b/g,
@@ -127,6 +162,14 @@ const HOOKS = [
   'useServiceItself'
 ];
 
+const stripComments = (code) => {
+  return code
+    // удалить block comments /* ... */
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    // удалить line comments // ...
+    .replace(/(^|\s)\/\/.*$/gm, '$1');
+};
+
 function findCustomHooks(content) {
   const matches = content.match(/\buse[A-Z][A-Za-z0-9_]*/g);
 
@@ -138,7 +181,8 @@ function findCustomHooks(content) {
 }
 
 function scanFile(filePath, CHECKS) {
-  const content = fs.readFileSync(filePath, 'utf8');
+  const fileContent = fs.readFileSync(filePath, 'utf8');
+  const content = stripComments(fileContent);
   const found = [];
 
   for (const check of CHECKS) {
