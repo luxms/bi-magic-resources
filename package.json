@@ -84,7 +84,7 @@
     "git": "^0.1.5",
     "http-proxy-middleware": "^3.0.0",
     "json5": "^2.2.0",
-    "kerberos": "^2.0.1",
+    "kerberos": "^7.0.0",
     "md5": "^2.3.0",
     "mime": "^2.5.2",
     "mime-types": "^2.1.32",
