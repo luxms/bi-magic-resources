@@ -46,7 +46,7 @@
     "uuid": "^11.1.0"
   },
   "optionalDependencies": {
-    "kerberos": "^2.0.1",
+    "kerberos": "^7.0.0",
     "node-expose-sspi": "^0.1.60"
   },
   "peerDependencies": {
