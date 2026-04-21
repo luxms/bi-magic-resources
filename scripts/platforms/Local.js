@@ -1,6 +1,7 @@
 const fs = require('fs');
 const fsp = fs.promises;
 const path = require('path');
+const JSON5 = require('json5');
 const utils = require('../lib/utils');
 const Platform = require('./base/Platform');
 
@@ -54,7 +55,7 @@ class Local extends Platform {
 
       if (filePath.endsWith('.json')) {
         const content = await fsp.readFile(fullPath, 'utf8');
-        return JSON.parse(content);
+        return JSON5.parse(content);
       }
 
       return await fsp.readFile(fullPath);
@@ -81,7 +82,7 @@ class Local extends Platform {
   }
 
   async updateFile(filePath, content) {
-    this.writeFile(filePath, content);
+    await this.writeFile(filePath, content);
   }
 
   async deleteFile(filePath) {
@@ -89,12 +90,12 @@ class Local extends Platform {
       const fullPath = this._getFullPath(filePath);
       const stats = await fsp.stat(fullPath);
 
-      if (!stats.isDirectory()) {
-        await fsp.rmdir(fullPath);
-      } else if (stats.isFile()) {
+      if (stats.isFile()) {
         await fsp.unlink(fullPath);
+      } else if (stats.isDirectory()) {
+        await fsp.rmdir(fullPath);
       } else {
-        throw new Error('Specified path is not a file');        
+        throw new Error('Specified path is not a file');
       }
 
       const dirPath = path.dirname(fullPath);

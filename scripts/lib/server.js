@@ -192,7 +192,7 @@ async function saveResourceContent(resource, content) {
     }),
   });
 
-  if (response.statusText === 'OK' && mime.lookup(alt_id).includes('application/json')) {
+  if (response.statusText === 'OK' && mime.lookup(alt_id)?.includes?.('application/json')) {
     const url = `${SERVER}/api/db/${schema_name}.resources/${id}`;
     const r = await axios({
       method: 'put',

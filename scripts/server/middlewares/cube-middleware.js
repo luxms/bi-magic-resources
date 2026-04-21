@@ -117,7 +117,7 @@ async function dimensionMiddleware(req, res, next) {
         const cubes = await local.cubes.enumerate(schema_name);
 
         if (cubeId && cubes.includes(cubePath)) {
-          content = await local.cubes.getContent(cubePath);
+          const content = await local.cubes.getContent(cubePath);
           const dimensions = content.dimensions.map(d => ({
             ...d,
             source_ident: content.source_ident,
