@@ -30,7 +30,7 @@ class ResourceManager extends ContentManager {
       const response = await this.platform.updateFile(url, content, {
         headers: { 'Content-Type': this._getContentType(altId) }
       });
-      if (response.statusText === 'OK' & mime.lookup(altId).includes('application/json')) {
+      if (response.statusText === 'OK' && mime.lookup(altId)?.includes?.('application/json')) {
         const metaUrl = `api/db/${schemaName}.resources/${id}`;
         await this.platform.updateFile(metaUrl, { 'content_type': 'application/json' });
       }

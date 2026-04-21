@@ -33,8 +33,6 @@ class Auth {
       await callback();
     } catch (err) {
       this._handleError(err);
-    } finally {
-      await this.logout();
     }
   }
 
@@ -53,7 +51,7 @@ class Auth {
     try {
       const url = `${this.BASE_URL}/api/auth/logout`;
       await axios.get(url, {
-        jar: this.cookieJar,
+        jar: this.COOKIE_JAR,
         withCredentials: true,
       });
     } catch (err) {

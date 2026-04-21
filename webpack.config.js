@@ -8,7 +8,6 @@ const pkg = require('./package.json');
 const env = yargs.argv.env;                                                                         // use --env with webpack 2
 const mode = (env === 'build') ? 'production' : 'development';
 const { filterSchemaNames } = require('./scripts/lib/utils');
-const JSON5 = require('json5');
 
 
 function getFiles(dir, prefix = '') {
@@ -41,12 +40,6 @@ SCHEMA_NAMES.forEach(schema_name => {
     }
   });
 });
-
-function json5ToJson(buffer) {
-  const result = JSON.stringify(JSON5.parse(buffer.toString()), null, 2);
-  return Buffer.from(result);
-}
-
 
 module.exports = {
   mode,
@@ -196,10 +189,11 @@ module.exports = {
       patterns: SCHEMA_NAMES.map(schema_name => ({
         from: path.join('src', schema_name),
         to: (mode === 'production') ? schema_name : `srv/resources/${schema_name}`,
-        filter: f => !(f.endsWith('.tsx') || f.endsWith('.jsx') || f.endsWith('.scss') || f.endsWith('.gitkeep')),
-        transform: (content, path) => {
-          if (path.match(/topic\./g) && path.endsWith('.json')) return json5ToJson(content);
-          return content;
+        filter: f => {
+          if (f.endsWith('.tsx') || f.endsWith('.jsx') || f.endsWith('.scss') || f.endsWith('.gitkeep')) return false;
+          // dashlet/dashboard/topic JSONs are served by dashletMiddleware, not as static resources
+          if (/[\\\/]topic\./.test(f)) return false;
+          return true;
         },
         noErrorOnMissing: true,
       })),

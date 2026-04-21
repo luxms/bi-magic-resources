@@ -25,7 +25,7 @@ class Server extends Platform {
       const response = await axios.get(url, auth.REQUEST_OPTIONS);
       return response.data;
     } catch (error) {
-      if (err.response?.status === 404) return [];
+      if (error.response?.status === 404) return [];
       throw new Error(`Failed to get files by URL ${url}: ${error.message}`);
     }
   }
@@ -44,7 +44,7 @@ class Server extends Platform {
       });
       return response.data;
     } catch (error) {
-      if (err.response?.status === 404) return null;
+      if (error.response?.status === 404) return null;
       throw new Error(`Failed to read file by URL ${fullPath}: ${error.message}`);
     }
   }
@@ -56,7 +56,7 @@ class Server extends Platform {
         ...auth.REQUEST_OPTIONS,
         headers: {
           'Content-Type': 'application/json',
-          ...auth.REQUEST_OPTIONS,
+          ...auth.REQUEST_OPTIONS.headers,
           ...(options && options.headers || {}),
         },
         method: 'post',

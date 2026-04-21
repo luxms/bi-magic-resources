@@ -2,6 +2,10 @@ const webpack = require('webpack');
 const WebpackDevServer = require('webpack-dev-server');
 const { createProxyMiddleware } = require('http-proxy-middleware');
 const mime = require('mime-types');
+const path = require('path');
+const fsp = require('fs').promises;
+const JSON5 = require('json5');
+const chokidar = require('chokidar');
 const webpackConfig = require('../webpack.config');
 const auth = require('./lib/auth');
 const config = require('./lib/config');
@@ -124,6 +128,82 @@ const startDev = () => {
   });
 
   let ASSETS = {}, _id = 1;
+
+  // Watch dashboard/topic/dashlet JSON files and broadcast updates via rt-middleware.
+  // These files are served by dashletMiddleware (not as webpack resources), so webpack
+  // doesn't know about them — we do our own watching.
+  const SRC_DIR = path.resolve(__dirname, '..', 'src');
+  const TOPIC_TYPES = {
+    topic:     { upsert: 'ADD_DASHBOARD_TOPICS', delete: 'DELETE_DASHBOARD_TOPICS' },
+    dashboard: { upsert: 'ADD_DASHBOARDS',       delete: 'DELETE_DASHBOARDS' },
+    dashlet:   { upsert: 'ADD_DASHLETS',         delete: 'DELETE_DASHLETS' },
+  };
+
+  function parseTopicPath(relPath) {
+    const [schema, topicSeg, ...rest] = relPath.split('/');
+    if (!schema || !topicSeg || !topicSeg.startsWith('topic.')) return null;
+    if (!filterSchemaNames([schema]).length) return null;
+    const topicId = Number(topicSeg.slice(6));
+    if (!Number.isInteger(topicId)) return null;
+    if (rest.length === 1 && rest[0] === 'index.json') {
+      return { kind: 'topic', schema, id: topicId };
+    }
+    if (rest.length === 2 && rest[0].startsWith('dashboard.')) {
+      const dashboardId = Number(rest[0].slice(10));
+      if (!Number.isInteger(dashboardId)) return null;
+      if (rest[1] === 'index.json') {
+        return { kind: 'dashboard', schema, id: dashboardId, topic_id: topicId };
+      }
+      const m = rest[1].match(/^(\d+)\.json$/);
+      if (m) return { kind: 'dashlet', schema, id: Number(m[1]), dashboard_id: dashboardId };
+    }
+    return null;
+  }
+
+  async function publishTopicChange(event, fullPath) {
+    const rel = path.relative(SRC_DIR, fullPath).replace(/\\/g, '/');
+    const parsed = parseTopicPath(rel);
+    if (!parsed) return;
+
+    const isDelete = event === 'unlink';
+    let payload = { id: parsed.id };
+    if (parsed.topic_id !== undefined) payload.topic_id = parsed.topic_id;
+    if (parsed.dashboard_id !== undefined) payload.dashboard_id = parsed.dashboard_id;
+
+    if (!isDelete) {
+      try {
+        const content = await fsp.readFile(fullPath, 'utf8');
+        payload = { ...JSON5.parse(content), ...payload };
+      } catch (err) {
+        console.warn(`[watcher] failed to read ${rel}:`, err.message);
+        return;
+      }
+    }
+
+    const types = TOPIC_TYPES[parsed.kind];
+    const msg = [{ type: isDelete ? types.delete : types.upsert, payload }];
+    console.log(`[watcher] ${event} ${parsed.kind}:`, rel);
+    rtMiddleware.publishSchemaMessage(parsed.schema, msg);
+    rtMiddlewareRSocket.publishSchemaMessage(parsed.schema, msg);
+  }
+
+  const topicWatcher = chokidar.watch(SRC_DIR, {
+    ignoreInitial: true,
+    awaitWriteFinish: { stabilityThreshold: 100, pollInterval: 50 },
+    ignored: (p) => {
+      // Skip non-atlas top-level directories entirely (don't descend into them).
+      const rel = path.relative(SRC_DIR, p);
+      if (!rel || rel.startsWith('..')) return false;
+      const top = rel.split(path.sep)[0];
+      return !filterSchemaNames([top]).length;
+    },
+  });
+  for (const event of ['add', 'change', 'unlink']) {
+    topicWatcher.on(event, (fullPath) => {
+      if (!fullPath.endsWith('.json')) return;
+      publishTopicChange(event, fullPath).catch(err => console.error('[watcher]', err));
+    });
+  }
 
   webpackDevServer.compiler.hooks.done.tap('webpack-dev-server', (stats) => {
     try {
