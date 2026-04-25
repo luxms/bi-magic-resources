@@ -8,10 +8,6 @@ class CustomServer extends BaseServer {
       noServer: true,
       path: '/srv/bI',
     });
-    this.wsServerRSocket = new ws.Server({
-      noServer: true,
-      path: '/srv/rt',
-    });
 
     this.server.listeningApp.on('upgrade', (req, sock, head) => {
       console.log('UPGRADE');
@@ -19,13 +15,6 @@ class CustomServer extends BaseServer {
       if (this.wsServer.shouldHandle(req)) {
         this.wsServer.handleUpgrade(req, sock, head, (connection) => {
           this.wsServer.emit('connection', connection, req);
-        });
-        return;
-      }
-
-      if (this.wsServerRSocket.shouldHandle(req)) {
-        this.wsServerRSocket.handleUpgrade(req, sock, head, (connection) => {
-          this.wsServerRSocket.emit('connection', connection, req);
         });
         return;
       }
@@ -38,24 +27,10 @@ class CustomServer extends BaseServer {
       this.server.log.error(err.message);
     });
 
-    this.wsServerRSocket.on('error', (err) => {
-      console.log('error', err);
-      this.server.log.error(err.message);
-    });
-
     const noop = () => {};
 
     setInterval(() => {
       this.wsServer.clients.forEach((socket) => {
-        if (socket.isAlive === false) {
-          return socket.terminate();
-        }
-
-        socket.isAlive = false;
-        socket.ping(noop);
-      });
-
-      this.wsServerRSocket.clients.forEach((socket) => {
         if (socket.isAlive === false) {
           return socket.terminate();
         }
@@ -98,15 +73,6 @@ class CustomServer extends BaseServer {
   onConnection(f) {
     this.wsServer.on('connection', (connection, req) => {
       console.log('NEW CONNECTION');
-      connection.isAlive = true;
-      connection.on('pong', () => {
-        connection.isAlive = true;
-      });
-      f(connection, req.headers);
-    });
-
-    this.wsServerRSocket.on('connection', (connection, req) => {
-      console.log('NEW CONNECTION RSocket Deprecated');
       connection.isAlive = true;
       connection.on('pong', () => {
         connection.isAlive = true;

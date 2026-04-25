@@ -18,7 +18,6 @@ const {
   dashboardMiddleware,
   dashletMiddleware,
   RtMiddleware,
-  RtMiddlewareRSocket,
 } = require('./server/middlewares');
 
 const ONLINE = !config.hasNoLogin();
@@ -106,21 +105,12 @@ const startDev = () => {
 
 
   let rtMiddleware = new RtMiddleware(webpackDevServer.listeningApp);                                 // rt must be initialized with httpServer object
-  let rtMiddlewareRSocket = new RtMiddlewareRSocket(webpackDevServer.listeningApp);
-  // Поскольку сейчас висит два обработчика на вебсокетах, то требуется вручную их роутить
   webpackDevServer.listeningApp.on('upgrade', (request, socket, head) => {
     const srvbi = rtMiddleware._wsServer;
-    const srvrt = rtMiddlewareRSocket._wsServer;
 
-    const pathname = request.url;
-
-    if (pathname === '/srv/bI/') {
+    if (request.url === '/srv/bI/') {
       srvbi.handleUpgrade(request, socket, head, (ws) => {
         srvbi.emit('connection', ws);
-      });
-    } else if (pathname === '/srv/rt/') {
-      srvrt.handleUpgrade(request, socket, head, (ws) => {
-        srvrt.emit('connection', ws);
       });
     } else {
       socket.destroy();
@@ -184,7 +174,6 @@ const startDev = () => {
     const msg = [{ type: isDelete ? types.delete : types.upsert, payload }];
     console.log(`[watcher] ${event} ${parsed.kind}:`, rel);
     rtMiddleware.publishSchemaMessage(parsed.schema, msg);
-    rtMiddlewareRSocket.publishSchemaMessage(parsed.schema, msg);
   }
 
   const topicWatcher = chokidar.watch(SRC_DIR, {
@@ -237,14 +226,12 @@ const startDev = () => {
 
       groupBySchemaNames(addedIds).forEach(({schema_name, ids}) => {
         rtMiddleware.addResources(schema_name, ids.map(id => ASSETS[id]));
-        rtMiddlewareRSocket.addResources(schema_name, ids.map(id => ASSETS[id]));
       });
 
       modifiedIds.forEach(asset => ASSETS[asset].updated = now);
 
       groupBySchemaNames(modifiedIds).forEach(({schema_name, ids}) => {
         rtMiddleware.modifyResources(schema_name, ids.map(id => ASSETS[id]));
-        rtMiddlewareRSocket.modifyResources(schema_name, ids.map(id => ASSETS[id]));
       });
 
     } catch (err) {
