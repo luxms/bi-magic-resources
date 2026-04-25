@@ -2,6 +2,8 @@ package-lock.json
 node_modules
 .idea
 authConfig.json
+.env
+.env.local
 dist
 yarn-error.log
 .DS_Store

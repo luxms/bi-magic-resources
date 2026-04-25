@@ -82,6 +82,7 @@
     "cross-env": "7.0.3",
     "css-loader": "^6.3.0",
     "current-git-branch": "^1.1.0",
+    "dotenv": "^17.4.2",
     "file-loader": "^6.2.0",
     "git": "^0.1.5",
     "http-proxy-middleware": "^3.0.0",

@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '..', '..', '.env'), quiet: true });
 const readlineSync = require('readline-sync');
 const currentGitBranch = require('current-git-branch');
 const chalk = require('chalk');
