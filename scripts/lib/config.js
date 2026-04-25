@@ -5,6 +5,34 @@ const readlineSync = require('readline-sync');
 const currentGitBranch = require('current-git-branch');
 const chalk = require('chalk');
 
+const KNOWN_OPTIONS = [
+  'server', 'username', 'password', 'port', 'force', 'noRemove',
+  'include', 'exclude', 'resources', 'dashboards', 'cubes',
+  'kerberos', 'jwt', 'noLogin',
+];
+const toKebab = (name) => name.replace(/[A-Z]/g, letter => '-' + letter.toLowerCase());
+const KNOWN_CLI_NAMES = new Set(KNOWN_OPTIONS.map(toKebab));
+
+// Reject typos like --usarname before they silently get ignored. Only validate when
+// the entry script is one of ours — webpack-cli has its own --env/--mode/etc.
+function validateCliArgs() {
+  const entry = process.argv[1] || '';
+  if (!/[\\/]scripts[\\/](start|push|pull|create)\.js$/.test(entry)) return;
+
+  for (const arg of process.argv.slice(2)) {
+    if (!arg.startsWith('--')) continue;
+    const m = arg.match(/^--([A-Za-z][A-Za-z_-]*?)(?:=.*)?$/);
+    if (!m) continue;
+    const name = m[1];
+    if (KNOWN_CLI_NAMES.has(name)) continue;
+    const valid = Array.from(KNOWN_CLI_NAMES).sort().map(n => '--' + n).join(', ');
+    console.error(chalk.redBright(`Unknown CLI argument: --${name}`));
+    console.error('Valid options: ' + valid);
+    process.exit(1);
+  }
+}
+validateCliArgs();
+
 class Config {
   static DEFAULT_VALUES = {
     port: '3003',
