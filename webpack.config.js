@@ -191,8 +191,8 @@ module.exports = {
         to: (mode === 'production') ? schema_name : `srv/resources/${schema_name}`,
         filter: f => {
           if (f.endsWith('.tsx') || f.endsWith('.jsx') || f.endsWith('.scss') || f.endsWith('.gitkeep')) return false;
-          // dashlet/dashboard/topic JSONs are served by dashletMiddleware, not as static resources
-          if (/[\\\/]topic\./.test(f)) return false;
+          // in dev mode, dashlet/dashboard/topic JSONs are served by dashletMiddleware, not as static resources
+          if (mode !== 'production' && /[\\\/]topic\./.test(f)) return false;
           return true;
         },
         noErrorOnMissing: true,

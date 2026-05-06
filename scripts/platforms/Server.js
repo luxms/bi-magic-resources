@@ -3,6 +3,26 @@ const {filterSchemaNames} = require('../lib/utils');
 const Platform = require('./base/Platform');
 const auth = require('../lib/auth');
 
+function formatAxiosError(error) {
+  const data = error.response?.data;
+  if (data == null) return error.message;
+  let body = Buffer.isBuffer(data) ? data.toString('utf8') : (typeof data === 'string' ? data : JSON.stringify(data));
+  if (body.length > 2000) body = body.slice(0, 2000) + '… (truncated)';
+  return `${error.message}\nResponse body: ${body}`;
+}
+
+function extractMissingColumn(error) {
+  const data = error.response?.data;
+  if (data == null) return null;
+  let message;
+  if (Buffer.isBuffer(data)) message = data.toString('utf8');
+  else if (typeof data === 'string') message = data;
+  else if (typeof data === 'object' && typeof data.message === 'string') message = data.message;
+  else message = JSON.stringify(data);
+  const match = message.match(/column "([^"]+)" of relation "[^"]+" does not exist/);
+  return match ? match[1] : null;
+}
+
 class Server extends Platform {
   constructor() {
     super();
@@ -15,7 +35,7 @@ class Server extends Platform {
       const response = await axios.get(url, auth.REQUEST_OPTIONS);
       return filterSchemaNames(response.data.map(item => item.schema_name));
     } catch (error) {
-      throw new Error(`Failed to get schema names by URL ${url}: ${error.message}`);
+      throw new Error(`Failed to get schema names by URL ${url}: ${formatAxiosError(error)}`);
     }
   }
 
@@ -26,7 +46,7 @@ class Server extends Platform {
       return response.data;
     } catch (error) {
       if (error.response?.status === 404) return [];
-      throw new Error(`Failed to get files by URL ${url}: ${error.message}`);
+      throw new Error(`Failed to get files by URL ${url}: ${formatAxiosError(error)}`);
     }
   }
 
@@ -45,46 +65,69 @@ class Server extends Platform {
       return response.data;
     } catch (error) {
       if (error.response?.status === 404) return null;
-      throw new Error(`Failed to read file by URL ${fullPath}: ${error.message}`);
+      throw new Error(`Failed to read file by URL ${fullPath}: ${formatAxiosError(error)}`);
     }
   }
 
   async writeFile(path, content, options) {
     const fullPath = this._getFullPath(path);
-    try {
-      return await axios({
-        ...auth.REQUEST_OPTIONS,
-        headers: {
-          'Content-Type': 'application/json',
-          ...auth.REQUEST_OPTIONS.headers,
-          ...(options && options.headers || {}),
-        },
-        method: 'post',
-        url: fullPath,
-        data: content,
-      });
-    } catch (error) {
-      throw new Error(`Failed to write file by URL ${fullPath}: ${error.message}`);
+    let data = content;
+    const stripped = [];
+    for (let attempt = 0; attempt < 10; attempt++) {
+      try {
+        return await axios({
+          ...auth.REQUEST_OPTIONS,
+          headers: {
+            'Content-Type': 'application/json',
+            ...auth.REQUEST_OPTIONS.headers,
+            ...(options && options.headers || {}),
+          },
+          method: 'post',
+          url: fullPath,
+          data,
+        });
+      } catch (error) {
+        const missingColumn = extractMissingColumn(error);
+        if (missingColumn && data && typeof data === 'object' && missingColumn in data) {
+          const {[missingColumn]: _drop, ...rest} = data;
+          data = rest;
+          stripped.push(missingColumn);
+          continue;
+        }
+        throw new Error(`Failed to write file by URL ${fullPath}: ${formatAxiosError(error)}`);
+      }
     }
+    throw new Error(`Failed to write file by URL ${fullPath}: too many missing columns (stripped: ${stripped.join(', ')})`);
   }
 
   async updateFile(path, content, options) {
     const fullPath = this._getFullPath(path);
-    try {
-      const response = await axios({
-        ...auth.REQUEST_OPTIONS,
-        headers: {
-          ...auth.REQUEST_OPTIONS.headers,
-          ...(options && options.headers || {}),
-        },
-        method: 'put',
-        url: fullPath,
-        data: content,
-      });
-      return response;
-    } catch (error) {
-      throw new Error(`Failed to update file by URL ${fullPath}: ${error.message}`);
+    let data = content;
+    const stripped = [];
+    for (let attempt = 0; attempt < 10; attempt++) {
+      try {
+        return await axios({
+          ...auth.REQUEST_OPTIONS,
+          headers: {
+            ...auth.REQUEST_OPTIONS.headers,
+            ...(options && options.headers || {}),
+          },
+          method: 'put',
+          url: fullPath,
+          data,
+        });
+      } catch (error) {
+        const missingColumn = extractMissingColumn(error);
+        if (missingColumn && data && typeof data === 'object' && missingColumn in data) {
+          const {[missingColumn]: _drop, ...rest} = data;
+          data = rest;
+          stripped.push(missingColumn);
+          continue;
+        }
+        throw new Error(`Failed to update file by URL ${fullPath}: ${formatAxiosError(error)}`);
+      }
     }
+    throw new Error(`Failed to update file by URL ${fullPath}: too many missing columns (stripped: ${stripped.join(', ')})`);
   }
 
   async deleteFile(path) {
@@ -96,7 +139,7 @@ class Server extends Platform {
         url: fullPath,
       });
     } catch (error) {
-      throw new Error(`Failed to delete file by URL ${fullPath}: ${error.message}`);
+      throw new Error(`Failed to delete file by URL ${fullPath}: ${formatAxiosError(error)}`);
     }
   }
 
