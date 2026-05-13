@@ -1,3 +1,4 @@
+const https = require('https');
 const axios = require('axios').default;
 const tough = require('tough-cookie');
 const chalk = require('chalk');
@@ -5,6 +6,10 @@ const axiosCookieJarSupport = require('axios-cookiejar-support').default;
 const Spinner = require('cli-spinner').Spinner;
 const config = require('./config');
 const {retryOnFail} = require('./utils');
+
+// Allow self-signed certificates — this is an internal sync tool for BI servers,
+// many of which run with self-signed certs. Avoids users having to set NODE_TLS_REJECT_UNAUTHORIZED=0.
+axios.defaults.httpsAgent = new https.Agent({rejectUnauthorized: false});
 
 class Auth {
   constructor() {
