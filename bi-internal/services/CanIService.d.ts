@@ -1,6 +1,6 @@
 import {BaseService, IBaseModel, IDisposable} from "../core";
 
-type CanIModel = IBaseModel & Record<string, boolean>;
+type CanIModel = IBaseModel & Record<string, string | boolean>;
 
 /**
  * @instance
@@ -9,7 +9,7 @@ type CanIModel = IBaseModel & Record<string, boolean>;
  */
 export class CanIService extends BaseService<CanIModel> {
     public constructor();
-    public static getInstance: CanIService;
+    public static getInstance(): CanIService;
 
     /**
      * @method
@@ -58,5 +58,11 @@ export class CanIService extends BaseService<CanIModel> {
     public static subscribeUpdatesAndNotify(listener: (model: CanIModel) => void): IDisposable;
 
     public static unsubscribe(listener: (...args: any[]) => any): boolean;
+
+    /**
+     * Prints known claims that contain the given pattern.
+     */
+    public helpFindClaim(pattern: string): void;
 }
 
+export default CanIService;
