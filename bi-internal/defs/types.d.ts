@@ -1,362 +1,507 @@
-import { data_engine } from '../../data-manip/data-manip';
-import {IObservable, IDisposable} from "../core/Observable";
-import {IUrl} from '../core/UrlState/UrlState'
-// import { IDisposable, IObservable, IUrl } from '../core/Observable;
-// import { IDisposable, IObservable, IUrl } from '../core/Observable;
+import { data_engine } from './data-manip';
+import { IDisposable, IUrl, repo } from '../core';
 import {
-    IColorResolver,
-    IEntity,
-    IGeo,
-    ILocation,
-    ILocationArea,
-    ILocationCard,
-    ILocationsHelper,
-    IMapFill,
-    IMetric,
-    IMetricsHelper,
-    IOptionsProvider,
-    IPeriod,
-    IPeriodInfo,
-    IPeriodsHelper,
-    IPreset,
-    IRange,
-    IStoplightsProvider,
-    ISubspace,
-    ISubspacePtr,
-    ITitleResolver,
-    IUnit,
-    IVizel,
-    IVizelConfigDisplay,
-    IVizelController, IVizelProperties,
-    responses,
-    tables
+  IColorPair,
+  IColorResolver,
+  IEntity,
+  IGeo,
+  ILocation,
+  ILocationArea,
+  ILocationCard,
+  ILocationsHelper,
+  IMapFill,
+  IMetric,
+  IMetricsHelper,
+  IOptionsProvider,
+  IPeriod,
+  IPeriodInfo,
+  IPeriodsHelper,
+  IPreset,
+  IRange,
+  IStoplight,
+  IStoplights,
+  IStoplightsProvider,
+  ISubspace,
+  ISubspacePtr,
+  ITitleResolver,
+  IUnit,
+  IValue,
+  IVizel,
+  IVizelConfigDisplay,
+  IVizelController,
+  IVizelProperties,
+  responses,
+  tables,
 } from './bi';
 
+/**
+ * @deprecated уходим от этого типа конфига
+ */
+export interface IVizelConfig extends tables.IRawVizelConfig {
 
-export interface IVizelConfig extends IColorResolver, ITitleResolver, IOptionsProvider, IStoplightsProvider {
-    dataset: IDatasetModel;
+  /**
+   * @deprecated Используйте vizel_config.getTitle
+   */
+  getTitle(e: IEntity, v?: number, index?: number): string;
+  /**
+   * @deprecated Используйте vizel_config.getFormat
+   */
+  getFormat(e: IEntity): string;
 
-    getDataset(): IDatasetModel;
+  /**
+   * @deprecated
+   */
+  _dataset: IDatasetModel;
 
-    getProperty(key): any;
+  /**
+   * @deprecated
+   */
+  dataset: IDatasetModel;
+  /**
+   * @deprecated
+   */
+  /**
+   * @deprecated
+   */
+  hasOption(optionId: string): boolean;
+  /**
+   * @deprecated
+   */
+  getOptionCount(optionId: string): number;
+  /**
+   * @deprecated
+   */
+  setOption(optionId: string, value: boolean): void;
+  /**
+   * @deprecated
+   */
+  addOption(optionId: string): boolean;
+  /**
+   * @deprecated
+   */
+  removeOption(optionId: string): boolean;
+  /**
+   * @deprecated
+   */
+  getStoplight(v: number, vizelType?: string): IStoplight;
+  /**
+   * @deprecated
+   */
+  getStoplights(vizelType?: string): IStoplights;
 
-    setProperty(key: string, value: any): void;
+  /**
+   * @deprecated
+   */
+  getDataset(): IDatasetModel;
 
-    getLegendItem(e: IEntity, idx?: number): tables.ILegendItem;
+  /**
+   * @deprecated
+   */
+  getProperty(key): any;
+  /**
+   * @deprecated
+   */
+  setProperty(key: string, value: any): void;
 
-    serialize(): tables.IRawVizelConfig;
+  /**
+   * @deprecated Используйте vizel_config.getLegendItem
+   */
+  getLegendItem(e: IEntity, idx?: number): tables.ILegendItem;
 
-    clone(): IVizelConfig;
+  /**
+   * @deprecated
+   */
+  serialize(): tables.IRawVizelConfig;
 
-    getDisplay(vizelType?: string): IVizelConfigDisplay;
+  /**
+   * @deprecated
+   */
+  getColor(e: IEntity, v?: IValue, index?: number, colorPalette?: string[]): string | null;
 
-    getRange(): IRange;
+  /**
+   * @deprecated
+   */
+  getBgColor(e: IEntity, v?: IValue, index?: number): string | null;
 
-    disableRange(): void;
+  /**
+   * @deprecated
+   */
+  getColorPair(e: IEntity, v?: IValue, index?: number, colorPalette?: string[]): IColorPair;
 
-    getUrl(): string;
+  /**
+   * @deprecated используйте rawCfg
+   */
+  clone(): IVizelConfig;
 
-    getBgImage(): string;
+  /**
+   * @deprecated
+   */
+  getDisplay(vizelType?: string): IVizelConfigDisplay;
 
-    dataSource?: tables.IDataSource;
+  /**
+   * @deprecated
+   */
+  getRange(): IRange;
 
-    getVizelType(): string;
+  /**
+   * @deprecated
+   */
+  disableRange(): void;
 
-    setVizelType(vizelType: string): void;
+  /**
+   * @deprecated
+   */
+  getUrl(): string;
 
-    setTitle(title: string): void;
+  /**
+   * @deprecated
+   */
+  getBgImage(): string;
 
-    getSubspacePtr(): ISubspacePtr;
+  dataSource?: tables.IDataSource;
 
-    controller: IVizelController;
-    // drilldown?: (event:any, z:IEntity, y:IEntity, x:IEntity)=>void;
+  /**
+   * @deprecated Используйте props view_class
+   */
+  getVizelType(): string;
 
-    // TODO: move to methods: setters/getters
-    title?: string;
-    description?: string;
-    display?: tables.IVizelConfigDisplay;
-    legend?: { [id: string]: tables.ILegendItem; };
-    badValueColor?: string;
-    goodValueColor?: string;
-    normsMainColor?: string;
-    onClickDataPoint?: string | any;
-    onClick?: string | any;                   // TODO: describe IUrl type
-    cardId?: string;
-    externalUrl?: IUrl;
-    dashboardId?: number | string;
-    dashId?: number | string;
-    normStrategy?: string;
-    context?: any;
+  /**
+   * @deprecated
+   */
+  setVizelType(vizelType: string): void;
 
-    titleContext?: string[];
-    colorResolver?: IColorResolver;
-    titleResolver?: ITitleResolver;
+  /**
+   * @deprecated
+   */
+  setTitle(title: string): void;
 
-    // deprecated
-    chartStyle: string;
-    showLegend: boolean;
-    visualMap?: any;
+  /**
+   * @deprecated
+   */
+  getSubspacePtr(): ISubspacePtr;
 
-    getRaw(): tables.IRawVizelConfig;
+  /**
+   * @deprecated
+   */
+  controller: IVizelController;
+
+  title?: string;
+  description?: string;
+  display?: tables.IRawVizelConfigDisplay;
+  legend?: { [id: string]: tables.ILegendItem; };
+  badValueColor?: string;
+  goodValueColor?: string;
+  normsMainColor?: string;
+  onClickDataPoint?: string | any;
+  onClick?: string | any;
+  cardId?: string;
+  externalUrl?: IUrl;
+  dashboardId?: number | string;
+  dashId?: number | string;
+  normStrategy?: string;
+  context?: any;
+  options?: string[];
+  titleContext?: string[];
+  report?: { title: string; output: string; template: string }[];
+
+  /**
+   * @deprecated
+   */
+  colorResolver?: IColorResolver;
+  /**
+   * @deprecated
+   */
+  titleResolver?: ITitleResolver;
+
+  /**
+   * @deprecated
+   */
+  chartStyle: string;
+  /**
+   * @deprecated
+   */
+  showLegend: boolean;
+  /**
+   * @deprecated
+   */
+  visualMap?: any;
+
+  /**
+   * @deprecated Используйте props.rawCfg
+   */
+  getRaw(): tables.IRawVizelConfig;
 }
-
 
 export interface IDashlet extends IEntity {
-    id: string;
-    title: string;
-    layout: string;           // V|H|''
-    children: IDashlet[];
+  id: string;
+  title: string;
+  layout: string;
+  children: IDashlet[];
 
-    getDataset(): IDatasetModel;
+  getDataset(): IDatasetModel;
 
-    getDashboard(): IDashboard;
+  getDashboard(): IDashboard;
 
-    getFrame(): tables.IConfigFrame;
+  getFrame(): tables.IConfigFrame;
 
-    getDescription(): string;
+  getDescription(): string;
 
-    getRawVizelConfig(): tables.IRawVizelConfig;
+  getRawVizelConfig(): tables.IRawVizelConfig;
 
-    isContainer(): boolean;
+  isContainer(): boolean;
 
-    isRoot(): boolean;
+  isRoot(): boolean;
 
-    // TODO: remove
-    legend: any;
+  legend: any;
 }
 
-
 export interface IDashletsHelper {
-    dashboards: IDashboard[];
-    dashboardTopics: tables.IDashboardTopic[];
+  dashboards: IDashboard[];
+  dashboardTopics: tables.IDashboardTopic[];
 
-    getDashboard(id: string): IDashboard;
+  getDashboard(id: string): IDashboard;
 
-    getDash(id: string): IDashlet;
+  getDash(id: string): IDashlet;
 
-    getDashes(): IDashlet[];
+  getDashes(): IDashlet[];
 }
 
 export interface IDashboard extends IEntity {
-    id: string;
-    title: string;
-    topic_id: number;
-    stateColor: string;
+  id: string;
+  title: string;
+  topic_id: number;
+  stateColor: string;
+  srt: number;
 
-    getRootDashes(): IDashlet[];
+  getRootDashes(): IDashlet[];
 
-    getDashes(): IDashlet[];
+  getDashes(): IDashlet[];
 }
-
 
 export interface IConfigHelper {
-    hasValue(key: string): boolean;
+  hasValue(key: string): boolean;
 
-    getValue(key: string, defaultValue?: string): string;
+  getValue(key: string, defaultValue?: string): string;
 
-    getStringValue(key: string, defaultValue?: string): string;
+  getStringValue(key: string, defaultValue?: string): string;
 
-    getIntValue(key: string, defaultValue?: number): number;
+  getIntValue(key: string, defaultValue?: number): number;
 
-    getFloatValue(key: string, defaultValue?: number): number;
+  getFloatValue(key: string, defaultValue?: number): number;
 
-    getBoolValue(key: string, defaultValue?: any): boolean;
+  getBoolValue(key: string, defaultValue?: any): boolean;
 
-    getEnumValue(key: string, values: string[], defaultValue?: string): string;
+  getEnumValue(key: string, values: string[], defaultValue?: string): string;
 
-    getStringArray(key: string, defaultValue?: string[]): string[];
+  getStringArray(key: string, defaultValue?: string[]): string[];
 
-    getIntArray(key: string, defaultValue?: number[]): number[];
+  getIntArray(key: string, defaultValue?: number[]): number[];
 
-    getEnterUrl(datasetKey: string): IUrl;
+  getEnterUrl(datasetKey: string): IUrl;
 }
 
+export interface IDatasetModel {
+  id: number;
+  guid: string;
+  schema_name: string;
+  title: string;
+  description: string;
+  units: IUnit[];
+  metrics: IMetric[];
+  rootMetrics: IMetric[];
+  presets: IPreset[];
+  locationCards: ILocationCard[];
+  locationAreas: ILocationArea[];
+  locations: ILocation[];
+  rootLocations: ILocation[];
+  periods: IPeriod[];
+  dashlets: repo.ds.IRawDashlet[];
 
-export interface IDatasetModel extends IObservable {
-    id: number;
-    guid: string;
-    // deprecated
-    // schemaName: string;
-    schema_name: string;
-    title: string;
-    description: string;
-    //
-    units: IUnit[];
-    metrics: IMetric[];
-    rootMetrics: IMetric[];
-    presets: IPreset[];
-    locationCards: ILocationCard[];
-    locationAreas: ILocationArea[];
-    locations: ILocation[];
-    rootLocations: ILocation[];
-    periods: IPeriod[];
+  defaultMetrics: IMetric[];
+  defaultLocations: ILocation[];
+  defaultPeriods: IPeriod[];
 
-    defaultMetrics: IMetric[];
-    defaultLocations: ILocation[];
-    defaultPeriods: IPeriod[];
+  metricsHelper: IMetricsHelper;
+  locationsHelper: ILocationsHelper;
+  periodsHelper: IPeriodsHelper;
+  dashletsHelper: IDashletsHelper;
 
-    metricsHelper: IMetricsHelper;
-    locationsHelper: ILocationsHelper;
-    periodsHelper: IPeriodsHelper;
-    dashletsHelper: IDashletsHelper;
+  getDataProvider(): data_engine.IDataProvider;
 
-    getDataProvider(): data_engine.IDataProvider;
+  getConfigHelper(): IConfigHelper;
 
-    getConfigHelper(): IConfigHelper;
+  getEnterUrl(): IUrl;
 
-    getEnterUrl(): IUrl;
+  /**
+   * @deprecated
+   */
+  createVizelConfig(d: tables.IRawVizelConfig, view_class?: string): IVizelConfig;
 
-    createVizelConfig(d: tables.IRawVizelConfig, view_class?: string): IVizelConfig;
+  getDatasetTitleTemplate(route: string): string;
 
-    // createVizelController(vizelConfig: IVizelConfig, defaultAction: string): IVizelController;
+  getBiQuery(): any;
 
-    getDatasetTitleTemplate(route: string): string;
+  getConfigParameter(key: string, defaultValue?: string): string;
 
-    getBiQuery(): any;
+  update(dataset: repo.adm.IRawDataset, storage: responses.ITables): void;
 
-    getConfigParameter(key: string, defaultValue?: string): string;  // makes lookup in table config and in lang
+  M: (id: string) => IMetric;
+  L: (id: string | number) => ILocation;
+  P: (id: string) => IPeriod;
 
-    update(datasetDescription: responses.IDatasetDescription, storage: responses.ITables): void;
-
-    getSerial(): moment.Moment;
-
-    M: (id: string) => IMetric;
-    L: (id: string | number) => ILocation;
-    P: (id: string) => IPeriod;
-
-    getPeriodInfoByRange(startId: string, endId: string, type?: number): IPeriodInfo;
+  getPeriodInfoByRange(startId: string, endId: string, type?: number): IPeriodInfo;
 }
-
 
 export interface IDatasetServiceModel {
-    loading: boolean;
-    error: string;
-    dataset: IDatasetModel;
+  loading: boolean;
+  error: string;
+  dataset: IDatasetModel;
 }
 
 export interface IAxesOrder extends Array<string> {
-    xs?: string;
-    ys?: string;
-    zs?: string;
-    aas?: string;
-    abs?: string;
-    // etc...
+  xs?: string;
+  ys?: string;
+  zs?: string;
+  aas?: string;
+  abs?: string;
 }
 
 export interface IDsState {
-    loading?: boolean;
-    error?: string;
-    //
-    autoscale: boolean;
-    chartType: string;
-    dash: IDashlet;
-    dboard: IDashboard;
-    geo: IGeo;
-    locations: ILocation[];
-    formulaLocations: ILocation[];
-    axesOrder: IAxesOrder;
-    mapfill: IMapFill;
-    metrics: IMetric[];
-    periodInfo: IPeriodInfo;
-    periods: IPeriod[];
-    preset: IPreset;
-    route: string;
-    mapMetricsPanelVisible: boolean;
-    datasetTitle: string;
-    datasetDescriptionHTML: string;
-    dataset: IDatasetModel;
-    customConfig: any;
+  loading?: boolean | number;
+  error?: string;
+  autoscale: boolean;
+  chartType: string;
+  dash: IDashlet;
+  dboard: IDashboard;
+  geo: IGeo;
+  locations: ILocation[];
+  formulaLocations: ILocation[];
+  axesOrder: IAxesOrder;
+  mapfill: IMapFill;
+  metrics: IMetric[];
+  periodInfo: IPeriodInfo;
+  periods: IPeriod[];
+  preset: IPreset;
+  route: string;
+  mapMetricsPanelVisible: boolean;
+  datasetTitle: string;
+  datasetDescriptionHTML: string;
+  dataset: IDatasetModel;
+  customConfig: any;
 }
-
 
 export interface IDsStateService {
-    getModel(): IDsState;
+  getModel(): IDsState;
 
-    getDataset(): IDatasetModel;
+  getDataset(): IDatasetModel;
 
-    getMaxParametersNumber(): number;
+  getMaxParametersNumber(): number;
 
-    getMaxLocationsNumber(): number;
+  getMaxLocationsNumber(): number;
 
-    setMetrics(ms: IMetric[]): void;
+  setMetrics(ms: IMetric[]): void;
 
-    setPreset(p: IPreset): void;
+  setPreset(p: IPreset): void;
 
-    setPeriods(start: IPeriod, end: IPeriod, type: number);
+  setPeriods(start: IPeriod, end: IPeriod, type: number): void;
 
-    setFormulaLocations(ls: ILocation[]): void;
+  setFormulaLocations(ls: ILocation[]): void;
 
-    setGeo(g: IGeo): void;
+  setGeo(g: IGeo): void;
 
-    setDboard(dboard: IDashboard): void;
+  setDboard(dboard: IDashboard): void;
 
-    setDash(dash: IDashlet): void;
+  setDash(dash: IDashlet): void;
 
-    setAxesOrder(ao: IAxesOrder): void;
+  setAxesOrder(ao: IAxesOrder): void;
 
-    setAutoscale(autoscale: boolean): void;
+  setAutoscale(autoscale: boolean): void;
 
-    setMapfill(mf: IMapFill): void;
+  setMapfill(mf: IMapFill): void;
 
-    setChartType(chartType: string): void;
+  setChartType(chartType: string): void;
 
-    setCustomConfig(config: any): void;
+  setCustomConfig(config: any): void;
 
-    toggleParameter(p: IMetric): void;
+  toggleParameter(p: IMetric): void;
 
-    removeMetric(p: IMetric): void;
+  removeMetric(p: IMetric): void;
 
-    toggleFormulaLocation(l: ILocation): void;
+  toggleFormulaLocation(l: ILocation): void;
 
-    removeFormulaLocation(l: ILocation): void;
+  removeFormulaLocation(l: ILocation): void;
 
-    goToPlots(): void;
+  goToPlots(): void;
 
-    setMapMetricsPanelVisible(mapMetricsPanelVisible: boolean): void;
+  setMapMetricsPanelVisible(mapMetricsPanelVisible: boolean): void;
 
-    subscribe(items: string, callback: any): IDisposable;
+  subscribe(items: string | string[], callback: any): IDisposable;
 
-    subscribeUpdates(listener: (model: IDsState) => void): IDisposable;
+  subscribeUpdates(listener: (model: IDsState) => void): IDisposable;
 
-    subscribeUpdatesAndNotify(listener: (model: IDsState) => void): IDisposable;
+  subscribeUpdatesAndNotify(listener: (model: IDsState) => void): IDisposable;
 
-    unsubscribe(listener: (model: IDsState) => void): void;
+  unsubscribe(listener: (model: IDsState) => void): void;
 
-    retain(): IDsStateService;
+  retain(): IDsStateService;
 
-    release(): boolean;
+  release(): boolean;
 }
 
-
-// constructor props
 export interface IVizelProps {
-    dp: data_engine.IDataProvider;
-    cfg: IVizelConfig;
-    subspace: ISubspace;
-    listener?: any;
-    showLegend?: boolean;
-    onVizelPropertiesChanged?: (properties: IVizelProperties, vizel: any) => void;
-    properties?: IVizelProperties;
-    renderError?: (error: string) => any;
-    renderLoading?: (loading: boolean) => any;
+  readonly editDashletId?: number;
+  readonly view_class: string;
+  readonly schema_name: string;
+  readonly cfg: IVizelConfig;
+  /**
+   * @deprecated Пожалуйста используйте cfg
+   */
+  readonly rawCfg: tables.IRawVizelConfig;
+  readonly dp: data_engine.IDataProvider;
+  readonly dataset: IDatasetModel;
+  readonly subspace: ISubspace;
+  readonly controller: IVizelController;
+  readonly colorResolver: IColorResolver;
+  readonly title?: string;
+
+  readonly dashlet?: repo.ds.IRawDashlet;
+  readonly dashlets?: repo.ds.IRawDashlet[];
+  readonly editMode: '' | 'edt' | 'builder';
+  readonly dashId?: string;
+  readonly dashboardId?: number;
+  readonly suspended?: boolean;
+
+  readonly onVizelPropertiesChanged?: (property: IVizelProperties) => void;
+  readonly onChangeDashlets?: (updated: Partial<repo.ds.IRawDashlet>[], deleted?: Array<string | number>) => any;
+  readonly onEditDashlet?: (dashId: string | number) => void;
+  readonly onCreateDashlet?: (dashlet: Partial<repo.ds.IRawDashlet>) => Promise<repo.ds.IRawDashlet>;
+
+  /**
+   * @deprecated
+   */
+  showLegend?: boolean;
+
+  properties?: IVizelProperties;
+  renderError?: (error: string) => any;
+  renderLoading?: (loading: boolean) => any;
+  subspaceLoading?: boolean;
 }
 
 export interface IVizelClass {
-    new(props: IVizelProps): IVizel;
+  new(props: IVizelProps): IVizel;
 }
 
-
 export enum LoadingStatus {
-    UNDEFINED,
-    LOADING_FIRST_TIME,
-    LOADING,
-    NO_DATA,
-    HAS_DATA,
+  UNDEFINED,
+  LOADING_FIRST_TIME,
+  LOADING,
+  NO_DATA,
+  HAS_DATA,
 }
 
 export interface IModuleOptions {
-    useSinglePeriod?: boolean;
-    metricsPanel?: boolean;
-    locationsPanel?: boolean;
-    periodsPanel?: boolean;
+  useSinglePeriod?: boolean;
+  metricsPanel?: boolean;
+  locationsPanel?: boolean;
+  periodsPanel?: boolean;
 }

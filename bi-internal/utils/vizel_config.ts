@@ -49,3 +49,6 @@ declare namespace vizel_config {
   export function getOptionCount(rawCfg: {options?: string[]}, optionId: string): number
 
 }
+
+export { vizel_config };
+export default vizel_config;

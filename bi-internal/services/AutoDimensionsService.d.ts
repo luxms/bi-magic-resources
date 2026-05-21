@@ -8,3 +8,6 @@ export declare class AutoDimensionsService extends BaseEntitiesService<IRawDimen
     private static _cache;
     static createInstance: (schema_name: string, koob: string) => AutoDimensionsService;
 }
+
+export declare const AutoDimensionService: any;
+export default AutoDimensionsService;

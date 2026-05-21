@@ -55,3 +55,7 @@ import Breadcrumb from './face/Breadcrumb';
 export { Breadcrumb };
 import Input from './face/Input';
 export { Input };
+
+/** Default export mirrors the runtime `@bi/face` namespace object. */
+declare const _default: any;
+export default _default;

@@ -11,3 +11,7 @@ export * from './core/./RtService';
 import * as repo from './core/./repositories';
 import * as srv from './core/./services';
 export { repo, srv };
+
+/** Default export mirrors the runtime `@bi/core` namespace object. */
+declare const _default: any;
+export default _default;
