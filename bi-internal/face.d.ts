@@ -1,61 +1,46 @@
-import Calendar from "./face/Calendar";
-export { Calendar };
-import DatePicker from "./face/DatePicker";
-export { DatePicker };
-import * as icons from "./face/icons";
-export { icons };
-import TreeComponent from "./face/TreeComponent";
-export { TreeComponent };
-import AccountTool from "./face/AccountTool";
-export { AccountTool };
-import AppLogo from "./face/AppLogo";
-export { AppLogo };
-import Button from "./face/Button";
-export { Button };
-import Confirm from "./face/Confirm";
-export { Confirm };
-import DataCard from "./face/DataCard";
-export { DataCard };
-import DataGrid from "./face/DataGrid";
-export { DataGrid };
-import Dropdown from "./face/Dropdown";
-export { Dropdown };
-import DropLabelList from "./face/DropLabelList";
-export { DropLabelList };
-import GeometryObserver from "./face/util/GeometryObserver";
-export { GeometryObserver };
-import Header from "./face/Header";
-export { Header };
-import Login from "./face/Login";
-import LoginDemo from "./face/Login/LoginDemo";
-export { Login, LoginDemo };
-import Form from "./face/Form";
-export { Form };
-import themes from "./face/store/themes";
-export { themes };
-import Menu from "./face/Menu";
-export { Menu };
-import Shape from "./face/Shape";
-export { Shape };
-import Strap from "./face/Strap";
-export { Strap };
-import TinySlider from "./face/TinySlider";
-export { TinySlider };
-import Tool from "./face/Tool";
-export { Tool };
-import TooltipView from "./face/TooltipView";
-export { TooltipView };
-import ExtraMenu from "./face/ExtraMenu";
-export { ExtraMenu };
-import TextEditor from "./face/TextEditor";
-export { TextEditor };
-import Tag from './face/Tag';
-export { Tag };
-import Breadcrumb from './face/Breadcrumb';
-export { Breadcrumb };
-import Input from './face/Input';
-export { Input };
+import React from 'react';
+import * as icons from './face/icons';
 
-/** Default export mirrors the runtime `@bi/face` namespace object. */
-declare const _default: any;
+export { icons };
+export * from './face/icons';
+
+type Component = React.ComponentType<any>;
+
+export declare const TreeComponent: Component;
+export declare const AccountTool: Component;
+export declare const Button: Component;
+export declare const Confirm: Component;
+export declare const Dropdown: {
+    Trigger: Component;
+    Container: Component;
+};
+export declare const LoginDemo: Component;
+export declare const ContextMenu: Component;
+
+/**
+ * Пока что используются на demo.*****bi.com.
+ * Требуется постепенно ухудшать их работу для провоцирования перехода на нативный вход или переделывания.
+ */
+export declare const Login: Component;
+export declare const Form: Component;
+export declare const Menu: Component;
+export declare const Strap: Component;
+export declare const TextEditor: Component;
+export declare const TextEditorMonaco: Component;
+export declare const Tag: Component;
+export declare const TreeStickyComponent: Component;
+export declare const Input: Component;
+export declare const InputWithIcon: Component;
+export declare const Textarea: Component;
+export declare const SVGIcon: Component;
+export declare const Loading: Component;
+export type LoadingProps = any;
+export declare const BIError: Component;
+export type BIErrorProps = any;
+
+import themes from './face/store/themes';
+export { themes };
+
+/** Runtime default object exported by `bi-internal/face`. */
+declare const _default: Record<string, any>;
 export default _default;

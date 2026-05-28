@@ -1,27 +1,19 @@
-import { BaseService, IBaseModel } from '../core';
-
+/**
+ * Project-side shim for the moved-out MembersLoader.
+ *
+ * The implementation now lives in `@bi/datafun` and accepts a pre-resolved
+ * cube + dimensions snapshot. Call sites that previously instantiated
+ * `MembersLoader` directly should switch to the PagedAxis React component
+ * which handles the cube/dimensions lifecycle.
+ */
 export interface IMembersLoaderOptions {
-    readonly koob: string;
-    readonly schema_name: string;
-    /** Id of the column used in the member request. */
-    readonly column: string;
-    readonly globalFilter: any;
-    readonly innerFilter?: any;
-    readonly sortBy?: string;
+    readonly [key: string]: any;
 }
-
-export interface IMembersLoaderModel extends IBaseModel {
-    readonly count: number;
-    readonly members: { id: string; title: string; [key: string]: any }[];
-    readonly generation: number;
-    readonly sortBy: string;
-    readonly searchFilter: any;
+export interface IMembersLoaderModel {
+    readonly loading?: boolean;
+    readonly error?: string | null;
+    readonly [key: string]: any;
 }
-
-/** Paged loader for koob dimension members. */
-export default class MembersLoader extends BaseService<IMembersLoaderModel> {
-    public constructor(options: IMembersLoaderOptions);
-    public ensureMember(idx: number): void;
-    public setSearch(filter: any): void;
-    public setSortBy(sortBy: string): void;
-}
+export declare const MembersLoader: any;
+export declare const QMembersLoader: any;
+export default MembersLoader;

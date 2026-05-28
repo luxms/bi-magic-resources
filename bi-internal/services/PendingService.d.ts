@@ -1,16 +1,18 @@
-import { BaseService, IBaseModel } from '../core';
-
-/** Keeps local edits in a pending model and throttles writes to the wrapped service. */
-export class PendingService<S extends IBaseModel = IBaseModel> extends BaseService<S> {
-    public constructor(ServiceClass: any, ...args: any[]);
-    public set(value: Record<string, any>): void;
-    public apply(): void;
-    public isChanged(): boolean;
-    public reset(): void;
+import { BaseService } from '../core';
+export declare class PendingService<S> extends BaseService<S> {
+    private readonly THROTTLE_TIMEOUT;
+    protected _service: BaseService<S>;
+    protected _isChanged: boolean;
+    constructor(ServiceClass: any, ...args: any[]);
+    private _onServiceUpdated;
+    set(value: Record<string, any>): void;
+    apply: () => void;
+    private _set;
+    private __set;
+    isChanged(): boolean;
+    reset(): void;
 }
-
-/** Pending service variant that writes only when `apply` is called. */
-export class ApplybleService<S extends IBaseModel = IBaseModel> extends PendingService<S> {
-    public constructor(ServiceClass: any, ...args: any[]);
-    public set(value: Record<string, any>): void;
+export declare class ApplybleService<S> extends PendingService<S> {
+    constructor(ServiceClass: any, ...args: any[]);
+    set(value: Record<string, any>): void;
 }

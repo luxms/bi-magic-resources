@@ -146,12 +146,14 @@ export declare function createDataMatrix(args: ICreateDataMatrix): IDataMatrix;
 
 export declare const L: any;
 export declare const wktParse: (wktString: string) => any;
+export declare const langL: (template: TemplateStringsArray, ...args: any[]) => string;
 export declare const skin: {
     'main-font-family': string;
 };
 export declare const getBuildVersion: () => string | undefined;
 export declare const getBuildDate: () => string | undefined;
 export declare const LoadFromResources: any;
+export declare const createAtlasLpeForReact: any;
 export declare const lpe: any;
 export declare const MapService: any;
 export declare const OptionsProvider: any;

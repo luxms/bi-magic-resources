@@ -130,6 +130,19 @@ export module data_engine {
     }
 }
 
+export type IMLPSubscribeCallback = data_engine.IMLPSubscribeCallback;
+export type ISubscribeCallback = data_engine.ISubscribeCallback;
+export type IRawRequest = data_engine.IRawRequest;
+export type IRawResponse = data_engine.IRawResponse;
+export type IRawDataProvider = data_engine.IRawDataProvider;
+export type ICubeProvider = data_engine.ICubeProvider;
+export type IMatrixProvider = data_engine.IMatrixProvider;
+export type IVectorProvider = data_engine.IVectorProvider;
+export type IValueProvider = data_engine.IValueProvider;
+export type INormsProvider = data_engine.INormsProvider;
+export type IColorsProvider = data_engine.IColorsProvider;
+export type IDataProvider = data_engine.IDataProvider;
+
 
 export interface IDataMatrix {
     xs: IEntity[];

@@ -1,5 +1,5 @@
+import type { IRawCube } from '../repositories/koob';
 import type { CacheableServiceClass } from './createService';
-import type { IRawCube } from '../core/repositories/koob';
 
 type CubesResult = IRawCube[] & {
     error: string | null;
@@ -10,6 +10,12 @@ export declare const AutoCubesServiceFactory: ({ useService, useServiceItselfWit
     useService: any;
     useServiceItselfWithCustomSubscription: any;
 }, schema_name: string) => CubesResult;
+
 export declare const AutoCubesService: CacheableServiceClass<CubesResult, any[]>;
+
+/**
+ * Сервис возвращает один куб или null, если такого куба нет.
+ */
 export declare const AutoCubeService: CacheableServiceClass<any, [schema_name: string, cubeId: string]>;
+
 export default AutoCubesService;
