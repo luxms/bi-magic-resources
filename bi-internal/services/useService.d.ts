@@ -1,17 +1,13 @@
-import {BaseService} from '../core/BaseService';
+import { BaseService } from '../core';
 
-export function useServiceItself<S>(ServiceClass: typeof S, ...args: any): S
+type ServiceClass<S extends BaseService<any>> = {
+    new(...args: any[]): S;
+    createInstance?(...args: any[]): S;
+    getInstance?(): S;
+};
 
-export function useService<S extends BaseService<any>>(ServiceClass: typeof S, ...args: any): ReturnType<S['getModel']>
-
-/**
- * React hook that returns the service instance and subscribes to named events.
- */
-export function useServiceItselfWithCustomSubscription<S extends BaseService<any>>(ServiceClass: typeof S, subscription: string | string[], ...args: any): S
-
-/**
- * React hook that returns the current service model and subscribes to named events.
- */
-export function useServiceWithCustomSubscription<S extends BaseService<any>>(ServiceClass: typeof S, subscription: string | string[], ...args: any): ReturnType<S['getModel']>
-
+export declare function useServiceItselfWithCustomSubscription<S extends BaseService<any>>(ServiceClass: ServiceClass<S>, subscription: string | string[], ...args: any): S;
+export declare function useServiceItself<S extends BaseService<any>>(ServiceClass: ServiceClass<S>, ...args: any): S;
+export declare function useServiceWithCustomSubscription<S extends BaseService<any>>(ServiceClass: ServiceClass<S>, subscription: string | string[], ...args: any): ReturnType<S['getModel']>;
+export declare function useService<S extends BaseService<any>>(ServiceClass: ServiceClass<S>, ...args: any): ReturnType<S['getModel']>;
 export default useService;

@@ -1,48 +1,63 @@
-import { BaseEntitiesService, BaseService, IBaseEntities, IBaseModel } from '../core';
-import { CacheableServiceClass } from './createService';
-
-export type VarRawType = 'INT' | 'FLOAT' | 'DATE' | 'DATETIME' | 'JSON';
+import { BaseService, repo, type IBaseModel } from '../core';
 
 export interface IRawVar {
-    readonly id: number;
-    readonly ident: string;
-    readonly var_type: VarRawType;
-    readonly default_value: number;
-    readonly min_value: number;
-    readonly max_value: number;
-    readonly description: string;
-    readonly config: any;
+    readonly id?: string | number;
+    readonly name?: string;
+    readonly title?: string;
+    readonly config?: any;
+    readonly value?: any;
+    readonly [key: string]: any;
 }
 
-export class DatasetVarsService extends BaseEntitiesService<IRawVar> {
-    public static readonly MODEL: IBaseEntities<IRawVar>;
-    public static createInstance: (id: string | number) => DatasetVarsService;
+export declare const DatasetVarsService: any;
+export interface IDsVar extends IRawVar {
 }
-
-export interface IDsVar extends IRawVar {}
-
-export interface IDsVarsModel extends IBaseModel, Record<string, any> {}
-
-/** Stores and updates dataset variable values for one atlas. */
-export class DsVarsService extends BaseService<IDsVarsModel> {
-    public static MODEL: IDsVarsModel;
-    public static createInstance: (schema_name: number | string) => DsVarsService;
-    public set(value: Record<string, any>): void;
+export interface IDsVarsModel extends IBaseModel, Record<string, any> {
 }
-
-/** Combines variable values from `ds_res` and the atlas parent hierarchy. */
-export declare const AtlasHierarchyValuesService: CacheableServiceClass<IDsVarsModel & { setVar?(name: string, value: any): void }, [string]>;
-
-export interface IVarStreamClasServiceModel extends IBaseModel, Record<string, any> {}
-
-/** Watches a single variable by name and propagates changes to its owning atlas. */
-export class VarStreamService extends BaseService<IVarStreamClasServiceModel> {
-    public constructor(schemaName: string, varName: string);
-    public schemaName: string;
-    public varName: string;
-    public set(value: any): void;
-    public getVar(): IRawVar;
+/**
+ * Хранит значения переменных от одного атласа
+ */
+export declare class DsVarsService extends BaseService<IDsVarsModel> {
+    static MODEL: IDsVarsModel;
+    private readonly _schemaName;
+    private _datasetVarsService;
+    private constructor();
+    protected _dispose(): void;
+    private _init;
+    private _onServiceUpdate;
+    private _onUrlUpdate;
+    private _extractVarsValuesFromUrl;
+    set(values: Record<string, any>): void;
+    private _saveUserConfigValues;
+    private static _cache;
+    static createInstance: (schema_name: number | string) => DsVarsService;
 }
-
-/** Returns plain variable values for a dataset hierarchy. */
-export function getVars(schemaName: string): Promise<Record<string, unknown>>;
+/**
+ * Сервис собирает все значения переменных по иерархии атласов и выдает их в одном сборном хэшмапе
+ */
+export declare const AtlasHierarchyValuesService: any;
+export interface IVarStreamClasServiceModel extends IBaseModel, Record<string, any> {
+}
+/**
+ * # VarStreamService
+ * Этот сервис наблюдает за одной лишь переменной по ее имени и атласу
+ */
+export declare class VarStreamService extends BaseService<IVarStreamClasServiceModel> {
+    schemaName: string;
+    varName: string;
+    private _schemaNames;
+    constructor(schemaName: string, varName: string);
+    private _onServiceUpdate;
+    private _updateDsVar;
+    set(value: any): void;
+    getVar(): IRawVar;
+    private _subscribeSchemaNames;
+    private _unSubscribeSchemaNames;
+    protected _dispose(): void;
+}
+/**
+ * @description просто получаю все atlas.vars у датасета
+ * @param schemaName
+ */
+export declare function getVars(schemaName: string): Promise<Record<string, unknown>>;
+export declare function generateAtlasVarsUrn(schema_name: string, rawVar: IRawVar): string;

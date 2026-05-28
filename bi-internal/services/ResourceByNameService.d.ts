@@ -1,11 +1,20 @@
 import { BaseService, IBaseModel } from '../core';
-
-export interface IResourceByNameModel extends IBaseModel {
+interface IResourceByNameModel extends IBaseModel {
     readonly schema_name: string;
     readonly content: string;
 }
-
-/** Resolves a resource by alt_id and downloads its content when the resource changes. */
+/**
+ * @test Написаны тесты!
+ *
+ * @description Подписываюсь на файл, и в дереве проверяю его. Скачиваю с сервера
+ */
 export default class ResourceByNameService extends BaseService<IResourceByNameModel> {
-    public constructor(alt_id: string);
+    static readonly MODEL: IResourceByNameModel;
+    private _resourcesOfDatasetsTreeService;
+    private readonly alt_id;
+    private _rawResources;
+    constructor(alt_id: string);
+    protected _dispose(): void;
+    private _onResourceUpdated;
 }
+export {};

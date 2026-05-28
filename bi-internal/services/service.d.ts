@@ -1,17 +1,22 @@
-import { IDatasetModel, IVizelConfig } from '../defs/types';
-import { tables } from '../defs/bi';
-
-export interface IReqCreateVizelConfig {
+import type { IDatasetModel, IVizelConfig } from '../defs/types';
+import type { IRawVizelConfig, tables } from '../defs/bi';
+interface IReqCreateVizelConfig {
     readonly cfg: IVizelConfig;
     readonly dataset: IDatasetModel;
 }
-
 /**
- * @deprecated Use `createConfig` after resolving a dataset explicitly.
+ * @deprecated Этот метод уже не используется !!!!!!!!!!!
+ * @param rawVizelConfig
+ * @param defaultSchemaName
  */
-export function createVizelConfig(rawVizelConfig: tables.IRawVizelConfig, defaultSchemaName?: string): Promise<IReqCreateVizelConfig>;
-
-export function createDataset(rawCfg: tables.IRawVizelConfig, defaultSchemaName: string): Promise<IDatasetModel>;
-export function createConfig(rawCfg: tables.IRawVizelConfig, dataset: IDatasetModel, context: { schema_name: string; dashboardId?: number | string; dashId?: number | string }): any;
-export function cfgDefineProperty(cfg: any, key: string, params: any): void;
-export function getterLog(val: any, msg1: string, msg2: string): () => any;
+export declare function createVizelConfig(rawVizelConfig: tables.IRawVizelConfig, defaultSchemaName?: string): Promise<IReqCreateVizelConfig>;
+export declare function createDataset(rawCfg: IRawVizelConfig, defaultSchemaName: string): Promise<IDatasetModel>;
+type IContext = {
+    schema_name: string;
+    dashboardId?: number | string;
+    dashId?: number | string;
+};
+export declare function createConfig(rawCfg: IRawVizelConfig, dataset: IDatasetModel, context: IContext): any;
+export declare function cfgDefineProperty(cfg: any, key: string, params: any): void;
+export declare function getterLog(val: any, msg1: string, msg2: string): () => any;
+export {};

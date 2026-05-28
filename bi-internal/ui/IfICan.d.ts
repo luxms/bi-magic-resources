@@ -1,22 +1,53 @@
-import React from 'react';
-import PropsWithChildren = React.PropsWithChildren;
+import React, { PropsWithChildren } from 'react';
 
-type IfICanSelect =
-    { eachOf?: string[], oneOf?: string[], one?: string, oneValue?: any }
-    & ({ eachOf: string[] } | { oneOf: string[] } | { one: string, oneValue?: any });
+type IfICanSelect = {
+    eachOf?: string[];
+    oneOf?: string[];
+    one?: string;
+    oneValue?: any;
+} & ({ eachOf: string[] } | { oneOf: string[] } | { one: string; oneValue?: any });
+
 type IfICanProps = Readonly<PropsWithChildren<IfICanSelect>>;
 
 /**
- * React-компонент для оборачивания функционала по правам
- * Проверит один или более claim и покажет дочерние элементы
+ * @test Написаны тесты.
  *
- * <IfICan eachOf={['U adm.topics', 'U adm.dataset_topics_maps']}>
- *   Мы можем редактировать топики
- * </IfICan>
- *
+ * @description Компонент для условного рендеринга на основе прав доступа.
+ * Проверяет наличие указанных прав через CanIService.
  */
-export class IfICan extends React.Component<IfICanProps> {
-    public constructor(props: IfICanProps)
-}
+export declare class IfICan extends React.Component<IfICanProps> {}
+
+/**
+ * @test Написаны тесты
+ *
+ * @description Обертка для компонента, проверяет adm.config [common.features]: alpha
+ */
+export declare const IfAlpha: ({ children }: { children: any }) => any;
+
+/**
+ * @test Написаны тесты
+ *
+ * @description Обертка для компонента, проверяет adm.config [common.features]: beta
+ */
+export declare const IfBeta: ({ children }: { children: any }) => any;
+
+/**
+ * @description Обертка для компонента, проверяет settings.js features.
+ */
+export declare const IfSettingsFeatures: ({ children, feature }: {
+    children: any;
+    feature: string;
+}) => any;
+
+/**
+ * @test Написаны тесты
+ *
+ * Собирает и возвращает уникальный массив всех переданных claims.
+ */
+export declare function getAllClaims({ eachOf, oneOf, one }: {
+    eachOf?: string[];
+    oneOf?: string[];
+    one?: string;
+}): any[];
 
 export default IfICan;

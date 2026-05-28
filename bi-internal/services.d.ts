@@ -20,7 +20,10 @@ import {
 import createService from './services/createService';
 import { PluginsManager } from './services/plugins';
 import { KoobDataService, KoobFiltersService, KoobService } from './services/koob';
-import { ISearchVM, SearchVC, IShellVM, DsShellVC, IDsShellVM, ThemeVC } from './services/view-controllers';
+import { ISearchVM, SearchVC } from './services/SearchVC';
+import { IDsShellVM, DsShellVC } from './services/DsShellVC';
+import { IThemeVM, ThemeVC } from './services/ThemeVC';
+import type { IShellVM } from './services/view-controllers';
 import { Vizel } from './components/Vizel';
 import { DatasetsByTopicsService, IDatasetsByTopicsModel, ILocalDataset, ITopic } from './services/DatasetsByTopicsService';
 import { TransactionEntitiesService } from './services/TransactionEntitiesService';
