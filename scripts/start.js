@@ -19,6 +19,10 @@ const {
   dashletMiddleware,
   RtMiddleware,
 } = require('./server/middlewares');
+const {
+  makeDashboardRtMessage,
+  parseDashboardPath,
+} = require('./lib/dashboard-watcher');
 
 const ONLINE = !config.hasNoLogin();
 const SERVER = config.getServer();
@@ -123,55 +127,24 @@ const startDev = () => {
   // These files are served by dashletMiddleware (not as webpack resources), so webpack
   // doesn't know about them — we do our own watching.
   const SRC_DIR = path.resolve(__dirname, '..', 'src');
-  const TOPIC_TYPES = {
-    topic:     { upsert: 'ADD_DASHBOARD_TOPICS', delete: 'DELETE_DASHBOARD_TOPICS' },
-    dashboard: { upsert: 'ADD_DASHBOARDS',       delete: 'DELETE_DASHBOARDS' },
-    dashlet:   { upsert: 'ADD_DASHLETS',         delete: 'DELETE_DASHLETS' },
-  };
-
-  function parseTopicPath(relPath) {
-    const [schema, topicSeg, ...rest] = relPath.split('/');
-    if (!schema || !topicSeg || !topicSeg.startsWith('topic.')) return null;
-    if (!filterSchemaNames([schema]).length) return null;
-    const topicId = Number(topicSeg.slice(6));
-    if (!Number.isInteger(topicId)) return null;
-    if (rest.length === 1 && rest[0] === 'index.json') {
-      return { kind: 'topic', schema, id: topicId };
-    }
-    if (rest.length === 2 && rest[0].startsWith('dashboard.')) {
-      const dashboardId = Number(rest[0].slice(10));
-      if (!Number.isInteger(dashboardId)) return null;
-      if (rest[1] === 'index.json') {
-        return { kind: 'dashboard', schema, id: dashboardId, topic_id: topicId };
-      }
-      const m = rest[1].match(/^(\d+)\.json$/);
-      if (m) return { kind: 'dashlet', schema, id: Number(m[1]), dashboard_id: dashboardId };
-    }
-    return null;
-  }
-
   async function publishTopicChange(event, fullPath) {
     const rel = path.relative(SRC_DIR, fullPath).replace(/\\/g, '/');
-    const parsed = parseTopicPath(rel);
-    if (!parsed) return;
+    const parsed = parseDashboardPath(rel);
+    if (!parsed || !filterSchemaNames([parsed.schema]).length) return;
 
     const isDelete = event === 'unlink';
-    let payload = { id: parsed.id };
-    if (parsed.topic_id !== undefined) payload.topic_id = parsed.topic_id;
-    if (parsed.dashboard_id !== undefined) payload.dashboard_id = parsed.dashboard_id;
+    let content;
 
     if (!isDelete) {
       try {
-        const content = await fsp.readFile(fullPath, 'utf8');
-        payload = { ...JSON5.parse(content), ...payload };
+        content = JSON5.parse(await fsp.readFile(fullPath, 'utf8'));
       } catch (err) {
         console.warn(`[watcher] failed to read ${rel}:`, err.message);
         return;
       }
     }
 
-    const types = TOPIC_TYPES[parsed.kind];
-    const msg = [{ type: isDelete ? types.delete : types.upsert, payload }];
+    const msg = makeDashboardRtMessage(event, parsed, content);
     console.log(`[watcher] ${event} ${parsed.kind}:`, rel);
     rtMiddleware.publishSchemaMessage(parsed.schema, msg);
   }
