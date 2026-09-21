@@ -1,8 +1,15 @@
-import {BaseEntitiesService, IBaseEntities} from "../core";
-import {IRawCube} from "../core/repositories/koob";
+import type { CacheableServiceClass } from './createService';
+import type { IRawCube } from '../core/repositories/koob';
 
-export declare class AutoCubesService extends BaseEntitiesService<IRawCube> {
-    static readonly MODEL: IBaseEntities<IRawCube>;
-    protected constructor();
-    static getInstance: (schema_name:string) => AutoCubesService;
-}
+type CubesResult = IRawCube[] & {
+    error: string | null;
+    loading: boolean;
+};
+
+export declare const AutoCubesServiceFactory: ({ useService, useServiceItselfWithCustomSubscription }: {
+    useService: any;
+    useServiceItselfWithCustomSubscription: any;
+}, schema_name: string) => CubesResult;
+export declare const AutoCubesService: CacheableServiceClass<CubesResult, any[]>;
+export declare const AutoCubeService: CacheableServiceClass<any, [schema_name: string, cubeId: string]>;
+export default AutoCubesService;

@@ -5,6 +5,7 @@
 export interface IIdOwner {
     id: string | number;
 }
+export declare function _createIndexOnEntities<T extends IIdOwner>(es: T[]): { [id: string]: number };
 
 /**
  * Find index of entity in array

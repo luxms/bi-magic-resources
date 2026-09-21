@@ -16,6 +16,12 @@ interface IDepsModels {
     url: IUrl;
 }
 
+export interface ISubspaceModel {
+    error: string;
+    loading: boolean;
+    subspace: any;
+}
+
 /**
  * @param {string} schemaName  - имя датасета
  * @param {ISubspacePtr} subspacePtr - вспомогательная функция с работой datasource
@@ -101,4 +107,3 @@ export class DsStateService extends BaseService<IDsState> implements IDsStateSer
     
     public static createInstance(id: string | number): DsStateService;
 }
-

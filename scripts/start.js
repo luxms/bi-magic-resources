@@ -27,12 +27,13 @@ const {
 const ONLINE = !config.hasNoLogin();
 const SERVER = config.getServer();
 const PORT = config.getPort();
+const HOST = config.getOption('session') ? '127.0.0.1' : '0.0.0.0';
 const JWT = config.getJWT();
 
 const startDev = () => {
   const options = {
     compress: false,
-    host: '0.0.0.0',
+    host: HOST,
     port: PORT,
     hot: true,
     inline: false,
@@ -100,7 +101,7 @@ const startDev = () => {
 
   const webpackDevServer = new WebpackDevServer(webpack(webpackConfig), options);
 
-  webpackDevServer.listen(PORT, '0.0.0.0', function (err) {
+  webpackDevServer.listen(PORT, HOST, function (err) {
     if (err) {
       console.log(err);
     }
@@ -121,6 +122,9 @@ const startDev = () => {
     }
   });
 
+  const crypto = require('crypto');
+  // Хэш контента ассета — чтобы отличать реально изменённые ресурсы от просто переэмиченных copy-плагином.
+  const hashOf = (a) => { try { return crypto.createHash('md5').update(a.source()).digest('hex'); } catch (e) { return 's' + a._size; } };
   let ASSETS = {}, _id = 1;
 
   // Watch dashboard/topic/dashlet JSON files and broadcast updates via rt-middleware.
@@ -178,7 +182,16 @@ const startDev = () => {
 
       const deletedIds = Object.keys(ASSETS).filter(id => !assets[id]);
       const addedIds = Object.keys(assets).filter(id => !ASSETS[id]);
-      const modifiedIds = emittedAssetIds.filter(id => ASSETS[id]);
+      // emittedAssets содержит ВСЕ copy-webpack ресурсы на каждой пересборке → без фильтра по контенту
+      // правка одного файла рассылала "modified" по ВСЕМ ресурсам, и BI перезагружал их тысячами
+      // (ERR_INSUFFICIENT_RESOURCES, themes.json грузился многократно). Шлём только реально изменившиеся.
+      const modifiedIds = emittedAssetIds.filter(id => {
+        if (!ASSETS[id]) return false;
+        const h = hashOf(assets[id]);
+        const changed = ASSETS[id].hash !== h;
+        ASSETS[id].hash = h;
+        return changed;
+      });
 
       console.log('deleted', deletedIds);
       console.log('added', addedIds);
@@ -192,6 +205,7 @@ const startDev = () => {
         alt_id: asset.replace(/^\w+\//, ''),
         content_type: mime.lookup(asset),
         content_length: assets[asset]._size,
+        hash: hashOf(assets[asset]),
         config: {},
         updated: now,
         created: now

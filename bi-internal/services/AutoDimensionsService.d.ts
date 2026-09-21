@@ -1,10 +1,8 @@
-import {IRawDimension} from "../core/repositories/koob";
-import {BaseEntitiesService, IBaseEntities} from "../core";
+import type { CacheableServiceClass } from './createService';
+import type { IBaseEntities } from '../core';
+import type { IRawDimension } from '../core/repositories/koob';
 
-export declare class AutoDimensionsService extends BaseEntitiesService<IRawDimension> {
-    static readonly MODEL: IBaseEntities<IRawDimension>;
-    protected constructor(source_ident?: string, cube_name?: string);
-    protected _dispose(): void;
-    private static _cache;
-    static createInstance: (schema_name: string, koob: string) => AutoDimensionsService;
-}
+export declare const AutoDimensionsServiceFactory: ({ useService }: { useService: any }, schema_name: string, cube_ident: string) => IBaseEntities<IRawDimension>;
+export declare const AutoDimensionsService: CacheableServiceClass<IBaseEntities<IRawDimension>, any[]>;
+export declare const AutoDimensionService: CacheableServiceClass<IRawDimension, any[]>;
+export default AutoDimensionsService;
