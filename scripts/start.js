@@ -24,12 +24,13 @@ const {
 const ONLINE = !config.hasNoLogin();
 const SERVER = config.getServer();
 const PORT = config.getPort();
+const HOST = config.getOption('session') ? '127.0.0.1' : '0.0.0.0';
 const JWT = config.getJWT();
 
 const startDev = () => {
   const options = {
     compress: false,
-    host: '0.0.0.0',
+    host: HOST,
     port: PORT,
     hot: true,
     inline: false,
@@ -97,7 +98,7 @@ const startDev = () => {
 
   const webpackDevServer = new WebpackDevServer(webpack(webpackConfig), options);
 
-  webpackDevServer.listen(PORT, '0.0.0.0', function (err) {
+  webpackDevServer.listen(PORT, HOST, function (err) {
     if (err) {
       console.log(err);
     }

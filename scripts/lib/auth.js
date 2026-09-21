@@ -53,6 +53,8 @@ class Auth {
   }
 
   async logout() {
+    // The imported session belongs to the browser; do not invalidate it.
+    if (config.getOption('session')) return;
     try {
       const url = `${this.BASE_URL}/api/auth/logout`;
       await axios.get(url, {
@@ -95,10 +97,52 @@ class Auth {
   }
 
   async _getAuthenticationMethod() {
-    const {KERBEROS, JWT, USERNAME, PASSWORD} = config.getAuthConfig();
+    const {SESSION, KERBEROS, JWT, USERNAME, PASSWORD} = config.getAuthConfig();
+    if (SESSION) return await this._loginWithSession(SESSION);
     if (KERBEROS) return await retryOnFail(() => this._loginWithSSO(KERBEROS));
     if (JWT) return await retryOnFail(() => this._loginWithJWT(JWT));
     return await retryOnFail(() => this._loginWithPassword(USERNAME, PASSWORD));
+  }
+
+  async _loginWithSession(session) {
+    if (!/^[a-zA-Z0-9-]+$/.test(session)) throw new Error('Invalid session cookie');
+    const url = new URL(`${this.BASE_URL}/api/auth/check`);
+    if (url.protocol !== 'https:') throw new Error('Browser session requires HTTPS upstream');
+    const insecure = [true, 'true', '1'].includes(config.getOption('insecureSessionTls'));
+    const cookie = `LuxmsBI-User-Session=${session}`;
+    // Native HTTPS does not follow redirects: never forward this cookie to the SSO host.
+    const result = await new Promise((resolve, reject) => {
+      const req = https.get(url, {
+        headers: {Cookie: cookie, Accept: 'application/json'},
+        rejectUnauthorized: !insecure,
+      }, (res) => {
+        let body = '';
+        res.setEncoding('utf8');
+        res.on('data', chunk => { body += chunk; });
+        res.on('error', reject);
+        res.on('end', () => {
+          if (res.statusCode !== 200) return reject(new Error(`Session check returned HTTP ${res.statusCode}; renew the browser session`));
+          try {
+            const data = JSON.parse(body);
+            if (!data || data.id == null) throw new Error();
+            resolve(data);
+          } catch (_) {
+            reject(new Error('Session check did not return an authenticated user; renew the browser session'));
+          }
+        });
+      });
+      req.setTimeout(20000, () => req.destroy(new Error('Session check timed out')));
+      req.on('error', reject);
+    });
+    this.COOKIE_JAR.setCookieSync(`${cookie}; Path=/`, this.BASE_URL);
+    this.REQUEST_OPTIONS = {
+      jar: false,
+      headers: {Cookie: cookie},
+      httpsAgent: new https.Agent({rejectUnauthorized: !insecure}),
+      maxRedirects: 0,
+      timeout: 20000,
+    };
+    return result;
   }
 
   async _loginWithSSO(kerberosUrl) {
@@ -165,7 +209,10 @@ class Auth {
   }
 
   getCookies() {
-    return this.COOKIE_JAR.getCookiesSync(this.BASE_URL).join('; ');
+    const cookies = this.COOKIE_JAR.getCookiesSync(this.BASE_URL);
+    return config.getOption('session')
+      ? cookies.map(cookie => cookie.cookieString()).join('; ')
+      : cookies.join('; ');
   }
 }
 

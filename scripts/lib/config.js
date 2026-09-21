@@ -8,7 +8,7 @@ const chalk = require('chalk');
 const KNOWN_OPTIONS = [
   'server', 'username', 'password', 'port', 'force', 'noRemove',
   'include', 'exclude', 'resources', 'dashboards', 'cubes',
-  'kerberos', 'jwt', 'noLogin',
+  'kerberos', 'jwt', 'session', 'insecureSessionTls', 'noLogin',
 ];
 const toKebab = (name) => name.replace(/[A-Z]/g, letter => '-' + letter.toLowerCase());
 const KNOWN_CLI_NAMES = new Set(KNOWN_OPTIONS.map(toKebab));
@@ -45,6 +45,8 @@ class Config {
     cubes: false,
     kerberos: '',
     jwt: '',
+    session: '',
+    insecureSessionTls: false,
     noLogin: false,
   };
 
@@ -55,6 +57,8 @@ class Config {
   }
 
   getAuthConfig() {
+    const SESSION = this.getOption('session');
+    if (SESSION) return {SESSION, KERBEROS: '', JWT: '', USERNAME: '', PASSWORD: ''};
     const KERBEROS = this.getOption('kerberos');
     const JWT = !KERBEROS ? this.getOption('jwt') : '';
     const USERNAME = !KERBEROS && !JWT ? this.getOption('username') : '';
@@ -63,9 +67,11 @@ class Config {
   }
 
   logAuthParams() {
-    const {KERBEROS, JWT, USERNAME, PASSWORD} = this.getAuthConfig();
+    const {SESSION, KERBEROS, JWT, USERNAME, PASSWORD} = this.getAuthConfig();
     console.log('\nSERVER:', chalk.yellowBright(this.getServer()));
-    if (KERBEROS) {
+    if (SESSION) {
+      console.log('AUTH: browser session (hidden)');
+    } else if (KERBEROS) {
       console.log('KERBEROS:', chalk.yellowBright(KERBEROS));
     } else if (JWT) {
       console.log('JWT:', chalk.yellowBright(`${JWT.slice(0, 16)}...`));
@@ -98,6 +104,7 @@ class Config {
   }
 
   getJWT() {
+    if (this.getOption('session')) return '';
     return this.getOption('jwt');
   }
 
@@ -159,8 +166,8 @@ class Config {
     // 4. Config files
     // two config files:
     //   config.json - for server and other options
-    //   authConfig.json  - only for username, password and jwt
-    const useAuthConfig = ['username', 'password', 'jwt'].includes(name);
+    //   authConfig.json - authentication settings (including the browser session)
+    const useAuthConfig = ['username', 'password', 'jwt', 'session', 'insecureSessionTls'].includes(name);
     const config = useAuthConfig ? this._loadAuthConfig() : this._loadConfig();
     if (config[name] !== undefined) {
       return (this.OPTIONS_CACHE[name] = config[name]);
