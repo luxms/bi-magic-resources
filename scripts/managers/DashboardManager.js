@@ -70,7 +70,7 @@ class DashboardManager extends ContentManager {
       } else {
         const fileNames = await this.platform.getFiles(schemaName);
         for (const fileName of fileNames) {
-          if (fileName.startsWith('topic.')) {
+          if (/^topic\.\d+[\\/]/.test(fileName)) {
             const encodedFileName = utils.encodePath(fileName);
             list.push(`/${schemaName}/${encodedFileName}`);
           }

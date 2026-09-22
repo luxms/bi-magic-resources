@@ -1,4 +1,3 @@
-const md5 = require('md5');
 const chalk = require('chalk');
 const colors = require('colors');
 const Confirm = require('prompt-confirm');
@@ -96,6 +95,16 @@ async function synchronize(source, target) {
     spinner.stop();
   }
 
+  // Validate every downloaded path and existing destination before comparison or
+  // mutation. A server resource name must never escape the local dist tree.
+  if (target.type === 'local') {
+    const { safePath, assertNoSymlinks } = require('./restore');
+    for (const item of [...Object.values(sourceItems).flat(), ...Object.values(targetItems).flat()]) {
+      const relative = safePath(utils.decodePath(item).replace(/^\//, ''));
+      await assertNoSymlinks(target.BASE_DIR, relative);
+    }
+  }
+
   // Success, show source files count
   console.log(`SUCCESS\n`);
   console.log(`${sourceItems.resources.length} resources, ${sourceItems.dashboards.length} dashboards, ${sourceItems.cubes.length} cubes`);
@@ -114,7 +123,10 @@ async function synchronize(source, target) {
 
         if (targetItems[contentType].includes(item)) {
           const targetContent = await retryOnFail(() => target[contentType].getContent(item));
-          const contentsMatch = item.endsWith('.json') ? utils.compareObjects(sourceContent, targetContent) : md5(String(sourceContent)) === md5(String(targetContent));
+          const contentsMatch = contentType === 'resources'
+            ? (Buffer.isBuffer(sourceContent) && Buffer.isBuffer(targetContent)
+              ? sourceContent.equals(targetContent) : sourceContent === targetContent)
+            : utils.compareObjects(sourceContent, targetContent);
           if (!contentsMatch) overwriteItems.push({ type: contentType, path: item, content: sourceContent });
         } else {
           createItems.push({ type: contentType, path: item, content: sourceContent })
@@ -144,7 +156,7 @@ async function synchronize(source, target) {
   // No changes, skip
   if (createItems.length === 0 && overwriteItems.length === 0 && removeItems.length === 0) {
     console.log(chalk.green('No changes'));
-    return;
+    return { status: 'nochanges', paths: Object.values(sourceItems).flat() };
   }
 
   // Success, enumerate files to change
@@ -166,7 +178,7 @@ async function synchronize(source, target) {
   // Confirm changes
   if (!config.getForce()) {
     const prompt = new Confirm('Continue?');
-    if (!(await prompt.run())) return;
+    if (!(await prompt.run())) return { status: 'cancelled', paths: [] };
   }
 
   // Dashlets have a self-referential FK on parent_id — make sure parents are created before children.
@@ -197,6 +209,7 @@ async function synchronize(source, target) {
   } finally {
     finalBar.stop();
   }
+  return { status: 'applied', paths: Object.values(sourceItems).flat() };
 }
 
 module.exports = synchronize;

@@ -1,7 +1,7 @@
 const fs = require('fs');
 const fsp = fs.promises;
 const path = require('path');
-const JSON5 = require('json5');
+const { isConfigPath } = require('../lib/config-codec');
 const utils = require('../lib/utils');
 const Platform = require('./base/Platform');
 
@@ -53,9 +53,9 @@ class Local extends Platform {
       const fullPath = this._getFullPath(filePath);
       await fsp.stat(fullPath);
 
-      if (filePath.endsWith('.json')) {
+      if (isConfigPath(filePath)) {
         const content = await fsp.readFile(fullPath, 'utf8');
-        return JSON5.parse(content);
+        return JSON.parse(content);
       }
 
       return await fsp.readFile(fullPath);
@@ -70,7 +70,7 @@ class Local extends Platform {
       const dirPath = path.dirname(fullPath);
       await fsp.mkdir(dirPath, { recursive: true });
 
-      if (fullPath.endsWith('.json')) {
+      if (isConfigPath(filePath)) {
         await fsp.writeFile(fullPath, JSON.stringify(content, null, 2), 'utf-8');
       } else {
         await fsp.writeFile(fullPath, content ?? '');

@@ -1,5 +1,5 @@
 const Server = require('./platforms/Server');
-const Local = require('./platforms/Local');
+const Local = require('./platforms/SourceLocal');
 const createEntity = require('./lib/createEntity');
 const auth = require('./lib/auth');
 

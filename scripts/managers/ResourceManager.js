@@ -5,7 +5,9 @@ const ContentManager = require('./base/ContentManager');
 class ResourceManager extends ContentManager {
   async getContent(resource) {
     const path = this.platform.type === 'server' ? `srv/resources${resource}` : resource;
-    return await this.platform.readFile(path);
+    // Resources are opaque files, including JSON/JSON5/YAML. Only dashboard and
+    // cube managers exchange parsed configuration objects.
+    return await this.platform.readFile(path, { responseType: 'arraybuffer' });
   }
 
   async createContent(path, content) {
@@ -16,6 +18,9 @@ class ResourceManager extends ContentManager {
         alt_id: altId,
         content_type: this._getContentType(altId),
       });
+      // A metadata-only resource already reads as an empty file. The raw
+      // upload endpoint rejects an empty request body on older servers.
+      if ((Buffer.isBuffer(content) && content.length === 0) || content === '') return;
       await this.updateContent(path, content)
     } else {
       await this.platform.writeFile(path, content);
@@ -26,6 +31,12 @@ class ResourceManager extends ContentManager {
     if (this.platform.type === 'server') {
       const [schemaName, altId] = utils.splitResource(path);
       const id = await this._getResourceId(path);
+      if ((Buffer.isBuffer(content) && content.length === 0) || content === '') {
+        // Update the underlying content without deleting the resource: keep
+        // its ID, metadata and access rights, and let DB triggers reset size/hash.
+        await this.platform.updateFile(`api/db/${schemaName}._resources/${id}`, {content: ''});
+        return;
+      }
       const url = `srv/resources/${schemaName}/${id}`;
       const response = await this.platform.updateFile(url, content, {
         headers: { 'Content-Type': this._getContentType(altId) }
@@ -75,7 +86,7 @@ class ResourceManager extends ContentManager {
 
   createPath(schemaName, resource) {
     const fileName = typeof resource === 'string' ? resource : resource.alt_id;
-    if (fileName.startsWith('.cubes/') || fileName.startsWith('.cubes\\') || fileName.startsWith('topic.')) return null;
+    if (fileName.startsWith('.cubes/') || fileName.startsWith('.cubes\\') || /^topic\.\d+[\\/]/.test(fileName)) return null;
     return `/${schemaName}/${utils.encodePath(fileName)}`;
   }
 }

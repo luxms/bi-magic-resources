@@ -38,6 +38,7 @@ class Auth {
       await callback();
     } catch (err) {
       this._handleError(err);
+      process.exitCode = 1;
     }
   }
 

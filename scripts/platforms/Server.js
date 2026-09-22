@@ -51,7 +51,7 @@ class Server extends Platform {
   }
 
   async readFile(path, options) {
-    const fullPath = `${auth.BASE_URL}/${path}`;
+    const fullPath = new URL(`${auth.BASE_URL}/${path}`).href;
     try {
       const response = await axios.get(fullPath, {
         responseType: path.endsWith('.json') ? 'json' : 'arraybuffer',

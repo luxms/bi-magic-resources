@@ -1,3 +1,5 @@
+const { toLogicalPath } = require('./config-codec');
+
 const ENTITY_TYPES = {
   topic: {upsert: 'ADD_DASHBOARD_TOPICS', delete: 'DELETE_DASHBOARD_TOPICS'},
   dashboard: {upsert: 'ADD_DASHBOARDS', delete: 'DELETE_DASHBOARDS'},
@@ -5,7 +7,7 @@ const ENTITY_TYPES = {
 };
 
 function parseDashboardPath(relativePath) {
-  const [schema, topicSegment, ...rest] = relativePath.replace(/\\/g, '/').split('/');
+  const [schema, topicSegment, ...rest] = toLogicalPath(relativePath).split('/');
   if (!schema || !topicSegment || !topicSegment.startsWith('topic.')) return null;
 
   const topicId = Number(topicSegment.slice(6));

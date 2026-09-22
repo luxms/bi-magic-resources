@@ -27,7 +27,7 @@ class RtMiddleware {
 
   constructor(server) {
     // this._wsServer = new WebSocket.Server({server, autoPong: true, path: '/srv/bI/'});
-    this._wsServer = new WebSocket.Server({noServer: true, autoPong: true, path: '/srv/bI/'});
+    this._wsServer = new WebSocket.Server({noServer: true, autoPong: true});
     this._natsConnect();
   }
 

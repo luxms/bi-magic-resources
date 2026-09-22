@@ -4,12 +4,16 @@ const { createProxyMiddleware } = require('http-proxy-middleware');
 const mime = require('mime-types');
 const path = require('path');
 const fsp = require('fs').promises;
-const JSON5 = require('json5');
+const { isConfigPath, parseConfig, toLogicalPath } = require('./lib/config-codec');
 const chokidar = require('chokidar');
-const webpackConfig = require('../webpack.config');
+const webpackConfig = require('../webpack.config')({ dev: true });
 const auth = require('./lib/auth');
 const config = require('./lib/config');
-const { filterSchemaNames } = require('./lib/utils');
+const { filterSchemaNames, decodePath } = require('./lib/utils');
+const SourceLocal = require('./platforms/SourceLocal');
+const { createResourceMiddleware } = require('./server/middlewares/resource-middleware');
+const { createLocalWriteGuard } = require('./server/middlewares/local-write-guard');
+const { createCubeChangeTracker, parseCubePath } = require('./lib/cube-watcher');
 const {
   authMiddleware,
   cubeMiddleware,
@@ -17,6 +21,7 @@ const {
   dataMiddleware,
   dashboardMiddleware,
   dashletMiddleware,
+  topicMiddleware,
   RtMiddleware,
 } = require('./server/middlewares');
 const {
@@ -30,7 +35,19 @@ const PORT = config.getPort();
 const HOST = config.getOption('session') ? '127.0.0.1' : '0.0.0.0';
 const JWT = config.getJWT();
 
-const startDev = () => {
+const startDev = async () => {
+  const local = new SourceLocal('src');
+  const ASSETS = {};
+  let nextResourceId = 1;
+  let rtMiddleware;
+  const cubes = createCubeChangeTracker();
+  if (config.hasCubes()) {
+    for (const schema of await local.getSchemaNames()) {
+      for (const cube of await local.cubes.enumerate(schema)) {
+        cubes.seed(decodePath(cube).replace(/^\//, ''), await local.cubes.getContent(cube));
+      }
+    }
+  }
   const options = {
     compress: false,
     host: HOST,
@@ -54,15 +71,16 @@ const startDev = () => {
       app.use(authMiddleware);
 
       if (config.hasResources()) {
-        app.use('/api/db/:schema_name.resources/', (req, res, next) => {
-          const schema_name = req.params.schema_name;
-          if (!filterSchemaNames([schema_name]).length) return next();
-          res.setHeader('Content-Type', 'application/json; charset=utf-8');
-          res.end(JSON.stringify(Object.keys(ASSETS).filter(asset => asset.startsWith(schema_name + '/')).map(asset => ASSETS[asset])));
-        });
+        app.use(createResourceMiddleware({
+          local,
+          getAssets: () => ASSETS,
+          allocateId: () => nextResourceId++,
+          onChange: ({type, schema, resource}) => rtMiddleware.publishSchemaMessage(schema, [{type, payload: resource}]),
+        }));
       }
 
       if (config.hasDashboards()) {
+        app.use('/api/db/:schema_name.dashboard_topics/', topicMiddleware);
         app.use('/api/db/:schema_name.dashboards/', dashboardMiddleware);
         app.use('/api/db/:schema_name.dashlets/', dashletMiddleware);
       }
@@ -71,6 +89,27 @@ const startDev = () => {
         app.use('/api/db/:schema_name.cubes/', cubeMiddleware);
         app.use('/api/db/:schema_name.dimensions/', dimensionMiddleware);
         app.use('/api/v3/:schema_name/data/', dataMiddleware);
+      }
+
+      app.use(createLocalWriteGuard({
+        dashboards: config.hasDashboards(),
+        cubes: config.hasCubes(),
+        resources: config.hasResources(),
+      }));
+
+      // Webpack's dev middleware also serves emitted resource URLs. Route the
+      // disabled block before it so alt_id URLs cannot pick up stale local bytes.
+      if (!config.hasResources()) {
+        app.use('/srv/resources', createProxyMiddleware({
+          target: `${SERVER.replace(/\/+$/, '')}/srv/resources`,
+          changeOrigin: true,
+          secure: false,
+          on: {
+            proxyReq: proxyReq => {
+              if (JWT) proxyReq.setHeader('Authorization', `Bearer ${JWT}`);
+            },
+          },
+        }));
       }
 
       if (JWT) {
@@ -86,8 +125,6 @@ const startDev = () => {
         }))
       }
 
-      // поскольку есть copy plugin, теперь не нужно сервить статику специальным образом
-      // app.use('/srv/resources/', express.static(path.resolve(__dirname, '..', 'src')));
     },
     proxy: {
       // '/api': { target: API, changeOrigin: true, secure: false },
@@ -109,23 +146,29 @@ const startDev = () => {
   });
 
 
-  let rtMiddleware = new RtMiddleware(webpackDevServer.listeningApp);                                 // rt must be initialized with httpServer object
+  rtMiddleware = new RtMiddleware(webpackDevServer.listeningApp);
+  const upstreamWebSocket = createProxyMiddleware({target: SERVER, changeOrigin: true, secure: false});
   webpackDevServer.listeningApp.on('upgrade', (request, socket, head) => {
     const srvbi = rtMiddleware._wsServer;
+    const pathname = request.url.split('?')[0];
 
-    if (request.url === '/srv/bI/') {
+    if (pathname === '/srv/bI/' || pathname === '/srv/bI') {
       srvbi.handleUpgrade(request, socket, head, (ws) => {
         srvbi.emit('connection', ws);
       });
-    } else {
-      socket.destroy();
+    } else if (pathname !== '/srv/rt') {
+      upstreamWebSocket.upgrade(request, socket, head);
     }
   });
 
   const crypto = require('crypto');
   // Хэш контента ассета — чтобы отличать реально изменённые ресурсы от просто переэмиченных copy-плагином.
-  const hashOf = (a) => { try { return crypto.createHash('md5').update(a.source()).digest('hex'); } catch (e) { return 's' + a._size; } };
-  let ASSETS = {}, _id = 1;
+  const hashOf = (asset, name) => {
+    let bytes;
+    try { bytes = asset.buffer ? asset.buffer() : asset.source(); }
+    catch (_) { bytes = webpackDevServer.compiler.outputFileSystem.readFileSync(path.join(webpackConfig.output.path, 'srv/resources', name)); }
+    return crypto.createHash('sha256').update(bytes).digest('hex');
+  };
 
   // Watch dashboard/topic/dashlet JSON files and broadcast updates via rt-middleware.
   // These files are served by dashletMiddleware (not as webpack resources), so webpack
@@ -134,23 +177,36 @@ const startDev = () => {
   async function publishTopicChange(event, fullPath) {
     const rel = path.relative(SRC_DIR, fullPath).replace(/\\/g, '/');
     const parsed = parseDashboardPath(rel);
-    if (!parsed || !filterSchemaNames([parsed.schema]).length) return;
+    const cube = parseCubePath(rel);
+    if ((!parsed || !config.hasDashboards()) && (!cube || !config.hasCubes())) return;
+    if (!filterSchemaNames([(parsed || cube).schema]).length) return;
 
-    const isDelete = event === 'unlink';
+    let effectiveEvent = event;
     let content;
-
-    if (!isDelete) {
-      try {
-        content = JSON5.parse(await fsp.readFile(fullPath, 'utf8'));
-      } catch (err) {
-        console.warn(`[watcher] failed to read ${rel}:`, err.message);
-        return;
+    try {
+      if (event === 'unlink') {
+        // A format rename can emit add(new.yaml) before unlink(old.json5).
+        // Resolve the logical entity before deleting it from browser state.
+        const logical = '/' + toLogicalPath(rel).split('/').map(encodeURIComponent).join('/');
+        const replacement = await local.readFile(logical);
+        if (replacement !== null) {
+          content = replacement;
+          effectiveEvent = 'change';
+        }
+      } else {
+        content = parseConfig(await fsp.readFile(fullPath, 'utf8'), fullPath);
       }
+    } catch (err) {
+      console.warn(`[watcher] failed to read ${rel}:`, err.message);
+      return;
     }
 
-    const msg = makeDashboardRtMessage(event, parsed, content);
-    console.log(`[watcher] ${event} ${parsed.kind}:`, rel);
-    rtMiddleware.publishSchemaMessage(parsed.schema, msg);
+    if (parsed && config.hasDashboards()) {
+      rtMiddleware.publishSchemaMessage(parsed.schema, makeDashboardRtMessage(effectiveEvent, parsed, content));
+    } else {
+      const update = cubes.update(effectiveEvent, rel, content);
+      if (update?.messages.length) rtMiddleware.publishSchemaMessage(update.schema, update.messages);
+    }
   }
 
   const topicWatcher = chokidar.watch(SRC_DIR, {
@@ -166,19 +222,23 @@ const startDev = () => {
   });
   for (const event of ['add', 'change', 'unlink']) {
     topicWatcher.on(event, (fullPath) => {
-      if (!fullPath.endsWith('.json')) return;
-      publishTopicChange(event, fullPath).catch(err => console.error('[watcher]', err));
+      if (!isConfigPath(path.relative(SRC_DIR, fullPath))) return;
+      return publishTopicChange(event, fullPath).catch(err => console.error('[watcher]', err));
     });
   }
 
   webpackDevServer.compiler.hooks.done.tap('webpack-dev-server', (stats) => {
+    // Keep the last successful resource index while an edit fails to compile.
+    // Disabled resources must not inject local IDs into upstream browser lists.
+    if (!config.hasResources() || stats.hasErrors()) return;
     try {
       const now = new Date(stats.endTime).toJSON();
 
       const short = name => name.slice(14);                                                           // cut srv/resources from beginning of id
       const assets = {};
-      Object.keys(stats.compilation.assets).forEach(id => assets[short(id)] = stats.compilation.assets[id]);
-      const emittedAssetIds = Array.from(stats.compilation.emittedAssets).map(short);
+      Object.keys(stats.compilation.assets).filter(id => id.startsWith('srv/resources/') && !isConfigPath(short(id)))
+        .forEach(id => assets[short(id)] = stats.compilation.assets[id]);
+      const emittedAssetIds = Array.from(stats.compilation.emittedAssets).map(short).filter(id => assets[id]);
 
       const deletedIds = Object.keys(ASSETS).filter(id => !assets[id]);
       const addedIds = Object.keys(assets).filter(id => !ASSETS[id]);
@@ -187,7 +247,7 @@ const startDev = () => {
       // (ERR_INSUFFICIENT_RESOURCES, themes.json грузился многократно). Шлём только реально изменившиеся.
       const modifiedIds = emittedAssetIds.filter(id => {
         if (!ASSETS[id]) return false;
-        const h = hashOf(assets[id]);
+        const h = hashOf(assets[id], id);
         const changed = ASSETS[id].hash !== h;
         ASSETS[id].hash = h;
         return changed;
@@ -197,15 +257,17 @@ const startDev = () => {
       console.log('added', addedIds);
       console.log('modified', modifiedIds);
 
-      // groupBySchemaNames(deletedIds).forEach(({schema_name, ids}) => rtMiddleware.deleteResources(schema_name, ids.map(id => ASSETS[id])));
+      groupBySchemaNames(deletedIds).forEach(({schema_name, ids}) => {
+        rtMiddleware.publishSchemaMessage(schema_name, ids.map(id => ({type: 'DELETE_RESOURCES', payload: ASSETS[id]})));
+      });
       deletedIds.forEach(id => delete ASSETS[id]);
 
       addedIds.forEach(asset => ASSETS[asset] = {
-        id: _id++,
+        id: nextResourceId++,
         alt_id: asset.replace(/^\w+\//, ''),
         content_type: mime.lookup(asset),
-        content_length: assets[asset]._size,
-        hash: hashOf(assets[asset]),
+        content_length: assets[asset].size(),
+        hash: hashOf(assets[asset], asset),
         config: {},
         updated: now,
         created: now
@@ -215,7 +277,10 @@ const startDev = () => {
         rtMiddleware.addResources(schema_name, ids.map(id => ASSETS[id]));
       });
 
-      modifiedIds.forEach(asset => ASSETS[asset].updated = now);
+      modifiedIds.forEach(asset => {
+        ASSETS[asset].updated = now;
+        ASSETS[asset].content_length = assets[asset].size();
+      });
 
       groupBySchemaNames(modifiedIds).forEach(({schema_name, ids}) => {
         rtMiddleware.modifyResources(schema_name, ids.map(id => ASSETS[id]));
@@ -239,4 +304,4 @@ const startDev = () => {
 };
 
 if (ONLINE) auth.init(startDev);
-else startDev();
+else startDev().catch(error => { console.error(error); process.exitCode = 1; });

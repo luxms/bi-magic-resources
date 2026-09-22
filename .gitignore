@@ -5,6 +5,7 @@ authConfig.json
 .env
 .env.local
 dist
+.bi-sync/
 yarn-error.log
 .DS_Store
 .yarn/*

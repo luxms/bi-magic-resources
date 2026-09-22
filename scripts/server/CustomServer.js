@@ -6,7 +6,7 @@ class CustomServer extends BaseServer {
     super(server);
     this.wsServer = new ws.Server({
       noServer: true,
-      path: '/srv/bI',
+      path: server.sockPath,
     });
 
     this.server.listeningApp.on('upgrade', (req, sock, head) => {

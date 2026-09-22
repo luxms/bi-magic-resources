@@ -2,48 +2,20 @@
 
 const fs = require('fs');
 const path = require('path');
-const yargs = require('yargs');
-const CopyPlugin = require("copy-webpack-plugin");
+const SourceArtifactsPlugin = require('./scripts/webpack/SourceArtifactsPlugin');
 const pkg = require('./package.json');
-const env = yargs.argv.env;                                                                         // use --env with webpack 2
-const mode = (env === 'build') ? 'production' : 'development';
 const { filterSchemaNames } = require('./scripts/lib/utils');
 
 
-function getFiles(dir, prefix = '') {
-  const dirents = fs.readdirSync(dir, { withFileTypes: true });
-  const files = dirents
-    .filter(dirent => dirent.name !== '.gitkeep')
-    .map((dirent) => dirent.isDirectory() ? getFiles(path.resolve(dir, dirent.name), prefix + dirent.name + '/') : prefix + dirent.name);
-  return Array.prototype.concat(...files);
-}
-
-
-// наполняем объект entry записями о jsx/tsx файлах из директорий типа ds_xxx
-// для development:
-//  'srv/resources/ds_xxx/File': './src/ds_xxx/File.tsx',
-// Для production (build)
-//  'ds_xxx/File': './src/ds_xxx/File.tsx',
-const entry = {};                                                                                   //  __dirname + '/src/index.js',
-const SRC = path.resolve(__dirname, 'src');
-const SCHEMA_NAMES = filterSchemaNames(fs.readdirSync(SRC).filter(fileName => fs.statSync(path.resolve(SRC, fileName)).isDirectory()));
-
-SCHEMA_NAMES.forEach(schema_name => {
-  const files = getFiles(path.resolve(SRC, schema_name)).filter(fileName => fileName.endsWith('.tsx') || fileName.endsWith('.jsx'));
-  files.forEach(fileName => {
-    const fileNameWithoutExtension = fileName.replace(/\.[^/.]+$/, '');
-    console.log(`Register file: /${schema_name}/${fileNameWithoutExtension}`);
-    if (mode === 'production') {
-      entry[`${schema_name}/${fileNameWithoutExtension}`] = `./src/${schema_name}/${fileName}`;
-    } else {
-      entry[`srv/resources/${schema_name}/${fileNameWithoutExtension}`] = `./src/${schema_name}/${fileName}`;
-    }
-  });
-});
-
-module.exports = {
+module.exports = (env = {}) => {
+  const mode = env === 'build' || env.build ? 'production' : 'development';
+  const SRC = path.resolve(__dirname, 'src');
+  const schemas = () => filterSchemaNames(fs.readdirSync(SRC, {withFileTypes: true})
+    .filter(item => item.isDirectory()).map(item => item.name));
+  const artifacts = new SourceArtifactsPlugin({src: SRC, schemas, production: mode === 'production'});
+  return {
   mode,
-  entry,
+  entry: () => artifacts.entries(),
   devtool: 'source-map',
   output: {
     publicPath: '',
@@ -183,21 +155,6 @@ module.exports = {
     modules: [path.resolve('./node_modules'), path.resolve('./src')],
     extensions: ['.json', '.js', '.ts', '.jsx', '.tsx', '.css', '.scss', '.sass'],
   },
-  plugins: [
-    new CopyPlugin({
-      // для каждой схемы из зарегистрированных копируем файлы в свою директорию (кроме файлов scss и react)
-      patterns: SCHEMA_NAMES.map(schema_name => ({
-        from: path.join('src', schema_name),
-        to: (mode === 'production') ? schema_name : `srv/resources/${schema_name}`,
-        filter: f => {
-          if (f.endsWith('.tsx') || f.endsWith('.jsx') || f.endsWith('.scss') || f.endsWith('.gitkeep')) return false;
-          // in dev mode, dashlet/dashboard/topic JSONs are served by dashletMiddleware, not as static resources
-          if (mode !== 'production' && /[\\\/]topic\./.test(f)) return false;
-          return true;
-        },
-        noErrorOnMissing: true,
-      })),
-    }),
-  ],
+  plugins: [artifacts],
+  };
 };
-

@@ -1,313 +1,183 @@
-const parse = require('url-parse')
-const Local = require('../../platforms/Local');
+const fs = require('fs').promises;
+const path = require('path');
+const SourceLocal = require('../../platforms/SourceLocal');
 const Server = require('../../platforms/Server');
 const auth = require('../../lib/auth');
 const lpe = require('../../lib/lpe');
+const { httpError, sendJson, sendError, readJsonBody, objectBody, route, mergePartial, selectRows, mutationQueue } = require('./local-api');
 
-const local = new Local('src');
-const server = new Server();
+function identifier(value, name) {
+  if (typeof value !== 'string' || !value || /[\/\\\0]/.test(value) || value === '.' || value === '..') throw httpError(400, `Invalid ${name}`);
+  return value;
+}
+function stripDimension(value) {
+  const result = { ...value };
+  for (const key of ['id', 'cube_id', 'cube_name', 'source_ident', 'is_global', 'is_cube_global']) delete result[key];
+  identifier(result.name, 'dimension name');
+  return result;
+}
+function localCube(value) {
+  const result = { ...value };
+  for (const key of ['id', 'is_source_global', 'is_global', '_has_model']) delete result[key];
+  identifier(result.source_ident, 'source_ident');
+  identifier(result.name, 'cube name');
+  if (!Array.isArray(result.dimensions)) throw httpError(400, 'Cube dimensions must be an array');
+  result.dimensions = result.dimensions.map(dimension => stripDimension(objectBody(dimension)));
+  if (new Set(result.dimensions.map(item => item.name)).size !== result.dimensions.length) throw httpError(409, 'Duplicate dimension name');
+  return result;
+}
 
-async function cubeMiddleware(req, res, next) {
-  try {
-    const { method, url, params: {schema_name} } = req;
-    const path = parse(url, true).pathname;
-
-    const validSchemas = await local.getSchemaNames();
-    if (!validSchemas.includes(schema_name)) {
-      next();
-      return;
+function createCubeMiddlewares({ local = new SourceLocal('src'), server = new Server() } = {}) {
+  const exclusive = mutationQueue();
+  async function records(schema) {
+    const result = [];
+    for (const file of await local.cubes.enumerate(schema)) {
+      const content = await local.cubes.getContent(file);
+      const [cube, dimensions] = local.cubes.toServerFormat(content);
+      result.push({ file, content, cube, dimensions });
     }
-
-    switch (method) {
-      case 'GET': {
-        let result = [];
-        const cubes = await local.cubes.enumerate(schema_name);
-
-        for (let cube of cubes) {
-          let cubeContent = await local.cubes.getContent(cube);
-          [cubeContent] = local.cubes.toServerFormat(cubeContent);
-          result.push(cubeContent);
+    return result;
+  }
+  function findCube(all, id) {
+    const item = all.find(record => record.cube.id === id);
+    if (!item) throw httpError(404, `Cube not found: ${id}`);
+    return item;
+  }
+  async function saveCube(schema, all, body, id) {
+    const old = id === undefined ? null : findCube(all, id);
+    const content = localCube(old ? mergePartial(old.content, body) : { dimensions: [], ...body });
+    const nextId = `${content.source_ident}.${content.name}`;
+    if (all.some(item => item.cube.id === nextId && item !== old)) throw httpError(409, `Cube already exists: ${nextId}`);
+    const targetFile = local.cubes.createPath(schema, nextId);
+    if (!old) {
+      const created = await local.cubes.createContent(targetFile, content);
+      return local.cubes.toServerFormat(created)[0];
+    }
+    if (old.cube.id === nextId) await local.cubes.updateContent(old.file, content);
+    else {
+      const from = await local._resolve(old.file);
+      const to = local._getFullPath(targetFile).replace(/\.json$/, path.extname(from));
+      await local._assertNoSymlink(to);
+      if (await local.checkFileExists(targetFile)) throw httpError(409, `Cube path already exists: ${nextId}`);
+      await local.cubes.updateContent(old.file, content);
+      await fs.mkdir(path.dirname(to), { recursive: true });
+      await fs.rename(from, to);
+    }
+    return local.cubes.toServerFormat(content)[0];
+  }
+  async function hasLocalSchema(req) {
+    const available = (await local.getSchemaNames()).includes(req.params.schema_name);
+    if (!available && ((req.method !== 'GET' && req.method !== 'HEAD') || route(req).nextId)) throw httpError(404, `Schema is not available locally: ${req.params.schema_name}`);
+    return available;
+  }
+  async function cubeMiddleware(req, res, next) {
+    try {
+      if (!await hasLocalSchema(req)) return next();
+      const schema = req.params.schema_name;
+      const { resource } = route(req);
+      const execute = async () => {
+        const all = await records(schema);
+        if (req.method === 'GET') return sendJson(res, !resource || resource.startsWith('.') ? selectRows(all.map(item => item.cube), resource) : findCube(all, resource).cube);
+        if (req.method === 'DELETE') {
+          const item = findCube(all, resource);
+          await local.cubes.deleteContent(item.file);
+          await fs.mkdir(local._getFullPath('/' + schema), { recursive: true });
+          return sendJson(res, item.cube);
         }
-
-        res.setHeader('Content-Type', 'application/json');
-        res.end(Buffer.from(JSON.stringify(result)));
-      }
-        break;
-      case 'PUT': {
-        req.on('data', async function (body) {
-          const jsonBody = JSON.parse(body);
-          const cubeId = path.slice(1);
-          const cubes = await local.cubes.enumerate(schema_name);
-          const cubePath = local.cubes.createPath(schema_name, cubeId);
-
-          if (cubes.includes(cubePath)) {
-            const cubeContent = await local.cubes.getContent(cubePath);
-            const newContent = {...cubeContent, ...jsonBody};
-            const dimensions = [...cubeContent.dimensions];
-            await local.cubes.updateContent(cubePath, {...newContent, dimensions});
-            if (newContent.hasOwnProperty('dimensions')) delete newContent.dimensions;
-
-            res.setHeader('Content-Type', 'application/json');
-            res.end(Buffer.from(JSON.stringify(newContent)));
+        if (!['POST', 'PUT'].includes(req.method)) throw httpError(405, `Method ${req.method} is not supported`);
+        const body = await readJsonBody(req);
+        const values = Array.isArray(body) ? body : [body];
+        const results = [];
+        for (const value of values) {
+          objectBody(value);
+          const current = await records(schema);
+          const id = resource || value.id;
+          if (req.method === 'PUT' && (typeof id !== 'string' || !id)) throw httpError(400, 'Cube ID is required for update');
+          results.push(await saveCube(schema, current, value, req.method === 'POST' ? undefined : id));
+        }
+        return sendJson(res, Array.isArray(body) ? results : results[0]);
+      };
+      if (req.method === 'GET') return await execute();
+      return await exclusive(schema, execute);
+    } catch (error) { sendError(res, error); }
+  }
+  async function dimensionMiddleware(req, res, next) {
+    try {
+      if (!await hasLocalSchema(req)) return next();
+      const schema = req.params.schema_name;
+      const { resource } = route(req);
+      const execute = async () => {
+        const all = await records(schema);
+        const dimensions = all.flatMap(item => item.dimensions);
+        if (req.method === 'GET') {
+          if (!resource || resource.startsWith('.')) return sendJson(res, selectRows(dimensions, resource));
+          const found = dimensions.find(item => item.id === resource);
+          if (!found) throw httpError(404, `Dimension not found: ${resource}`);
+          return sendJson(res, found);
+        }
+        if (!['POST', 'PUT', 'DELETE'].includes(req.method)) throw httpError(405, `Method ${req.method} is not supported`);
+        const body = req.method === 'DELETE' ? { id: resource } : await readJsonBody(req);
+        const values = Array.isArray(body) ? body : [body];
+        // Validate and plan all dimensional edits before changing any cube file.
+        const pending = new Map();
+        const results = [];
+        for (const raw of values) {
+          const value = objectBody(raw);
+          let owner, original;
+          if (req.method === 'POST') {
+            const cubeId = value.cube_id || `${identifier(value.source_ident, 'source_ident')}.${identifier(value.cube_name, 'cube_name')}`;
+            owner = findCube(all, cubeId);
           } else {
-            res.statusCode = 404;
-            res.setHeader('Content-Type', 'text/plain');
-            res.end(`Not found: ${cubeId}`);
+            const id = resource && !resource.startsWith('.') ? resource : value.id;
+            owner = all.find(item => item.dimensions.some(dimension => dimension.id === id));
+            if (!owner) throw httpError(404, `Dimension not found: ${id}`);
+            original = owner.dimensions.find(dimension => dimension.id === id);
           }
-        });
-      }
-        break;
-      case 'POST': {
-        req.on('data', async function (body) {
-          const jsonBody = JSON.parse(body);
-          const cubePath = local.cubes.createPath(schema_name, jsonBody);
-          const newContent = await local.cubes.createContent(cubePath, jsonBody);
-          const [cube] = local.cubes.toServerFormat(newContent);
-          res.setHeader('Content-Type', 'application/json');
-          res.end(Buffer.from(JSON.stringify(cube)));
-        });
-      }
-        break;
-      case 'DELETE': {
-        const cubeId = path.slice(1);
-        const cubes = await local.cubes.enumerate(schema_name);
-        const cubePath = local.cubes.createPath(schema_name, cubeId);
-
-        if (cubes.includes(cubePath)) {
-          const cubeContent = await local.cubes.getContent(cubePath);
-          await local.cubes.deleteContent(cubePath);
-          const [cube] = local.cubes.toServerFormat(cubeContent);
-          res.setHeader('Content-Type', 'application/json');
-          res.end(Buffer.from(JSON.stringify(cube)));
-        } else {
-          res.statusCode = 404;
-          res.setHeader('Content-Type', 'text/plain');
-          res.end(`Not found: ${cubeId}`);
-        }
-      }
-        break;
-      default: {
-        throw new Error(`Method ${method} not implemented`);
-      }
-    }
-  } catch (err) {
-    res.statusCode = 500;
-    res.end('Error: ' + err.message);
-    console.error(err);
-  }
-}
-
-async function dimensionMiddleware(req, res, next) {
-  try {
-    const {method, url, params: {schema_name}} = req;
-    const path = parse(url, true).pathname;
-
-    const validSchemas = await local.getSchemaNames();
-    if (!validSchemas.includes(schema_name)) {
-      next();
-      return;
-    }
-
-    switch (method) {
-      case 'GET': {
-        const pattern = /source_ident='([^']+)'&&cube_name='([^']+)'/;
-        const match = path.match(pattern);
-        const cubeId = match ? `${match[1]}.${match[2]}` : null;
-        const cubePath = local.cubes.createPath(schema_name, cubeId);
-        const cubes = await local.cubes.enumerate(schema_name);
-
-        if (cubeId && cubes.includes(cubePath)) {
-          const content = await local.cubes.getContent(cubePath);
-          const dimensions = content.dimensions.map(d => ({
-            ...d,
-            source_ident: content.source_ident,
-            cube_id: cubeId,
-            cube_name: content.name,
-            is_cube_global: 0,
-            is_global: 0,
-            id: `${cubeId}.${d.name}`
-          }));
-          const contentBuffer = Buffer.from(JSON.stringify(dimensions));
-          res.setHeader('Content-Type', 'application/json');
-          res.end(contentBuffer);
-        } else {
-          res.statusCode = 404;
-          res.setHeader('Content-Type', 'text/plain');
-          res.end(`Cube not found: ${cubeId}`);
-        }
-      }
-        break;
-      case 'PUT': {
-        req.on('data', async function (body) {
-          const jsonBody = JSON.parse(body);
-          const dims = Array.isArray(jsonBody) ? jsonBody : [jsonBody];
-          const cubes = await local.cubes.enumerate(schema_name);
-          let result = [];
-
-          for (let dim of dims) {
-            const [source_ident, cube_name, dimension_name] = dim.id.split('.');
-            const cube_id = `${source_ident}.${cube_name}`;
-            const cubePath = local.cubes.createPath(schema_name, cube_id);
-
-            if (cubes.includes(cubePath)) {
-              const cubeContent = await local.cubes.getContent(cubePath);
-              const dimensions = cubeContent.dimensions.map(d => {
-                if (d.name !== dimension_name) return d;
-                result.push({...d, ...dim, id: dim.id, source_ident, cube_name, cube_id, is_global: 0, is_cube_global: 0});
-                return {...d, ...dim};
-              });
-              await local.cubes.updateContent(cubePath, {...cubeContent, dimensions}); 
-            }
+          const content = pending.get(owner.file) || { ...owner.content, dimensions: [...(owner.content.dimensions || [])] };
+          if (value.source_ident !== undefined && value.source_ident !== owner.content.source_ident || value.cube_name !== undefined && value.cube_name !== owner.content.name || value.cube_id !== undefined && value.cube_id !== owner.cube.id) throw httpError(400, 'Moving a dimension to another cube is not supported');
+          if (req.method === 'DELETE') {
+            content.dimensions = content.dimensions.filter(dimension => dimension.name !== original.name);
+            results.push(original);
+          } else {
+            const index = original ? content.dimensions.findIndex(dimension => dimension.name === original.name) : -1;
+            if (original && index < 0) throw httpError(409, `Dimension has already been changed: ${original.id}`);
+            const dimension = stripDimension(original ? mergePartial(content.dimensions[index], value) : value);
+            if (content.dimensions.some((existing, i) => existing.name === dimension.name && i !== index)) throw httpError(409, `Dimension already exists: ${dimension.name}`);
+            if (index < 0) content.dimensions.push(dimension);
+            else content.dimensions[index] = dimension;
+            results.push(local.cubes.toServerFormat({ ...content, dimensions: [dimension] })[1][0]);
           }
-
-          res.setHeader('Content-Type', 'application/json');
-          res.end(Buffer.from(JSON.stringify(result)));
-        });
-      }
-        break;
-      case 'POST': {
-        req.on('data', async function (body) {
-          const jsonBody = JSON.parse(body);
-          const dimensions = Array.isArray(jsonBody) ? jsonBody : [jsonBody];
-          const cubes = await local.cubes.enumerate(schema_name);
-          let result = [];
-  
-          for (let dim of dimensions) {
-            const cubeId = `${dim.source_ident}.${dim.cube_name}`;
-            const cubePath = local.cubes.createPath(schema_name, cubeId);
-
-            if (cubes.includes(cubePath)) {
-              const cubeContent = await local.cubes.getContent(cubePath);
-              const newDimensions = {...dim};
-              ['source_ident', 'cube_name'].forEach((key) => delete newDimensions[key]);
-              await local.cubes.updateContent(cubePath, {
-                ...cubeContent,
-                dimensions: [...cubeContent.dimensions, newDimensions],
-              });
-
-              result.push({
-                ...dim,
-                cube_id: cubeId,
-                id: `${cubeId}.${dim.name}`,
-                is_cube_global: 0,
-                is_global: 0,
-              });
-            }
-          }
-
-          res.setHeader('Content-Type', 'application/json');
-          res.end(Buffer.from(JSON.stringify(result)));
-        });
-      }
-        break;
-      case 'DELETE': {
-        const [source_ident, cube_name, dim_name] = path.slice(1).split('.');
-        const cube_id = `${source_ident}.${cube_name}`;
-        const cubePath = local.cubes.createPath(schema_name, cube_id);
-        const cubes = await local.cubes.enumerate(schema_name);
-        let result = null;
-
-        if (cubes.includes(cubePath)) {
-          const cubeContent = await local.cubes.getContent(cubePath);
-          const dimensions = cubeContent.dimensions.filter(d => {
-            if (d.name !== dim_name) return true;
-            else {
-              result = {
-                ...d,
-                source_ident,
-                cube_name,
-                cube_id,
-                id: `${cube_id}.${dim_name}`,
-                is_cube_global: 0,
-                is_global: 0,
-              }
-              return false;
-            }
-          });
-          await local.cubes.updateContent(cubePath, {...cubeContent, dimensions });
+          pending.set(owner.file, content);
         }
-
-        res.setHeader('Content-Type', 'application/json');
-        res.end(Buffer.from(JSON.stringify(result)));
-      }
-        break;
-      default: {
-        throw new Error(`Method ${method} not implemented`);
-      }
-    }
-  } catch (err) {
-    res.statusCode = 500;
-    res.end('Error: ' + err.message);
-    console.error(err);
+        for (const [file, content] of pending) await local.cubes.updateContent(file, content);
+        return sendJson(res, Array.isArray(body) ? results : results[0]);
+      };
+      if (req.method === 'GET') return await execute();
+      return await exclusive(schema, execute);
+    } catch (error) { sendError(res, error); }
   }
-}
-
-async function dataMiddleware(req, res, next) {
-  try {
-    const {method, url, params: {schema_name}} = req;
-    
-    if (url.endsWith('DatePickerMaxMin')) {
-      res.statusCode = 500;
-      res.end('Request failed');
-      console.warn('Cannot get DatePickerMaxMin');
-      return;
-    }
-
-    const validSchemas = await local.getSchemaNames();
-    if (!validSchemas.includes(schema_name)) {
-      next();
-      return;
-    }
-
-    switch (method) {
-      case 'POST': {
-        req.on('data', async function (body) {
-          const jsonBody = JSON.parse(body)
-          const cubeId = jsonBody.with;
-
-          if (cubeId) {
-            const cubePath = local.cubes.createPath(schema_name, cubeId);
-            const cubeContent = await local.cubes.getContent(cubePath);
-            const [cube, dimensions] = local.cubes.toServerFormat(cubeContent);
-
-            const localSources = await server.cubes.getDataSources(schema_name);
-            const globalSources = await server.cubes.getDataSources('adm');
-            const currentDS = [...localSources, ...globalSources].find(ds => ds.ident === cubeContent.source_ident);
-            const isLocal = localSources.includes(currentDS);
-
-            const cubeSql = lpe.generate_koob_sql(jsonBody, {
-              _dimensions: dimensions,
-              _cube: cube,
-              _user_id: auth.USER_ID,
-              _user_info: {},
-              _target_database: currentDS.config._connection.flavor,
-            });
-
-            const data = await server.cubes.getDataSourceData(schema_name, cubeSql, cubeContent.source_ident, isLocal);
-            const result = data.rows.map(row => data.columns.reduce((acc, col, index) => {
-              acc[col.name] = row[index];
-              return acc;
-            }, {}));
-  
-            const contentBuffer = Buffer.from(result.map(JSON.stringify).join('\n'));
-            res.setHeader('Content-Type', 'application/x-ndjson;charset=utf-8');
-            res.end(contentBuffer);
-          }});
-        }
-        break;
-      default: {
-        throw new Error(`Method ${method} not implemented`);
-      }
-    }
-  } catch (err) {
-    res.statusCode = 500;
-    res.end('Error: ' + err.message);
-    console.error(err);
+  // Data inspection still queries the configured server; entity CRUD above never calls it.
+  async function dataMiddleware(req, res, next) {
+    try {
+      // This POST reads data and must continue to the proxy for nonlocal atlases.
+      if (!(await local.getSchemaNames()).includes(req.params.schema_name)) return next();
+      if (req.url.endsWith('DatePickerMaxMin')) throw httpError(501, 'DatePickerMaxMin is unavailable locally');
+      if (req.method !== 'POST') throw httpError(405, `Method ${req.method} is not supported`);
+      const body = objectBody(await readJsonBody(req));
+      const schema = req.params.schema_name;
+      const item = findCube(await records(schema), body.with);
+      const localSources = await server.cubes.getDataSources(schema);
+      const globalSources = await server.cubes.getDataSources('adm');
+      const source = [...localSources, ...globalSources].find(candidate => candidate.ident === item.content.source_ident);
+      if (!source) throw httpError(404, `Data source not found: ${item.content.source_ident}`);
+      const sql = lpe.generate_koob_sql(body, { _dimensions: item.dimensions, _cube: item.cube,
+        _user_id: auth.USER_ID, _user_info: {}, _target_database: source.config._connection.flavor });
+      const data = await server.cubes.getDataSourceData(schema, sql, item.content.source_ident, localSources.includes(source));
+      const rows = data.rows.map(row => data.columns.reduce((result, column, i) => ({ ...result, [column.name]: row[i] }), {}));
+      res.setHeader('Content-Type', 'application/x-ndjson;charset=utf-8');
+      res.end(rows.map(JSON.stringify).join('\n'));
+    } catch (error) { sendError(res, error); }
   }
+  return { cubeMiddleware, dimensionMiddleware, dataMiddleware };
 }
-
-module.exports = {
-  cubeMiddleware,
-  dimensionMiddleware,
-  dataMiddleware,
-};
+module.exports = { ...createCubeMiddlewares(), createCubeMiddlewares };
