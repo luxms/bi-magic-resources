@@ -5,7 +5,7 @@ const os = require('node:os');
 const path = require('node:path');
 const webpack = require('webpack');
 const Plugin = require('../webpack/SourceArtifactsPlugin');
-const {sha256, hashConfig, validateRelativePath} = require('../lib/artifact-manifest');
+const {validateRelativePath} = require('../lib/artifact-manifest');
 const {stringifyConfig} = require('../lib/config-codec');
 
 async function fixture(t, files) {
@@ -33,7 +33,7 @@ async function fixture(t, files) {
     }));
   })};
 }
-test('configs compile, exact originals and transitive helper sources are packaged', async t => {
+test('configs compile and source maps retain transitive helper sources without a sidecar', async t => {
   const files = {
     'main.jsx': "import {value} from './helper.jsx'; export default value;",
     'helper.jsx': 'export const value = 42;',
@@ -49,32 +49,29 @@ test('configs compile, exact originals and transitive helper sources are package
   assert.equal(fs.existsSync(path.join(dist, '.bi-build.json')), false);
   assert.equal(fs.readFileSync(path.join(dist, 'plain.js'), 'utf8'), files['plain.js']);
   assert.deepEqual(fs.readFileSync(path.join(dist, 'asset.bin')), files['asset.bin']);
-  const pkg = JSON.parse(fs.readFileSync(path.join(dist, '_sources.json')));
-  const bundle = pkg.artifacts.find(x => x.kind === 'bundle');
-  assert.deepEqual(bundle.entries, ['main.jsx']);
-  assert.deepEqual(bundle.sources.map(x => x.path).sort(), ['helper.jsx', 'main.jsx']);
-  for (const output of bundle.outputs) assert.equal(output.hash, sha256(fs.readFileSync(path.join(dist, output.path))));
-  const config = pkg.artifacts.find(x => x.sources[0].path === 'topic.1/index.json5');
-  assert.equal(config.sources[0].content, files['topic.1/index.json5']);
-  assert.equal(config.outputs[0].hash, hashConfig(JSON.parse(fs.readFileSync(path.join(dist, 'topic.1/index.json')))));
+  assert.equal(fs.existsSync(path.join(dist, '_sources.json')), false);
+  const map = JSON.parse(fs.readFileSync(path.join(dist, 'main.js.map')));
+  for (const name of ['main.jsx', 'helper.jsx']) {
+    assert.ok(map.sources.some((source, i) => source.endsWith('/' + name) && map.sourcesContent[i] === files[name]));
+  }
+  assert.deepEqual(JSON.parse(fs.readFileSync(path.join(dist, 'topic.1/index.json'))), {title: 'Test', trailing: [1]});
   assert.equal(JSON.parse(fs.readFileSync(path.join(dist, 'topic.1/dashboard.2/index.json'))).title, 'Hello');
 });
-test('rejects duplicate config output and reserved sidecar', async t => {
+test('rejects duplicate config output and omits obsolete sidecar', async t => {
   const f = await fixture(t, {'topic.1/index.json5': '{}', 'topic.1/index.yaml': '{}'});
   await assert.rejects(f.build(), /Duplicate resource output/);
   const g = await fixture(t, {'_sources.json': '{}'});
-  await assert.rejects(g.build(), /Reserved resource path/);
+  assert.equal(fs.existsSync(path.join(await g.build(), '_sources.json')), false);
 });
-test('generated topic and cube .json JSON5 source compiles to strict JSON and packages exact text', async t => {
+test('generated topic and cube .json JSON5 source compiles to strict JSON without source packages', async t => {
   const values = {'topic.1/index.json': {title: 'Topic'}, '.cubes/source.sales.json': {title: 'Sales'}};
   const files = Object.fromEntries(Object.entries(values).map(([name, value]) => [name, stringifyConfig(value, name)]));
   files['data.json'] = '{ "resource" : true }\r\n';
   const f = await fixture(t, files), dist = await f.build();
-  const pkg = JSON.parse(fs.readFileSync(path.join(dist, '_sources.json')));
+  assert.equal(fs.existsSync(path.join(dist, '_sources.json')), false);
   for (const [name, value] of Object.entries(values)) {
     assert.match(files[name], /title:/);
     assert.deepEqual(JSON.parse(fs.readFileSync(path.join(dist, name))), value);
-    assert.equal(pkg.artifacts.find(artifact => artifact.sources[0].path === name).sources[0].content, files[name]);
   }
   assert.equal(fs.readFileSync(path.join(dist, 'data.json'), 'utf8'), files['data.json']);
 });
@@ -95,7 +92,7 @@ test('artifact paths reject traversal and private files', () => {
     assert.throws(() => validateRelativePath(input), /Unsafe/);
   }
 });
-test('packages exact TSX and Sass sources while preserving binary assets', async t => {
+test('source maps retain exact TSX and Sass sources while preserving binary assets', async t => {
   const f = await fixture(t, {
     'main.tsx': "import {value} from './helper'; import './styles.scss'; import image from './image.png'; export default {value, image};",
     'helper.tsx': 'export const value: number = 3;',
@@ -112,11 +109,15 @@ test('packages exact TSX and Sass sources while preserving binary assets', async
     {test: /\.png$/, type: 'asset/resource', generator: {filename: 'ds_test/[name][ext]'}},
   ]};
   const dist = await f.build();
-  const pkg = JSON.parse(fs.readFileSync(path.join(dist, '_sources.json')));
-  const bundle = pkg.artifacts.find(x => x.kind === 'bundle');
-  assert.deepEqual(bundle.sources.map(x => x.path).sort(), ['_colors.scss', 'helper.tsx', 'main.tsx', 'styles.scss']);
-  assert.equal(bundle.sources.find(x => x.path === 'styles.scss').content, '@use "./colors"; .test {color: colors.$color}');
-  assert.equal(bundle.outputs.some(x => x.path === 'image.png'), false);
+  assert.equal(fs.existsSync(path.join(dist, '_sources.json')), false);
+  const map = JSON.parse(fs.readFileSync(path.join(dist, 'main.js.map')));
+  for (const file of ['main.tsx', 'helper.tsx', 'styles.scss', '_colors.scss']) {
+    const content = fs.readFileSync(path.join(f.schema, file), 'utf8');
+    assert.ok(map.sources.some((source, i) => source.endsWith('/' + file) && map.sourcesContent[i] === content), file);
+  }
+  assert.ok(map.sourcesContent.some(content => content && content.includes('___CSS_LOADER')),
+    'mapped generated CSS module stays intact');
+  assert.deepEqual(Object.keys(map).sort(), ['file', 'mappings', 'names', 'sourceRoot', 'sources', 'sourcesContent', 'version']);
   assert.deepEqual(fs.readFileSync(path.join(dist, 'image.png')), Buffer.from([0x89, 0x50, 0x4e, 0x47]));
 });
 test('rejects local dependencies outside the schema and unowned dynamic chunks', async t => {
@@ -143,7 +144,18 @@ test('ready JSON-like resources are opaque bytes and same-stem names coexist', a
   }
   assert.deepEqual(JSON.parse(fs.readFileSync(path.join(dist, 'topic.1/index.json'))), {title: 'config'});
   assert.deepEqual(JSON.parse(fs.readFileSync(path.join(dist, '.cubes/example.json'))), {enabled: true});
-  const pack = JSON.parse(fs.readFileSync(path.join(dist, '_sources.json')));
-  assert.equal(pack.artifacts.length, 2);
-  assert.ok(pack.artifacts.every(artifact => artifact.kind === 'config'));
+  assert.equal(fs.existsSync(path.join(dist, '_sources.json')), false);
+});
+
+test('each map carries only its own entry sources', async t => {
+  const f = await fixture(t, {
+    'first.jsx': 'export default "first";',
+    'second.jsx': 'export default "second";',
+  });
+  const dist = await f.build();
+  for (const [entry, other] of [['first', 'second'], ['second', 'first']]) {
+    const map = JSON.parse(fs.readFileSync(path.join(dist, `${entry}.js.map`)));
+    assert.ok(map.sources.some(source => source.endsWith(`/${entry}.jsx`)));
+    assert.ok(map.sources.every(source => !source.endsWith(`/${other}.jsx`)));
+  }
 });

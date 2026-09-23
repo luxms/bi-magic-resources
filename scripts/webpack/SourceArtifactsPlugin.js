@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const {isConfigPath, toLogicalPath, parseConfig} = require('../lib/config-codec');
-const {SOURCE_PACKAGE, BUILD_METADATA, FORMAT, VERSION, validateRelativePath, sha256, hashConfig} = require('../lib/artifact-manifest');
+const {SOURCE_PACKAGE, BUILD_METADATA, VERSION, validateRelativePath} = require('../lib/artifact-manifest');
 
 function filesIn(root, prefix = '') {
   if (!fs.existsSync(root)) return [];
@@ -34,7 +34,6 @@ function inventory(src, schemas, production) {
     const root = path.join(src, schema);
     if (fs.lstatSync(root).isSymbolicLink()) throw new Error(`Source symlinks are not supported: ${root}`);
     const files = filesIn(root);
-    if (files.includes(SOURCE_PACKAGE)) throw new Error(`Reserved resource path: ${schema}/${SOURCE_PACKAGE}`);
     const meta = metadata(root);
     const entries = [...new Set([...meta.entries, ...files.filter(f => /\.[jt]sx$/.test(f) && !meta.bundledSources.includes(f))])];
     entries.forEach(validateRelativePath);
@@ -70,11 +69,14 @@ class SourceArtifactsPlugin {
             throw new Error(`Bundle output must belong to a schema (shared/dynamic chunks are unsupported): ${asset.name}`);
           }
         }
+        const filesByEntry = new Map();
         const filesBySchema = new Map(inventories.map(item => [item.schema, new Set()]));
         for (const [entryName, entry] of compilation.entries) {
           const owner = inventories.find(item => entryName.startsWith(item.prefix));
           if (!owner) throw new Error(`Entry does not belong to a schema: ${entryName}`);
           const seen = new Set();
+          const entryFiles = new Set();
+          filesByEntry.set(entryName, entryFiles);
           const addFile = file => {
             if (!file || file.split(path.sep).includes('node_modules')) return;
             const relative = path.relative(owner.root, file);
@@ -82,14 +84,15 @@ class SourceArtifactsPlugin {
               throw new Error(`Cross-schema or external local source cannot be packaged: ${file}`);
             }
             filesBySchema.get(owner.schema).add(file);
+            entryFiles.add(file);
           };
           const visit = module => {
             if (!module || seen.has(module)) return;
             seen.add(module);
             if (module.resource && module.resource.split(path.sep).includes('node_modules')) return;
             if (module.resource) addFile(module.resource.split('?')[0]);
-            if (module.buildInfo && module.buildInfo.fileDependencies) {
-              for (const file of module.buildInfo.fileDependencies) if (/\.s[ac]ss$/i.test(file)) addFile(file);
+            for (const file of module.buildInfo?.snapshot?.getFileIterable() || module.buildInfo?.fileDependencies || []) {
+              if (/\.s[ac]ss$/i.test(file)) addFile(file);
             }
             for (const connection of compilation.moduleGraph.getOutgoingConnections(module)) visit(connection.module);
           };
@@ -114,7 +117,7 @@ class SourceArtifactsPlugin {
           const metaPath = path.join(item.root, BUILD_METADATA);
           if (fs.existsSync(metaPath)) compilation.fileDependencies.add(metaPath);
           else compilation.missingDependencies.add(metaPath);
-          const artifacts = [];
+
           const owned = new Set(item.meta.bundledSources);
           const originals = new Map();
           for (const file of filesBySchema.get(item.schema)) {
@@ -130,14 +133,26 @@ class SourceArtifactsPlugin {
             originals.set(entry, fs.readFileSync(path.join(item.root, entry), 'utf8'));
             owned.add(entry);
           }
-          const bundleOutputs = compilation.getAssets()
-            .filter(asset => asset.name.startsWith(item.prefix) && /\.(?:js|css)(?:\.map)?$/.test(asset.name))
-            .map(asset => ({path: validateRelativePath(asset.name.slice(item.prefix.length)), hash: sha256(asset.source.buffer())}));
-          if (item.entries.length) artifacts.push({kind: 'bundle', outputs: bundleOutputs,
-            sources: [...originals].sort(([a], [b]) => a.localeCompare(b)).map(([path, content]) => ({path, content})), entries: item.entries});
+          // Keep mapped sources untouched: loader-generated CSS modules are JavaScript,
+          // not the original stylesheet. Unmapped source entries retain the original
+          // files (including Sass partials) using the standard source-map format.
+          for (const asset of compilation.getAssets()) {
+            if (!asset.name.startsWith(item.prefix) || !asset.name.endsWith('.js.map')) continue;
+            const map = JSON.parse(asset.source.source().toString());
+            map.sourcesContent ||= map.sources.map(() => null);
+            const entryFiles = filesByEntry.get(asset.name.slice(0, -7));
+            for (const [relative, content] of originals) {
+              if (!entryFiles?.has(path.join(item.root, relative))) continue;
+              if (map.sourcesContent.some((text, index) => text === content &&
+                  map.sources[index].split('?')[0].endsWith('/' + relative))) continue;
+              map.sources.push(`webpack:///./src/${item.schema}/${relative}`);
+              map.sourcesContent.push(content);
+            }
+            compilation.updateAsset(asset.name, new RawSource(JSON.stringify(map)));
+          }
           const emitted = new Set();
           for (const file of item.files) {
-            if (file === BUILD_METADATA || file === '.gitkeep' || /(^|\/)\.gitkeep$/.test(file)) continue;
+            if (file === SOURCE_PACKAGE || file === BUILD_METADATA || file === '.gitkeep' || /(^|\/)\.gitkeep$/.test(file)) continue;
             validateRelativePath(file);
             const absolute = path.join(item.root, file);
             if (isConfigPath(file)) {
@@ -151,7 +166,6 @@ class SourceArtifactsPlugin {
               compilation.fileDependencies.add(absolute);
               // Development configs are served through SourceLocal, never stale static copies.
               if (this.production || !/(^|\/)topic\./.test(file)) compilation.emitAsset(target, new RawSource(JSON.stringify(value, null, 2)));
-              artifacts.push({kind: 'config', outputs: [{path: output, hash: hashConfig(value)}], sources: [{path: file, content}], entries: []});
               continue;
             }
             if (owned.has(file) || /\.(?:tsx|jsx|scss)$/.test(file)) continue;
@@ -166,8 +180,6 @@ class SourceArtifactsPlugin {
             compilation.fileDependencies.add(absolute);
             compilation.emitAsset(target, new RawSource(fs.readFileSync(absolute)));
           }
-          if (this.production && artifacts.length) compilation.emitAsset(item.prefix + SOURCE_PACKAGE,
-            new RawSource(JSON.stringify({format: FORMAT, version: VERSION, artifacts}, null, 2)));
         }
       });
     });

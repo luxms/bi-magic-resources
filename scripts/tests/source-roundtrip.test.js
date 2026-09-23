@@ -6,7 +6,7 @@ const os = require('node:os');
 const webpack = require('webpack');
 const Plugin = require('../webpack/SourceArtifactsPlugin');
 const {restore} = require('../lib/restore');
-const {parseConfig} = require('../lib/config-codec');
+const {parseConfig, isConfigPath, toLogicalPath} = require('../lib/config-codec');
 
 function put(root, name, content) {
   fs.mkdirSync(path.dirname(path.join(root, name)), {recursive: true});
@@ -34,6 +34,7 @@ function build(root) {
 }
 async function fixture(t) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'source-roundtrip-'));
+  fs.symlinkSync(path.resolve(__dirname, '../../node_modules'), path.join(root, 'node_modules'), 'dir');
   t.after(() => fs.rmSync(root, {recursive: true, force: true}));
   const original = {
     'main.tsx': "import {value} from './helper'; import './styles.scss'; import image from './image.png'; export default {value, image};",
@@ -60,12 +61,16 @@ async function fixture(t) {
   const run = options => restore({rootDir: root, server: 'http://fixture', log() {}, ...options});
   return {root, original, run};
 }
-test('compile -> restore -> compile preserves source text, configs, assets and bundle entry ownership', async t => {
+test('compile -> sourcemaps -> restore -> compile preserves code, config values, assets and entry ownership', async t => {
   const {root, original, run} = await fixture(t);
+  assert.equal(fs.existsSync(path.join(root, 'dist/ds_test/_sources.json')), false);
   await run();
   for (const [name, content] of Object.entries(original)) {
     if (name === '.bi-build.json') continue;
-    assert.deepEqual(fs.readFileSync(path.join(root, 'src/ds_test', name)), Buffer.from(content), name);
+    if (isConfigPath(name)) {
+      const restored = fs.readFileSync(path.join(root, 'src/ds_test', toLogicalPath(name)), 'utf8');
+      assert.deepEqual(parseConfig(restored, toLogicalPath(name)), parseConfig(content, name));
+    } else assert.deepEqual(fs.readFileSync(path.join(root, 'src/ds_test', name)), Buffer.from(content), name);
   }
   const meta = JSON.parse(fs.readFileSync(path.join(root, 'src/ds_test/.bi-build.json')));
   assert.deepEqual(meta.entries, ['main.tsx']);
@@ -92,7 +97,7 @@ test('repeat pull keeps local comments and changes; partial categories do not im
   put(root, 'src/ds_test/helper.tsx', 'export const value: number = 99;');
   await run();
   assert.equal(fs.readFileSync(path.join(root, 'src/ds_test/helper.tsx'), 'utf8'), 'export const value: number = 99;');
-  // A config-only pull has no resource sidecar: first import uses JSON5 in .json.
+  // Server config values restore as JSON5 in .json; original YAML/comments are unavailable.
   const config = fs.readFileSync(path.join(root, 'src/ds_test/topic.1/dashboard.2/index.json'), 'utf8');
   assert.deepEqual(parseConfig(config, 'index.json'), {title: 'Dashboard', config: {}});
 });

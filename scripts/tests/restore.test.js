@@ -9,6 +9,7 @@ const { sha256, hashConfig, FORMAT } = require('../lib/artifact-manifest');
 async function fixture(t) {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'bi-restore-'));
   t.after(() => fs.rm(root, { recursive: true, force: true }));
+  await fs.symlink(path.resolve(__dirname, '../../node_modules'), path.join(root, 'node_modules'));
   const put = async (name, content) => {
     await fs.mkdir(path.dirname(path.join(root, name)), { recursive: true });
     await fs.writeFile(path.join(root, name), content);
@@ -51,36 +52,13 @@ test('unchanged upstream preserves edits, changed upstream conflicts before any 
   await assert.rejects(f.read('src/ds_test/new.txt'), { code: 'ENOENT' });
 });
 
-for (const extension of ['json', 'json5']) test(`source package restores exact .${extension} config text despite server JSON formatting`, async t => {
+test('legacy source packages are ignored, even malformed; configs use current server values', async t => {
   const f = await fixture(t);
-  const original = '// hello\n{title: "one",}\n';
-  await f.put('dist/ds_test/topic.1/index.json', '{\n "title": "one"\n}');
-  const artifact = configArtifact({title: 'one'}, original);
-  artifact.sources[0].path = `topic.1/index.${extension}`;
-  await f.pack([artifact]);
+  await f.put('dist/ds_test/_sources.json', 'not JSON');
+  await f.put('dist/ds_test/topic.1/index.json', '{"title":"current"}');
   await f.run();
-  assert.equal(await f.read(`src/ds_test/topic.1/index.${extension}`), original);
+  assert.match(await f.read('src/ds_test/topic.1/index.json'), /current/);
   await assert.rejects(f.read('src/ds_test/_sources.json'), {code: 'ENOENT'});
-});
-
-test('stale config package imports current values instead of stale original', async t => {
-  const f = await fixture(t);
-  await f.put('dist/ds_test/topic.1/index.json', '{"title":"changed"}');
-  await f.pack([configArtifact({title: 'one'})]);
-  const result = await f.run();
-  assert.match(await f.read('src/ds_test/topic.1/index.json'), /changed/);
-  assert.match(result.notices[0], /stale config/);
-});
-
-test('valid bundle restores sources and entries, removes redundant ready bundle safely', async t => {
-  const f = await fixture(t);
-  await f.put('dist/ds_test/widget.js', 'compiled');
-  await f.put('src/ds_test/widget.js', 'compiled');
-  await f.pack([bundleArtifact('compiled')]);
-  await f.run();
-  assert.match(await f.read('src/ds_test/widget.tsx'), /export default/);
-  assert.deepEqual(JSON.parse(await f.read('src/ds_test/.bi-build.json')), {version: 1, entries: ['widget.tsx'], bundledSources: ['widget.tsx']});
-  await assert.rejects(f.read('src/ds_test/widget.js'), {code: 'ENOENT'});
 });
 
 test('stale bundle and unsupported maps survive as ready files', async t => {
@@ -116,15 +94,9 @@ test('remote inventory and content flags exclude stale dist and disabled sidecar
   await assert.rejects(f.read('src/ds_other/other.txt'), {code: 'ENOENT'});
 });
 
-test('rejects source traversal and symlink destinations before touching src', async t => {
+test('rejects symlink destinations before touching src', async t => {
   const f = await fixture(t);
   await f.put('dist/ds_test/widget.js', 'compiled');
-  const bad = bundleArtifact('compiled');
-  bad.sources[0].path = '../../escape.tsx';
-  bad.entries = ['../../escape.tsx'];
-  await f.pack([bad]);
-  await assert.rejects(f.run(), /Unsafe/);
-  await fs.rm(path.join(f.root, 'dist/ds_test/_sources.json'));
   await fs.mkdir(path.join(f.root, 'outside'));
   await fs.mkdir(path.join(f.root, 'src'));
   await fs.symlink(path.join(f.root, 'outside'), path.join(f.root, 'src/ds_test'));
@@ -196,7 +168,7 @@ for (const matching of [true, false]) {
     const result = await f.run();
     assert.equal(await f.read('src/ds_test/theme.json'), current);
     await assert.rejects(f.read('src/ds_test/theme.json5'), {code: 'ENOENT'});
-    assert.match(result.notices[0], /ignored config artifact outside entity config scope/);
+
   });
 }
 
@@ -238,4 +210,110 @@ test('resources-only restore includes nonnumeric topic-prefixed resource folders
   assert.equal(await f.read('src/ds_test/topic.notes/data.json5'), original);
   await assert.rejects(f.read('src/ds_test/topic.1/index.json'), {code: 'ENOENT'});
   await assert.rejects(f.read('src/ds_test/topic.1/index.json5'), {code: 'ENOENT'});
+});
+
+async function mapped(f, name, sources) {
+  await f.put(`dist/ds_test/${name}.js`, `compiled\n//# sourceMappingURL=${path.posix.basename(name)}.js.map`);
+  await f.put(`dist/ds_test/${name}.js.map`, JSON.stringify({version: 3, file: `ds_test/${name}.js`, sources: sources.map(s => s[0]), sourcesContent: sources.map(s => s[1])}));
+}
+
+test('multi-source webpack map restores entry, dependency and original nested Sass without loader wrappers', async t => {
+  const f = await fixture(t);
+  const style = '.foo { color: red; }';
+  const nested = JSON.stringify({version:3, sources:['webpack://./src/ds_test/style.scss'],sourcesContent:[style]});
+  await mapped(f, 'widget', [
+    ['webpack://app/./src/ds_test/widget.tsx', "import './style.scss'; import {n} from './model'; export default n;"],
+    ['webpack://app/./src/ds_test/model.ts', 'export const n: number = 1;'],
+    ['webpack://app/./src/ds_test/style.scss', `___CSS_LOADER_EXPORT___.push([module.id, "css", "",${nested}]);`],
+    ['webpack://app/./src/ds_test/style.scss?abcd', 'import API from "style-loader/dist/runtime/foo";'],
+    ['webpack://app/./node_modules/react/index.js', 'module.exports = React;'],
+  ]);
+  await f.run();
+  assert.equal(await f.read('src/ds_test/style.scss'), style);
+  const metadata = JSON.parse(await f.read('src/ds_test/.bi-build.json'));
+  assert.deepEqual(metadata.entries, ['widget.tsx']);
+  assert.deepEqual(metadata.bundledSources, ['model.ts', 'style.scss', 'widget.tsx']);
+  await assert.rejects(f.read('src/ds_test/widget.js'), {code:'ENOENT'});
+  await f.put('src/ds_test/model.ts', 'local edit');
+  await f.run();
+  assert.equal(await f.read('src/ds_test/model.ts'), 'local edit');
+});
+
+for (const source of ['webpack://app/./src/ds_test/../../escape.ts', 'webpack://app/./src/ds_other/widget.tsx']) test(`unsafe/cross-atlas source keeps bundle: ${source}`, async t => {
+  const f = await fixture(t);
+  await mapped(f, 'widget', [[source, 'export default 1;']]);
+  await f.run();
+  assert.match(await f.read('src/ds_test/widget.js'), /compiled/);
+});
+
+test('different versions of shared sources from multiple bundles fail atomically', async t => {
+  const f = await fixture(t);
+  for (const name of ['one', 'two']) await mapped(f, name, [
+    [`webpack:///./src/ds_test/${name}.tsx`, 'export default 1;'],
+    ['webpack:///./src/ds_test/model.ts', `export default '${name}';`],
+  ]);
+  await assert.rejects(f.run(), /source collision/);
+  await assert.rejects(f.read('src/ds_test/one.tsx'), {code:'ENOENT'});
+});
+
+test('incomplete style map retains executable JS rather than writing loader code as SCSS', async t => {
+  const f = await fixture(t);
+  await mapped(f, 'widget', [
+    ['webpack:///./src/ds_test/widget.tsx', "import './style.scss';"],
+    ['webpack:///./src/ds_test/style.scss', '___CSS_LOADER_EXPORT___.push([module.id, "css"]);'],
+  ]);
+  await f.run();
+  assert.match(await f.read('src/ds_test/widget.js'), /compiled/);
+  await assert.rejects(f.read('src/ds_test/style.scss'), {code:'ENOENT'});
+});
+
+test('missing imported source or bundled dependency leaves original JS/map intact', async t => {
+  const f = await fixture(t);
+  await mapped(f, 'widget', [['webpack:///./src/ds_test/widget.tsx', "import './missing';"]]);
+  await f.run();
+  assert.match(await f.read('src/ds_test/widget.js'), /compiled/);
+  await mapped(f, 'widget', [
+    ['webpack:///./src/ds_test/widget.tsx', 'export default 1;'],
+    ['webpack:///./node_modules/nonexistent-map-dependency/index.js', 'module.exports = 1;'],
+  ]);
+  await f.run();
+  assert.match(await f.read('src/ds_test/widget.js'), /compiled/);
+  await assert.rejects(f.read('src/ds_test/widget.tsx'), {code:'ENOENT'});
+});
+
+test('Sass @use requires the original partial before replacing the working bundle', async t => {
+  const f = await fixture(t);
+  await mapped(f, 'widget', [
+    ['webpack:///./src/ds_test/widget.tsx', "import './style.scss';"],
+    ['webpack:///./src/ds_test/style.scss', "@use './colors'; .a { color: colors.$red; }"],
+  ]);
+  await f.run();
+  assert.match(await f.read('src/ds_test/widget.js'), /compiled/);
+  await assert.rejects(f.read('src/ds_test/style.scss'), {code:'ENOENT'});
+});
+
+test('project directory named webpack is restored rather than discarded as runtime', async t => {
+  const f = await fixture(t);
+  await mapped(f, 'widget', [
+    ['webpack://app/./src/ds_test/widget.tsx', "import {n} from './webpack/helper'; export default n;"],
+    ['webpack://app/./src/ds_test/webpack/helper.ts', 'export const n = 1;'],
+    ['webpack://app/webpack/bootstrap', 'runtime implementation'],
+  ]);
+  await f.run();
+  assert.equal(await f.read('src/ds_test/webpack/helper.ts'), 'export const n = 1;');
+  await assert.rejects(f.read('src/ds_test/widget.js'), {code:'ENOENT'});
+});
+
+test('installed package with subpath-only exports does not require a root export', async t => {
+  const f = await fixture(t);
+  await fs.unlink(path.join(f.root, 'node_modules'));
+  await f.put('node_modules/subpath-only/package.json', JSON.stringify({name:'subpath-only', exports:{'./feature':'./internal.js'}}));
+  await f.put('node_modules/subpath-only/internal.js', 'module.exports = 1;');
+  await mapped(f, 'widget', [
+    ['webpack://app/./src/ds_test/widget.tsx', "import n from 'subpath-only/feature'; export default n;"],
+    ['webpack://app/./node_modules/subpath-only/internal.js', 'module.exports = 1;'],
+  ]);
+  await f.run();
+  assert.match(await f.read('src/ds_test/widget.tsx'), /subpath-only\/feature/);
+  await assert.rejects(f.read('src/ds_test/widget.js'), {code:'ENOENT'});
 });

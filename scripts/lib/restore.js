@@ -1,7 +1,7 @@
 const fs = require('fs').promises;
 const path = require('path');
 const { isConfigPath, toLogicalPath, parseConfig, stringifyConfig } = require('./config-codec');
-const { SOURCE_PACKAGE, BUILD_METADATA, FORMAT, VERSION, sha256, hashConfig, validateRelativePath } = require('./artifact-manifest');
+const { SOURCE_PACKAGE, BUILD_METADATA, sha256, hashConfig } = require('./artifact-manifest');
 
 function safePath(relative) {
   if (typeof relative !== 'string' || !relative || relative.includes('\\') || relative.includes('\0') || relative.startsWith('/') || /^[A-Za-z]:/.test(relative) || relative.split('/').some(p => !p || p === '.' || p === '..')) {
@@ -58,26 +58,7 @@ function fingerprint(content, relative, config = isConfigPath(relative)) {
   return config ? hashConfig(parseConfig(content.toString('utf8'), relative)) : sha256(content);
 }
 
-// Deliberately restricted to one self-contained source. General webpack maps can
-// contain loader output and modules whose dependencies are not reconstructible.
-function extractLegacy(relative, mapBytes, bundleBytes) {
-  try {
-    const map = JSON.parse(mapBytes.toString('utf8'));
-    const bundlePath = relative.slice(0, -4);
-    const schema = relative.split('/')[0];
-    if (map.sourceRoot || map.version !== 3 || map.sources?.length !== 1 || map.sourcesContent?.length !== 1 || typeof map.sourcesContent[0] !== 'string') return null;
-    if (map.file !== path.posix.basename(bundlePath) && map.file !== bundlePath.slice(schema.length + 1)) return null;
-    const source = map.sources[0];
-    const sourcePath = source.startsWith(`webpack://`) ? source.replace(/^webpack:\/\/[^/]*\/(?:\.\/)?src\//, '') : source.replace(/^\.\/src\//, '');
-    safePath(sourcePath);
-    if (!sourcePath.startsWith(`${schema}/`) || !/\.(jsx|tsx)$/.test(sourcePath) || sourcePath.replace(/\.(jsx|tsx)$/, '.js') !== bundlePath) return null;
-    const content = map.sourcesContent[0];
-    if (/\b(?:import|require)\b|\bexport\s+[^;\n]*\bfrom\b|__webpack|sourceMappingURL/.test(content)) return null;
-    const reference = bundleBytes.toString('utf8').match(/\/\/[#@]\s*sourceMappingURL=([^\s]+)\s*$/);
-    if (!reference || reference[1] !== path.posix.basename(relative)) return null;
-    return { path: sourcePath, content };
-  } catch (_) { return null; }
-}
+const { extractSources } = require('./sourcemap-sources');
 
 async function restore(options = {}) {
   const rootDir = path.resolve(options.rootDir || path.join(__dirname, '../..'));
@@ -123,10 +104,10 @@ async function restore(options = {}) {
     if (desired.has(relative) && !desired.get(relative).bytes.equals(bytes)) throw new Error(`Restored source collision: ${relative}`);
     desired.set(relative, { bytes, config });
   }
-  function addConfig(logical, content, preferredPath, originalText) {
-    const physical = logicalConfigs.get(logical) || preferredPath || logical;
-    // Existing YAML/JSON5 convention wins over a remote package's filename.
-    const text = physical === preferredPath && originalText !== undefined ? originalText : stringifyConfig(content, physical);
+  function addConfig(logical, content) {
+    const physical = logicalConfigs.get(logical) || logical;
+    // Preserve the existing project's filename and format convention.
+    const text = stringifyConfig(content, physical);
     add(physical, text, true);
   }
   function registerBundle(schema, sources, entries) {
@@ -135,92 +116,25 @@ async function restore(options = {}) {
     item.bundledSources.push(...sources);
     metadata.set(schema, item);
   }
-  for (const [relative, bytes] of available) {
-    if (path.posix.basename(relative) !== SOURCE_PACKAGE) continue;
-    if (relative.split('/').length !== 2) throw new Error(`Reserved source package path: ${relative}`);
-    consumed.add(relative);
-    const schema = relative.split('/')[0];
-    const manifest = JSON.parse(bytes.toString('utf8'));
-    if (manifest.format !== FORMAT || manifest.version !== VERSION || !Array.isArray(manifest.artifacts)) throw new Error(`Unsupported source package: ${relative}`);
-    const ownedOutputs = new Set();
-    for (const artifact of manifest.artifacts) {
-      if (!['config', 'bundle'].includes(artifact.kind) || !Array.isArray(artifact.outputs) || !artifact.outputs.length || !Array.isArray(artifact.sources) || !artifact.sources.length || !Array.isArray(artifact.entries)) throw new Error(`Invalid artifact in ${relative}`);
-      for (const output of artifact.outputs) {
-        validateRelativePath(output.path);
-        if (!/^[a-f0-9]{64}$/.test(output.hash)) throw new Error(`Invalid output hash in ${relative}`);
-        if (ownedOutputs.has(output.path)) throw new Error(`Duplicate artifact output: ${schema}/${output.path}`);
-        ownedOutputs.add(output.path);
-      }
-      const sourceNames = new Set();
-      for (const source of artifact.sources) {
-        validateRelativePath(source.path);
-        if (typeof source.content !== 'string' || sourceNames.has(source.path)) throw new Error(`Invalid or duplicate artifact source in ${relative}`);
-        sourceNames.add(source.path);
-      }
-      for (const entry of artifact.entries) {
-        validateRelativePath(entry);
-        if (!sourceNames.has(entry) || !/\.(jsx|tsx|js|ts)$/.test(entry)) throw new Error(`Invalid bundle entry: ${entry}`);
-      }
-      if (artifact.kind === 'config' && (artifact.outputs.length !== 1 || artifact.sources.length !== 1 || artifact.entries.length)) throw new Error(`Invalid config artifact in ${relative}`);
-      if (artifact.kind === 'bundle' && !artifact.entries.length) throw new Error(`Bundle without entries in ${relative}`);
-      // Older packages treated resource JSON5/YAML as configs. Only entity
-      // configs are convertible now; leave those resource outputs untouched.
-      if (artifact.kind === 'config' && (!isConfigPath(`${schema}/${artifact.outputs[0].path}`) || !isConfigPath(`${schema}/${artifact.sources[0].path}`))) {
-        notices.push(`${relative}: ignored config artifact outside entity config scope: ${artifact.outputs[0].path}`);
-        continue;
-      }
-      // Disabled categories are never imported indirectly through _sources.json.
-      if (!artifact.outputs.every(output => selected(`${schema}/${output.path}`)) || !artifact.sources.every(source => selected(`${schema}/${source.path}`))) continue;
-      const matching = artifact.outputs.every(output => {
-        const downloaded = available.get(`${schema}/${output.path}`);
-        return downloaded && fingerprint(downloaded, output.path, artifact.kind === 'config') === output.hash;
-      });
-      if (!matching) {
-        notices.push(`${relative}: stale ${artifact.kind} package; keeping current server output`);
-        // A stale entity config package must never replace current server values.
-        if (artifact.kind === 'config') {
-          const output = `${schema}/${artifact.outputs[0].path}`;
-          if (available.has(output)) {
-            addConfig(output, parseConfig(available.get(output).toString('utf8'), output));
-            consumed.add(output);
-          }
-        }
-        continue;
-      }
-      if (artifact.kind === 'config') {
-        const source = artifact.sources[0];
-        const output = `${schema}/${artifact.outputs[0].path}`;
-        if (toLogicalPath(source.path) !== artifact.outputs[0].path || !isConfigPath(source.path)) throw new Error(`Invalid config mapping in ${relative}`);
-        const value = parseConfig(source.content, source.path);
-        if (hashConfig(value) !== artifact.outputs[0].hash) throw new Error(`Packaged config does not match output: ${output}`);
-        addConfig(output, value, `${schema}/${source.path}`, source.content);
-      } else {
-        for (const source of artifact.sources) add(`${schema}/${source.path}`, source.content);
-        registerBundle(schema, artifact.sources.map(s => s.path), artifact.entries);
-      }
-      for (const output of artifact.outputs) {
-        const name = `${schema}/${output.path}`;
-        consumed.add(name);
-        if (artifact.kind === 'bundle') superseded.set(name, available.get(name));
-      }
-    }
+  // Legacy source packages are intentionally ignored, even if stale or malformed.
+  for (const relative of available.keys()) {
+    if (path.posix.basename(relative) === SOURCE_PACKAGE) consumed.add(relative);
   }
   for (const [relative, bytes] of available) {
     if (consumed.has(relative) || !relative.endsWith('.js.map')) continue;
     const bundlePath = relative.slice(0, -4);
     const bundle = available.get(bundlePath);
-    const extracted = bundle && extractLegacy(relative, bytes, bundle);
+    const extracted = bundle && extractSources(relative, bytes, bundle, { rootDir, available });
     if (extracted) {
-      add(extracted.path, extracted.content);
+      for (const source of extracted.sources) add(source.path, source.content);
       const schema = relative.split('/')[0];
-      const sourcePath = extracted.path.slice(schema.length + 1);
-      registerBundle(schema, [sourcePath], [sourcePath]);
+      registerBundle(schema, extracted.sources.map(s => s.path.slice(schema.length + 1)), extracted.entries.map(s => s.slice(schema.length + 1)));
       consumed.add(relative);
       consumed.add(bundlePath);
       superseded.set(relative, bytes);
       superseded.set(bundlePath, bundle);
-      notices.push(`${relative}: restored one self-contained source`);
-    } else notices.push(`${relative}: keeping ready JS/map; no complete supported source package`);
+      notices.push(`${relative}: restored sources from sourcemap`);
+    } else notices.push(`${relative}: keeping ready JS/map; no complete supported sourcemap`);
   }
   for (const [relative, bytes] of available) {
     if (consumed.has(relative)) continue;
@@ -290,8 +204,8 @@ async function restore(options = {}) {
     else conflicts.push(`${relative} (compiled file has local changes)`);
   }
   for (const relative of existingFiles) {
-    if (!/\.(tsx|jsx)$/.test(relative) || desired.has(relative) || deletes.includes(relative)) continue;
-    const output = relative.replace(/\.(tsx|jsx)$/, '.js');
+    if (!/\.(tsx|jsx|ts)$/.test(relative) || desired.has(relative) || deletes.includes(relative)) continue;
+    const output = relative.replace(/\.(tsx|jsx|ts)$/, '.js');
     if (desired.has(output)) conflicts.push(`${relative} (existing source collides with downloaded ${output})`);
   }
   // Check all file/directory collisions before the first mutation, not midway.
@@ -319,4 +233,4 @@ async function restore(options = {}) {
   return { written: writes.map(w => w.relative), removed: deletes, notices };
 }
 
-module.exports = { restore, extractLegacy, safePath, assertNoSymlinks };
+module.exports = { restore, safePath, assertNoSymlinks };
