@@ -4,6 +4,7 @@ const path = require('path');
 const JSON5 = require('json5');
 const utils = require('../lib/utils');
 const Platform = require('./base/Platform');
+const {normalizeResourceContent} = require('../lib/resource-content');
 
 class Local extends Platform {
   constructor(baseDir = 'src') {
@@ -70,11 +71,9 @@ class Local extends Platform {
       const dirPath = path.dirname(fullPath);
       await fsp.mkdir(dirPath, { recursive: true });
 
-      if (fullPath.endsWith('.json')) {
-        await fsp.writeFile(fullPath, JSON.stringify(content, null, 2), 'utf-8');
-      } else {
-        await fsp.writeFile(fullPath, content ?? '');
-      }
+      if (fullPath.endsWith('.json')) await fsp.writeFile(fullPath, JSON.stringify(content, null, 2), 'utf-8');
+      else await fsp.writeFile(fullPath, normalizeResourceContent(filePath, content ?? ''));
+
     } catch (error) {
       console.error('WriteFile failed:', error);
       throw error;

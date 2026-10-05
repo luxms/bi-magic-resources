@@ -4,6 +4,8 @@ const fs = require('fs');
 const path = require('path');
 const yargs = require('yargs');
 const CopyPlugin = require("copy-webpack-plugin");
+const NormalizeLineEndingsPlugin = require('./scripts/plugins/NormalizeLineEndingsPlugin');
+const normalizeLineEndingsLoader = path.resolve(__dirname, 'scripts/plugins/normalize-line-endings.js');
 const pkg = require('./package.json');
 const env = yargs.argv.env;                                                                         // use --env with webpack 2
 const mode = (env === 'build') ? 'production' : 'development';
@@ -90,6 +92,12 @@ module.exports = {
   module: {
     rules: [
       {
+        test: /\.(jsx?|tsx?|css|s[ac]ss)$/i,
+        enforce: 'pre',
+        loader: normalizeLineEndingsLoader,
+        exclude: /(node_modules|bower_components)/,
+      },
+      {
         test: /(\.jsx|\.js|\.ts|\.tsx)$/,
         use: {
           loader: 'babel-loader',
@@ -110,6 +118,7 @@ module.exports = {
             },
           },
           'css-loader',                                                                             // Translates CSS into CommonJS
+          normalizeLineEndingsLoader,                                                               // Normalize maps of Sass imports before css-loader embeds them
           'sass-loader',                                                                            // Compiles Sass to CSS
         ],
       },
@@ -184,6 +193,7 @@ module.exports = {
     extensions: ['.json', '.js', '.ts', '.jsx', '.tsx', '.css', '.scss', '.sass'],
   },
   plugins: [
+    new NormalizeLineEndingsPlugin(),
     new CopyPlugin({
       // для каждой схемы из зарегистрированных копируем файлы в свою директорию (кроме файлов scss и react)
       patterns: SCHEMA_NAMES.map(schema_name => ({

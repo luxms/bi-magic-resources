@@ -1,4 +1,3 @@
-const md5 = require('md5');
 const chalk = require('chalk');
 const colors = require('colors');
 const Confirm = require('prompt-confirm');
@@ -7,6 +6,7 @@ const {SingleBar} = require('cli-progress');
 const {retryOnFail} = require('./utils');
 const utils = require('./utils');
 const config = require('./config');
+const {normalizeResourceContent, equalContentBytes} = require('./resource-content');
 
 const contentTypes = ['resources', 'dashboards', 'cubes'];
 
@@ -53,12 +53,23 @@ async function synchronize(source, target) {
       for (const item of sourceItems[contentType]) {
         const sourceContent = await retryOnFail(() => source[contentType].getContent(item));
 
+        // Нормализуем переводы строк текстового содержимого в LF.
+        const normalizeSourcesContent = normalizeResourceContent(item, sourceContent);
+
         if (targetItems[contentType].includes(item)) {
           const targetContent = await retryOnFail(() => target[contentType].getContent(item));
-          const contentsMatch = item.endsWith('.json') ? utils.compareObjects(sourceContent, targetContent) : md5(String(sourceContent)) === md5(String(targetContent));
-          if (!contentsMatch) overwriteItems.push({ type: contentType, path: item, content: sourceContent });
+
+          // Нормализуем переводы строк текстового содержимого в LF.
+          const normalizeTargetsContent = normalizeResourceContent(item, targetContent);
+
+          const contentsMatch = item.endsWith('.json')
+            ? utils.compareObjects(normalizeSourcesContent, normalizeTargetsContent)
+            : equalContentBytes(normalizeSourcesContent, normalizeTargetsContent);
+
+          if (!contentsMatch) overwriteItems.push({ type: contentType, path: item, content: normalizeSourcesContent });
+
         } else {
-          createItems.push({ type: contentType, path: item, content: sourceContent })
+          createItems.push({ type: contentType, path: item, content: normalizeSourcesContent })
         }
 
         bar.increment();
