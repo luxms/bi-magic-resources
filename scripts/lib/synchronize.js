@@ -10,65 +10,6 @@ const config = require('./config');
 
 const contentTypes = ['resources', 'dashboards', 'cubes'];
 
-// Dashlet paths look like /<schema>/topic.X/dashboard.Y/<id>.json (id is the file basename, not 'index')
-function parseDashletPath(path) {
-  const m = path.match(/^\/([^/]+)\/topic\.\d+\/dashboard\.\d+\/([^/]+)\.json$/);
-  if (!m || m[2] === 'index') return null;
-  return { schema: m[1], id: Number(m[2]) };
-}
-
-function isDashletItem(item) {
-  return item.type === 'dashboards' && parseDashletPath(item.path) !== null;
-}
-
-// Topologically sort dashlet items so parents come before children (FK constraint on parent_id).
-// Non-dashlet items keep their positions; dashlet positions are filled in topo order.
-function sortDashletsByParent(items) {
-  const dashletIndices = [];
-  const dashlets = [];
-  items.forEach((item, idx) => {
-    if (isDashletItem(item)) {
-      dashletIndices.push(idx);
-      dashlets.push(item);
-    }
-  });
-  if (dashlets.length < 2) return items;
-
-  const key = (schema, id) => `${schema}:${id}`;
-  const idToItem = new Map();
-  for (const d of dashlets) {
-    const p = parseDashletPath(d.path);
-    idToItem.set(key(p.schema, p.id), d);
-  }
-
-  const sorted = [];
-  const visited = new Set();
-  const visiting = new Set();
-
-  function visit(item) {
-    const p = parseDashletPath(item.path);
-    const k = key(p.schema, p.id);
-    if (visited.has(k) || visiting.has(k)) return;
-    visiting.add(k);
-    const parentId = item.content && item.content.parent_id;
-    if (parentId != null) {
-      const parentKey = key(p.schema, parentId);
-      if (idToItem.has(parentKey)) visit(idToItem.get(parentKey));
-    }
-    visiting.delete(k);
-    visited.add(k);
-    sorted.push(item);
-  }
-
-  for (const d of dashlets) visit(d);
-
-  if (sorted.length !== dashlets.length) return items; // safety net — shouldn't happen, but don't corrupt array
-
-  const result = items.slice();
-  dashletIndices.forEach((idx, i) => { result[idx] = sorted[i]; });
-  return result;
-}
-
 /**
  * Synchronize local and server files
  * @param source
@@ -197,6 +138,84 @@ async function synchronize(source, target) {
   } finally {
     finalBar.stop();
   }
+}
+
+/**
+ * Разбирает путь к JSON-файлу дашлета и извлекает схему и идентификатор из имени файла.
+ * Для других путей и файла index.json возвращает null.
+ *
+ * @param {string} path - Путь к файлу ресурса.
+ * @returns {{schema: string, id: number} | null} Схема и идентификатор дашлета либо null.
+ */
+function parseDashletPath(path) {
+  const m = path.match(/^\/([^/]+)\/topic\.\d+\/dashboard\.\d+\/([^/]+)\.json$/);
+  if (!m || m[2] === 'index') return null;
+  return { schema: m[1], id: Number(m[2]) };
+}
+
+/**
+ * Проверяет, что элемент синхронизации относится к файлу дашлета.
+ *
+ * @param {{type: string, path: string}} item - Элемент синхронизации.
+ * @returns {boolean} true для файла дашлета, иначе false.
+ */
+function isDashletItem(item) {
+  return item.type === 'dashboards' && parseDashletPath(item.path) !== null;
+}
+
+/**
+ * Располагает дочерние дашлеты после их родителей по полю parent_id.
+ * Позиции остальных элементов в массиве сохраняются.
+ *
+ * @param {Array<{type: string, path: string, content?: Object}>} items - Элементы для создания или обновления.
+ * @returns {Array<Object>} Массив с упорядоченными дашлетами.
+ */
+function sortDashletsByParent(items) {
+  const dashletIndices = [];
+  const dashlets = [];
+  items.forEach((item, idx) => {
+    if (isDashletItem(item)) {
+      dashletIndices.push(idx);
+      dashlets.push(item);
+    }
+  });
+  if (dashlets.length < 2) return items;
+
+  const key = (schema, id) => `${schema}:${id}`;
+
+  const idToItem = new Map();
+
+  for (const d of dashlets) {
+    const p = parseDashletPath(d.path);
+    idToItem.set(key(p.schema, p.id), d);
+  }
+
+  const sorted = [];
+  const visited = new Set();
+  const visiting = new Set();
+
+  function visit(item) {
+    const p = parseDashletPath(item.path);
+    const k = key(p.schema, p.id);
+    if (visited.has(k) || visiting.has(k)) return;
+    visiting.add(k);
+    const parentId = item.content && item.content.parent_id;
+    if (parentId != null) {
+      const parentKey = key(p.schema, parentId);
+      if (idToItem.has(parentKey)) visit(idToItem.get(parentKey));
+    }
+    visiting.delete(k);
+    visited.add(k);
+    sorted.push(item);
+  }
+
+  for (const d of dashlets) visit(d);
+
+  if (sorted.length !== dashlets.length) return items; // safety net — shouldn't happen, but don't corrupt array
+
+  const result = items.slice();
+  dashletIndices.forEach((idx, i) => { result[idx] = sorted[i]; });
+  return result;
 }
 
 module.exports = synchronize;
