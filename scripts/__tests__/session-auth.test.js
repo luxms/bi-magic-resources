@@ -1,24 +1,23 @@
 const {test, before, after} = require('node:test');
 const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const os = require('node:os');
-const path = require('node:path');
 const https = require('node:https');
-const {execFileSync} = require('node:child_process');
+const selfsigned = require('selfsigned');
 const config = require('../lib/config');
 const auth = require('../lib/auth');
 const Server = require('../platforms/Server');
 const middleware = require('../server/middlewares/auth-middleware');
 
-let server, baseUrl, directory;
+let server, baseUrl;
 let requests = [];
 let response = {status: 200, body: {id: 42}};
 const session = 'test-browser-session';
 before(async () => {
-  directory = fs.mkdtempSync(path.join(os.tmpdir(), 'bi-session-test-'));
-  const key = path.join(directory, 'key.pem'), cert = path.join(directory, 'cert.pem');
-  execFileSync('openssl', ['req', '-x509', '-newkey', 'rsa:2048', '-nodes', '-keyout', key, '-out', cert, '-days', '1', '-subj', '/CN=localhost'], {stdio: 'ignore'});
-  server = https.createServer({key: fs.readFileSync(key), cert: fs.readFileSync(cert)}, (req, res) => {
+  const pems = selfsigned.generate([{name: 'commonName', value: 'localhost'}], {
+    keySize: 2048,
+    days: 1,
+    algorithm: 'sha256',
+  });
+  server = https.createServer({key: pems.private, cert: pems.cert}, (req, res) => {
     requests.push({url: req.url, cookie: req.headers.cookie, method: req.method});
     req.resume();
     res.writeHead(response.status, {'Content-Type': 'application/json', ...(response.headers || {})});
@@ -30,9 +29,9 @@ before(async () => {
   auth._setBaseUrl(baseUrl);
 });
 after(async () => {
+  if (!server) return;
   server.closeAllConnections();
   await new Promise(resolve => server.close(resolve));
-  fs.rmSync(directory, {recursive: true, force: true});
 });
 
 test('session config takes precedence, masks logs, and supports CLI/environment values', () => {

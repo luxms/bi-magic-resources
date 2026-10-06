@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const {normalizeResourceContent} = require('../lib/resource-content');
 const {isConfigPath, toLogicalPath, parseConfig} = require('../lib/config-codec');
 const {SOURCE_PACKAGE, BUILD_METADATA, VERSION, validateRelativePath} = require('../lib/artifact-manifest');
 
@@ -126,11 +127,11 @@ class SourceArtifactsPlugin {
             if (!/\.(?:[cm]?[jt]sx?|s[ac]ss|css|json)$/i.test(relative) || isConfigPath(relative) || relative === BUILD_METADATA) continue;
             validateRelativePath(relative);
             if (fs.realpathSync(file) !== path.join(fs.realpathSync(item.root), relative)) throw new Error(`Source symlinks are not supported: ${file}`);
-            originals.set(relative, fs.readFileSync(file, 'utf8'));
+            originals.set(relative, normalizeResourceContent(relative, fs.readFileSync(file, 'utf8')));
             owned.add(relative);
           }
           for (const entry of item.entries) {
-            originals.set(entry, fs.readFileSync(path.join(item.root, entry), 'utf8'));
+            originals.set(entry, normalizeResourceContent(entry, fs.readFileSync(path.join(item.root, entry), 'utf8')));
             owned.add(entry);
           }
           // Keep mapped sources untouched: loader-generated CSS modules are JavaScript,
@@ -141,7 +142,7 @@ class SourceArtifactsPlugin {
             const map = JSON.parse(asset.source.source().toString());
             map.sourcesContent ||= map.sources.map(() => null);
             const entryFiles = filesByEntry.get(asset.name.slice(0, -7));
-            for (const [relative, content] of originals) {
+            for (const [relative, content] of [...originals].sort(([left], [right]) => left.localeCompare(right))) {
               if (!entryFiles?.has(path.join(item.root, relative))) continue;
               if (map.sourcesContent.some((text, index) => text === content &&
                   map.sources[index].split('?')[0].endsWith('/' + relative))) continue;

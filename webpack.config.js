@@ -3,6 +3,8 @@
 const fs = require('fs');
 const path = require('path');
 const SourceArtifactsPlugin = require('./scripts/webpack/SourceArtifactsPlugin');
+const NormalizeLineEndingsPlugin = require('./scripts/plugins/NormalizeLineEndingsPlugin');
+const normalizeLineEndingsLoader = path.resolve(__dirname, 'scripts/plugins/normalize-line-endings.js');
 const pkg = require('./package.json');
 const { filterSchemaNames } = require('./scripts/lib/utils');
 
@@ -62,6 +64,12 @@ module.exports = (env = {}) => {
   module: {
     rules: [
       {
+        test: /\.(jsx?|tsx?|css|s[ac]ss)$/i,
+        enforce: 'pre',
+        loader: normalizeLineEndingsLoader,
+        exclude: /(node_modules|bower_components)/,
+      },
+      {
         test: /(\.jsx|\.js|\.ts|\.tsx)$/,
         use: {
           loader: 'babel-loader',
@@ -82,6 +90,7 @@ module.exports = (env = {}) => {
             },
           },
           'css-loader',                                                                             // Translates CSS into CommonJS
+          normalizeLineEndingsLoader,                                                               // Normalize maps of Sass imports before css-loader embeds them
           'sass-loader',                                                                            // Compiles Sass to CSS
         ],
       },
@@ -106,7 +115,7 @@ module.exports = (env = {}) => {
             if (!schema_name.startsWith('ds_')) throw new Error('Cannot get image outside ot schema', resourcePath);
             resourcePath = resourcePath.slice(1);
 
-            return path.join(schema_name, ...resourcePath);
+            return path.join(mode === 'production' ? '' : 'srv/resources/', schema_name, ...resourcePath);
           },
         },
       },
@@ -143,7 +152,7 @@ module.exports = (env = {}) => {
                 if (!schema_name.startsWith('ds_')) throw new Error('Cannot get image outside ot schema', resourcePath);
                 resourcePath = resourcePath.slice(1);
 
-                return path.join(schema_name, ...resourcePath);
+                return path.join(mode === 'production' ? '' : 'srv/resources/', schema_name, ...resourcePath);
               },
             }
           }
@@ -155,6 +164,6 @@ module.exports = (env = {}) => {
     modules: [path.resolve('./node_modules'), path.resolve('./src')],
     extensions: ['.json', '.js', '.ts', '.jsx', '.tsx', '.css', '.scss', '.sass'],
   },
-  plugins: [artifacts],
+  plugins: [artifacts, new NormalizeLineEndingsPlugin()],
   };
 };

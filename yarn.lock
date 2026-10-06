@@ -1409,6 +1409,7 @@ __metadata:
     rimraf: "npm:^3.0.2"
     sass: "npm:^1.42.1"
     sass-loader: "npm:^12.1.0"
+    selfsigned: "npm:^1.10.8"
     style-loader: "npm:^3.3.0"
     tough-cookie: "npm:^4.0.0"
     url-loader: "npm:^4.1.1"
