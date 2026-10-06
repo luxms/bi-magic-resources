@@ -105,7 +105,7 @@ module.exports = (env = {}) => {
         test: /\.(woff(2)?|ttf|eot)$/,
         type: 'asset/resource',
         generator: {
-          publicPath: 'srv/resources/',
+          publicPath: mode === 'production' ? 'srv/resources/' : '',
           filename: function(data, assetInfo) {
             let resourcePath = data.filename.split(path.sep);
             if (resourcePath[0] !== 'src') throw new Error('Cannot get image outside ot src', resourcePath);
