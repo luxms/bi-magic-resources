@@ -128,7 +128,10 @@ async function restore(options = {}) {
     if (extracted) {
       for (const source of extracted.sources) add(source.path, source.content);
       const schema = relative.split('/')[0];
-      registerBundle(schema, extracted.sources.map(s => s.path.slice(schema.length + 1)), extracted.entries.map(s => s.slice(schema.length + 1)));
+      const bundledSources = extracted.sources
+        .filter(source => source.path.startsWith(`${schema}/`))
+        .map(source => source.path.slice(schema.length + 1));
+      registerBundle(schema, bundledSources, extracted.entries.map(s => s.slice(schema.length + 1)));
       consumed.add(relative);
       consumed.add(bundlePath);
       superseded.set(relative, bytes);

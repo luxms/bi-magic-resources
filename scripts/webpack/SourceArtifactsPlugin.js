@@ -43,6 +43,21 @@ function inventory(src, schemas, production) {
   return result;
 }
 
+function sourcePath(src, owner, file) {
+  const relative = path.relative(src, file);
+  if (relative.startsWith('..' + path.sep) || path.isAbsolute(relative)) {
+    throw new Error(`External local source cannot be packaged: ${file}`);
+  }
+  const normalized = relative.split(path.sep).join('/');
+  validateRelativePath(normalized);
+  const [root] = normalized.split('/');
+  if (root.startsWith('ds_') && root !== owner.schema) {
+    throw new Error(`Cross-schema local source cannot be packaged: ${file}`);
+  }
+  if (fs.realpathSync(file) !== path.join(src, relative)) throw new Error(`Source symlinks are not supported: ${file}`);
+  return normalized;
+}
+
 class SourceArtifactsPlugin {
   constructor({src, schemas, production}) {
     if (fs.lstatSync(src).isSymbolicLink()) throw new Error(`Source symlinks are not supported: ${src}`);
@@ -80,10 +95,7 @@ class SourceArtifactsPlugin {
           filesByEntry.set(entryName, entryFiles);
           const addFile = file => {
             if (!file || file.split(path.sep).includes('node_modules')) return;
-            const relative = path.relative(owner.root, file);
-            if (relative.startsWith('..' + path.sep) || path.isAbsolute(relative)) {
-              throw new Error(`Cross-schema or external local source cannot be packaged: ${file}`);
-            }
+            sourcePath(this.src, owner, file);
             filesBySchema.get(owner.schema).add(file);
             entryFiles.add(file);
           };
@@ -122,16 +134,15 @@ class SourceArtifactsPlugin {
           const owned = new Set(item.meta.bundledSources);
           const originals = new Map();
           for (const file of filesBySchema.get(item.schema)) {
-            const relative = path.relative(item.root, file).split(path.sep).join('/');
-            if (relative.startsWith('../') || path.isAbsolute(relative) || !relative || !fs.existsSync(file) || !fs.statSync(file).isFile()) continue;
-            if (!/\.(?:[cm]?[jt]sx?|s[ac]ss|css|json)$/i.test(relative) || isConfigPath(relative) || relative === BUILD_METADATA) continue;
-            validateRelativePath(relative);
-            if (fs.realpathSync(file) !== path.join(fs.realpathSync(item.root), relative)) throw new Error(`Source symlinks are not supported: ${file}`);
+            if (!fs.existsSync(file) || !fs.statSync(file).isFile()) continue;
+            const relative = sourcePath(this.src, item, file);
+            if (!/\.(?:[cm]?[jt]sx?|s[ac]ss|css|json)$/i.test(relative) || isConfigPath(relative) || relative.endsWith('/' + BUILD_METADATA)) continue;
             originals.set(relative, normalizeResourceContent(relative, fs.readFileSync(file, 'utf8')));
-            owned.add(relative);
+            const schemaRelative = path.relative(item.root, file).split(path.sep).join('/');
+            if (!schemaRelative.startsWith('../') && !path.isAbsolute(schemaRelative)) owned.add(schemaRelative);
           }
           for (const entry of item.entries) {
-            originals.set(entry, normalizeResourceContent(entry, fs.readFileSync(path.join(item.root, entry), 'utf8')));
+            originals.set(`${item.schema}/${entry}`, normalizeResourceContent(entry, fs.readFileSync(path.join(item.root, entry), 'utf8')));
             owned.add(entry);
           }
           // Keep mapped sources untouched: loader-generated CSS modules are JavaScript,
@@ -143,10 +154,10 @@ class SourceArtifactsPlugin {
             map.sourcesContent ||= map.sources.map(() => null);
             const entryFiles = filesByEntry.get(asset.name.slice(0, -7));
             for (const [relative, content] of [...originals].sort(([left], [right]) => left.localeCompare(right))) {
-              if (!entryFiles?.has(path.join(item.root, relative))) continue;
+              if (!entryFiles?.has(path.join(this.src, relative))) continue;
               if (map.sourcesContent.some((text, index) => text === content &&
                   map.sources[index].split('?')[0].endsWith('/' + relative))) continue;
-              map.sources.push(`webpack:///./src/${item.schema}/${relative}`);
+              map.sources.push(`webpack:///./src/${relative}`);
               map.sourcesContent.push(content);
             }
             compilation.updateAsset(asset.name, new RawSource(JSON.stringify(map)));

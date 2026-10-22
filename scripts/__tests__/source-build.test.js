@@ -120,10 +120,22 @@ test('source maps retain exact TSX and Sass sources while preserving binary asse
   assert.deepEqual(Object.keys(map).sort(), ['file', 'mappings', 'names', 'sourceRoot', 'sources', 'sourcesContent', 'version']);
   assert.deepEqual(fs.readFileSync(path.join(dist, 'image.png')), Buffer.from([0x89, 0x50, 0x4e, 0x47]));
 });
-test('rejects local dependencies outside the schema and unowned dynamic chunks', async t => {
+test('allows shared dependencies inside src and rejects cross-schema, external and dynamic outputs', async t => {
   const f = await fixture(t, {'main.jsx': "import value from '../shared.js'; export default value;"});
   fs.writeFileSync(path.join(f.src, 'shared.js'), 'export default 1;');
-  await assert.rejects(f.build(), /Cross-schema or external local source/);
+  const dist = await f.build();
+  const map = JSON.parse(fs.readFileSync(path.join(dist, 'main.js.map')));
+  assert.ok(map.sources.some((source, index) => source.endsWith('/src/shared.js') && map.sourcesContent[index] === 'export default 1;'));
+
+  const cross = await fixture(t, {'main.jsx': "import value from '../ds_other/shared.js'; export default value;"});
+  fs.mkdirSync(path.join(cross.src, 'ds_other'));
+  fs.writeFileSync(path.join(cross.src, 'ds_other/shared.js'), 'export default 1;');
+  await assert.rejects(cross.build(), /Cross-schema local source/);
+
+  const external = await fixture(t, {'main.jsx': "import value from '../../shared.js'; export default value;"});
+  fs.writeFileSync(path.join(external.root, 'shared.js'), 'export default 1;');
+  await assert.rejects(external.build(), /External local source/);
+
   const g = await fixture(t, {'main.jsx': "export default () => import('./lazy.js');", 'lazy.js': 'export default 2;'});
   await assert.rejects(g.build(), /shared\/dynamic chunks are unsupported/);
 });

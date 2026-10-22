@@ -246,6 +246,21 @@ for (const source of ['webpack://app/./src/ds_test/../../escape.ts', 'webpack://
   assert.match(await f.read('src/ds_test/widget.js'), /compiled/);
 });
 
+test('shared source outside an atlas is restored without entering atlas build metadata', async t => {
+  const f = await fixture(t);
+  await mapped(f, 'widget', [
+    ['webpack:///./src/ds_test/widget.tsx', "import value from '../shared/model'; import '../shared/style.scss'; export default value;"],
+    ['webpack:///./src/shared/model.ts', 'export default 1;'],
+    ['webpack:///./src/shared/style.scss', '.shared { color: red; }'],
+  ]);
+  await f.run();
+  assert.equal(await f.read('src/shared/model.ts'), 'export default 1;');
+  assert.equal(await f.read('src/shared/style.scss'), '.shared { color: red; }');
+  const metadata = JSON.parse(await f.read('src/ds_test/.bi-build.json'));
+  assert.deepEqual(metadata.entries, ['widget.tsx']);
+  assert.deepEqual(metadata.bundledSources, ['widget.tsx']);
+});
+
 test('different versions of shared sources from multiple bundles fail atomically', async t => {
   const f = await fixture(t);
   for (const name of ['one', 'two']) await mapped(f, name, [

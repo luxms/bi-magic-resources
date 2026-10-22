@@ -39,6 +39,10 @@ function extractSources(relative, mapBytes, bundleBytes, options = {}) {
     const reference = bundleBytes.toString('utf8').match(/\/\/[#@]\s*sourceMappingURL=([^\s]+)\s*$/);
     if (!reference || reference[1] !== path.posix.basename(relative)) return null;
     const sources = new Map(), required = new Set();
+    const belongsToSourceTree = name => {
+      const [root] = name.split('/');
+      return root === schema || !root.startsWith('ds_');
+    };
     function sourcePath(url) {
       if (typeof url !== 'string') throw new Error('Invalid source URL');
       // Runtime and third-party modules are supplied by the build toolchain.
@@ -68,7 +72,7 @@ function extractSources(relative, mapBytes, bundleBytes, options = {}) {
       }
       name = name.replace(/\?[a-f0-9]+$/, '');
       validateRelativePath(name);
-      if (!name.startsWith(`${schema}/`)) throw new Error('Source belongs to another atlas');
+      if (!belongsToSourceTree(name)) throw new Error('Source belongs to another atlas');
       return name;
     }
     function collect(input, stylesOnly = false) {
@@ -103,7 +107,7 @@ function extractSources(relative, mapBytes, bundleBytes, options = {}) {
           if (/^(?:sass:|https?:|url\()/.test(style[2]) || (style[1] === 'import' && style[2].endsWith('.css'))) continue;
           const dependency = path.posix.normalize(path.posix.join(path.posix.dirname(name), style[2]));
           validateRelativePath(dependency);
-          if (!dependency.startsWith(`${schema}/`)) return null;
+          if (!belongsToSourceTree(dependency)) return null;
           const partial = path.posix.join(path.posix.dirname(dependency), '_' + path.posix.basename(dependency));
           const candidates = [dependency, partial, ...['.scss', '.sass', '/index.scss', '/_index.scss', '/index.sass', '/_index.sass'].flatMap(ext => [dependency + ext, partial + ext])];
           if (!candidates.some(candidate => sources.has(candidate) || options.available?.has(candidate))) return null;
@@ -116,7 +120,7 @@ function extractSources(relative, mapBytes, bundleBytes, options = {}) {
       while ((imported = imports.exec(content))) {
         const dependency = path.posix.normalize(path.posix.join(path.posix.dirname(name), imported[1]));
         validateRelativePath(dependency);
-        if (!dependency.startsWith(`${schema}/`)) return null;
+        if (!belongsToSourceTree(dependency)) return null;
         const candidates = [dependency, ...['.ts', '.tsx', '.js', '.jsx', '/index.ts', '/index.tsx', '/index.js', '/index.jsx'].map(ext => dependency + ext)];
         // TypeScript also permits importing ./module.js when the original is .ts.
         if (dependency.endsWith('.js')) candidates.push(dependency.slice(0, -3) + '.ts', dependency.slice(0, -3) + '.tsx');
