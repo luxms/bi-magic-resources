@@ -7,6 +7,7 @@ const {retryOnFail} = require('./utils');
 const utils = require('./utils');
 const config = require('./config');
 const {normalizeResourceContent, equalContentBytes} = require('./resource-content');
+const {createHash} = require('node:crypto');
 
 const contentTypes = ['resources', 'dashboards', 'cubes'];
 
@@ -51,8 +52,8 @@ async function synchronize(source, target) {
   console.log(`SUCCESS\n`);
   console.log(`${sourceItems.resources.length} resources, ${sourceItems.dashboards.length} dashboards, ${sourceItems.cubes.length} cubes`);
 
-  // Load files content
-  const bar = new SingleBar({ format: 'Loading files content... |' + colors.cyan('{bar}') + '| {percentage}% || {value}/{total}' });
+  // Compare files without downloading server resources before confirmation.
+  const bar = new SingleBar({ format: 'Comparing files... |' + colors.cyan('{bar}') + '| {percentage}% || {value}/{total}' });
   bar.start(sourceItems.resources.length + sourceItems.dashboards.length + sourceItems.cubes.length, 0);
 
   // Compare source and target
@@ -61,21 +62,49 @@ async function synchronize(source, target) {
   for (const contentType of contentTypes) {
     if (config.hasOption(contentType)) {
       for (const item of sourceItems[contentType]) {
+        const exists = targetItems[contentType].includes(item);
+        if (contentType === 'resources' && source.type === 'server' && !exists) {
+          createItems.push({type: contentType, path: item, deferred: true});
+          bar.increment();
+          continue;
+        }
+        if (contentType === 'resources' && exists) {
+          const server = source.type === 'server' ? source : target;
+          const local = source.type === 'local' ? source : target;
+          const serverHash = server.resources.getContentHash(item);
+          if (typeof serverHash !== 'string' || !/^[a-f0-9]{32}$/i.test(serverHash)) {
+            throw new Error(`Server did not provide a valid content_hash for ${utils.decodePath(item)}`);
+          }
+          const localContent = await retryOnFail(() => local.resources.getContent(item));
+          const hash = content => createHash('md5').update(content).digest('hex');
+          if (localContent != null && hash(localContent) === serverHash.toLowerCase()) {
+            bar.increment();
+            continue;
+          }
+          if (source.type === 'local') {
+            if (localContent == null) throw new Error(`Local resource disappeared: ${utils.decodePath(item)}`);
+            const normalized = normalizeResourceContent(item, localContent);
+            if (hash(normalized) !== serverHash.toLowerCase()) {
+              overwriteItems.push({type: contentType, path: item, content: normalized});
+            }
+          } else {
+            overwriteItems.push({type: contentType, path: item, deferred: true});
+          }
+          bar.increment();
+          continue;
+        }
+
         const sourceContent = await retryOnFail(() => source[contentType].getContent(item));
 
         // Нормализуем переводы строк текстового содержимого в LF.
         const normalizeSourcesContent = normalizeResourceContent(item, sourceContent);
 
-        if (targetItems[contentType].includes(item)) {
+        if (exists) {
           const targetContent = await retryOnFail(() => target[contentType].getContent(item));
           const normalizeTargetsContent = normalizeResourceContent(item, targetContent);
-          const contentsMatch = contentType === 'resources'
-            ? (equalContentBytes(normalizeSourcesContent, normalizeTargetsContent) ||
-              (!Buffer.isBuffer(normalizeSourcesContent) && typeof normalizeSourcesContent === 'object' &&
-                !Buffer.isBuffer(normalizeTargetsContent) && typeof normalizeTargetsContent === 'object' &&
-                utils.compareObjects(normalizeSourcesContent, normalizeTargetsContent)))
-            : utils.compareObjects(normalizeSourcesContent, normalizeTargetsContent);
-          if (!contentsMatch) overwriteItems.push({ type: contentType, path: item, content: normalizeSourcesContent });
+          if (!utils.compareObjects(normalizeSourcesContent, normalizeTargetsContent)) {
+            overwriteItems.push({ type: contentType, path: item, content: normalizeSourcesContent });
+          }
         } else {
           createItems.push({ type: contentType, path: item, content: normalizeSourcesContent })
         }
@@ -137,16 +166,31 @@ async function synchronize(source, target) {
   const finalBar = new SingleBar({ format: 'Synchronizing... |' + colors.cyan('{bar}') + '| {percentage}% || {value}/{total} Resources' });
   finalBar.start(createItems.length + overwriteItems.length + removeItems.length, 0);
 
+  const loadDeferred = async item => {
+    const content = await retryOnFail(() => source[item.type].getContent(item.path));
+    if (content == null) throw new Error(`Source resource disappeared: ${utils.decodePath(item.path)}`);
+    return normalizeResourceContent(item.path, content);
+  };
+
   try {
     for (const item of createItems) {
-      const newEntity = await target[item.type].createContent(item.path, item.content);
+      const content = item.deferred ? await loadDeferred(item) : item.content;
+      const newEntity = await target[item.type].createContent(item.path, content);
       // TODO: fromModule is undefined - this code was never working
       // if (item.type === 'dashboards' && newEntity) await fromModule.createContent(item.path, newEntity);
       finalBar.increment();
     }
 
     for (const item of overwriteItems) {
-      await target[item.type].updateContent(item.path, item.content);
+      const content = item.deferred ? await loadDeferred(item) : item.content;
+      if (item.deferred) {
+        const current = await retryOnFail(() => target[item.type].getContent(item.path));
+        if (equalContentBytes(content, normalizeResourceContent(item.path, current))) {
+          finalBar.increment();
+          continue;
+        }
+      }
+      await target[item.type].updateContent(item.path, content);
       finalBar.increment();
     }
 

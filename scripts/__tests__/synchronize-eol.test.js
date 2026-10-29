@@ -1,5 +1,6 @@
 const assert = require('node:assert/strict');
 const test = require('node:test');
+const {createHash} = require('node:crypto');
 const config = require('../lib/config');
 const synchronize = require('../lib/synchronize');
 const {Spinner} = require('cli-spinner');
@@ -17,6 +18,7 @@ function quietSync(t) {
 function platform(type, files, writes = []) {
   return {type, resources: {
     enumerate: async () => Object.keys(files),
+    getContentHash: name => type === 'server' ? createHash('md5').update(files[name]).digest('hex') : null,
     getContent: async name => files[name],
     createContent: async (name, content) => { files[name] = content; writes.push({kind: 'create', name, content}); },
     updateContent: async (name, content) => { files[name] = content; writes.push({kind: 'update', name, content}); },
@@ -24,37 +26,40 @@ function platform(type, files, writes = []) {
 }
 
 for (const [sourceType, targetType] of [['local', 'server'], ['server', 'local']]) {
-  test(`${sourceType} to ${targetType}: EOL differences are ignored and changed text is written as LF`, async t => {
+  const behavior = sourceType === 'local' ? 'push normalizes differing server EOL' : 'pull ignores EOL-only differences';
+  test(`${sourceType} to ${targetType}: ${behavior} and changed text is written as LF`, async t => {
     quietSync(t);
     const makeMap = eol => Buffer.from(JSON.stringify({version: 3, sources: ['a.ts'], names: [], mappings: 'AAAA', sourcesContent: ['a' + eol + 'b']}));
     const sourceFiles = {
       '/ds_res/same.js': Buffer.from('a\r\nb\r\n'),
       '/ds_res/old.txt': Buffer.from('a\nb\n'),
       '/ds_res/same.js.map': makeMap('\r\n'),
-      '/ds_res/same.json': {code: 'literal\r\nvalue'},
+      '/ds_res/same.json': Buffer.from('{"code":"literal\\r\\nvalue"}'),
       '/ds_res/change.css': Buffer.from('new\r\nvalue\r'),
       '/ds_res/new.txt': Buffer.from('new\r\nfile'),
       '/ds_res/change.bin': Buffer.from([0x81, 13, 10]),
-      '/ds_res/data.json': {code: 'new\r\nvalue'},
+      '/ds_res/data.json': Buffer.from('{"code":"new\\r\\nvalue"}'),
     };
     const targetFiles = {
       '/ds_res/same.js': Buffer.from('a\nb\n'),
       '/ds_res/old.txt': Buffer.from('a\r\nb\r\n'),
       '/ds_res/same.js.map': makeMap('\n'),
-      '/ds_res/same.json': {code: 'literal\r\nvalue'},
+      '/ds_res/same.json': Buffer.from('{"code":"literal\\r\\nvalue"}'),
       '/ds_res/change.css': Buffer.from('old\nvalue\n'),
       '/ds_res/change.bin': Buffer.from([0x80, 13, 10]),
-      '/ds_res/data.json': {code: 'new\nvalue'},
+      '/ds_res/data.json': Buffer.from('{"code":"new\\nvalue"}'),
     };
     const writes = [];
     const source = platform(sourceType, sourceFiles);
     const target = platform(targetType, targetFiles, writes);
     if (targetType === 'local') target.BASE_DIR = require('node:os').tmpdir();
     await synchronize(source, target);
-    assert.deepEqual(writes.map(item => item.name).sort(), ['/ds_res/change.bin', '/ds_res/change.css', '/ds_res/data.json', '/ds_res/new.txt']);
+    const expected = ['/ds_res/change.bin', '/ds_res/change.css', '/ds_res/data.json', '/ds_res/new.txt'];
+    if (sourceType === 'local') expected.push('/ds_res/old.txt');
+    assert.deepEqual(writes.map(item => item.name).sort(), expected.sort());
     assert.equal(targetFiles['/ds_res/change.css'].toString(), 'new\nvalue\n');
     assert.equal(targetFiles['/ds_res/new.txt'].toString(), 'new\nfile');
-    assert.equal(targetFiles['/ds_res/old.txt'].toString(), 'a\r\nb\r\n', 'EOL-only differences must not rewrite existing files');
+    assert.equal(targetFiles['/ds_res/old.txt'].toString(), sourceType === 'local' ? 'a\nb\n' : 'a\r\nb\r\n');
     assert.deepEqual(targetFiles['/ds_res/change.bin'], sourceFiles['/ds_res/change.bin']);
     assert.deepEqual(targetFiles['/ds_res/data.json'], sourceFiles['/ds_res/data.json']);
     writes.length = 0;

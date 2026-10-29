@@ -6,18 +6,23 @@ const utils = require('../../lib/utils');
 class ContentManager {
   constructor(platform) {
     this.platform = platform;
+    this.fileMetadata = new Map();
   }
 
   async enumerate(schemaName) {
     const list = [];
+    this.fileMetadata.clear();
     const schemaNames = schemaName ? [schemaName] : await this.platform.getSchemaNames();
     for (const schemaName of schemaNames) {
       const files = await this.platform.getFiles(schemaName, this.getDirName());
       for (const file of files) {
-        list.push(this.createPath(schemaName, file));
+        const path = this.createPath(schemaName, file);
+        if (!path) continue;
+        list.push(path);
+        if (typeof file === 'object') this.fileMetadata.set(path, file);
       }
     }
-    return list.filter(Boolean).sort();
+    return list.sort();
   }
 
   async getContent(path) {

@@ -3,6 +3,10 @@ const utils = require('../lib/utils');
 const ContentManager = require('./base/ContentManager');
 
 class ResourceManager extends ContentManager {
+  getContentHash(path) {
+    return this.platform.type === 'server' ? this.fileMetadata.get(path)?.content_hash : null;
+  }
+
   async getContent(resource) {
     const path = this.platform.type === 'server' ? `srv/resources${resource}` : resource;
     // Resources are opaque files, including JSON/JSON5/YAML. Only dashboard and
