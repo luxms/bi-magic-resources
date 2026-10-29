@@ -59,76 +59,78 @@ async function synchronize(source, target) {
   // Compare source and target
   let createItems = [], overwriteItems = [], removeItems = [];
 
-  for (const contentType of contentTypes) {
-    if (config.hasOption(contentType)) {
-      for (const item of sourceItems[contentType]) {
-        const exists = targetItems[contentType].includes(item);
-        if (contentType === 'resources' && source.type === 'server' && !exists) {
-          createItems.push({type: contentType, path: item, deferred: true});
-          bar.increment();
-          continue;
-        }
-        if (contentType === 'resources' && exists) {
-          const server = source.type === 'server' ? source : target;
-          const local = source.type === 'local' ? source : target;
-          const serverHash = server.resources.getContentHash(item);
-          if (typeof serverHash !== 'string' || !/^[a-f0-9]{32}$/i.test(serverHash)) {
-            throw new Error(`Server did not provide a valid content_hash for ${utils.decodePath(item)}`);
-          }
-          const localContent = await retryOnFail(() => local.resources.getContent(item));
-          const hash = content => createHash('md5').update(content).digest('hex');
-          if (localContent != null && hash(localContent) === serverHash.toLowerCase()) {
+  try {
+    for (const contentType of contentTypes) {
+      if (config.hasOption(contentType)) {
+        for (const item of sourceItems[contentType]) {
+          const exists = targetItems[contentType].includes(item);
+          if (contentType === 'resources' && source.type === 'server' && !exists) {
+            createItems.push({type: contentType, path: item, deferred: true});
             bar.increment();
             continue;
           }
-          if (source.type === 'local') {
-            if (localContent == null) throw new Error(`Local resource disappeared: ${utils.decodePath(item)}`);
-            const normalized = normalizeResourceContent(item, localContent);
-            if (hash(normalized) !== serverHash.toLowerCase()) {
-              overwriteItems.push({type: contentType, path: item, content: normalized});
+          if (contentType === 'resources' && exists) {
+            const server = source.type === 'server' ? source : target;
+            const local = source.type === 'local' ? source : target;
+            const serverHash = server.resources.getContentHash(item);
+            if (typeof serverHash !== 'string' || !/^[a-f0-9]{32}$/i.test(serverHash)) {
+              throw new Error(`Server did not provide a valid content_hash for ${utils.decodePath(item)}`);
+            }
+            const localContent = await retryOnFail(() => local.resources.getContent(item));
+            const hash = content => createHash('md5').update(content).digest('hex');
+            if (localContent != null && hash(localContent) === serverHash.toLowerCase()) {
+              bar.increment();
+              continue;
+            }
+            if (source.type === 'local') {
+              if (localContent == null) throw new Error(`Local resource disappeared: ${utils.decodePath(item)}`);
+              const normalized = normalizeResourceContent(item, localContent);
+              if (hash(normalized) !== serverHash.toLowerCase()) {
+                overwriteItems.push({type: contentType, path: item, content: normalized});
+              }
+            } else {
+              overwriteItems.push({type: contentType, path: item, deferred: true});
+            }
+            bar.increment();
+            continue;
+          }
+
+          const sourceContent = await retryOnFail(() => source[contentType].getContent(item));
+
+          // Нормализуем переводы строк текстового содержимого в LF.
+          const normalizeSourcesContent = normalizeResourceContent(item, sourceContent);
+
+          if (exists) {
+            const targetContent = await retryOnFail(() => target[contentType].getContent(item));
+            const normalizeTargetsContent = normalizeResourceContent(item, targetContent);
+            if (!utils.compareObjects(normalizeSourcesContent, normalizeTargetsContent)) {
+              overwriteItems.push({ type: contentType, path: item, content: normalizeSourcesContent });
             }
           } else {
-            overwriteItems.push({type: contentType, path: item, deferred: true});
+            createItems.push({ type: contentType, path: item, content: normalizeSourcesContent })
           }
+
           bar.increment();
-          continue;
         }
 
-        const sourceContent = await retryOnFail(() => source[contentType].getContent(item));
-
-        // Нормализуем переводы строк текстового содержимого в LF.
-        const normalizeSourcesContent = normalizeResourceContent(item, sourceContent);
-
-        if (exists) {
-          const targetContent = await retryOnFail(() => target[contentType].getContent(item));
-          const normalizeTargetsContent = normalizeResourceContent(item, targetContent);
-          if (!utils.compareObjects(normalizeSourcesContent, normalizeTargetsContent)) {
-            overwriteItems.push({ type: contentType, path: item, content: normalizeSourcesContent });
+        if (!config.hasNoRemove()) {
+          for (const item of targetItems[contentType]) {
+            if (!sourceItems[contentType].includes(item)) removeItems.push({ type: contentType, path: item });
           }
-        } else {
-          createItems.push({ type: contentType, path: item, content: normalizeSourcesContent })
-        }
 
-        bar.increment();
-      }
-
-      if (!config.hasNoRemove()) {
-        for (const item of targetItems[contentType]) {
-          if (!sourceItems[contentType].includes(item)) removeItems.push({ type: contentType, path: item });
-        }
-
-        // Skip compiled tsx и jsx files
-        if (removeItems.length) {
-          const filteredArr = sourceItems[contentType].filter((item) => utils.getExtension(item) === 'map');
-          let tempArr = [];
-          filteredArr.forEach((elem) => tempArr = tempArr.concat(utils.makePathTsxJsx(elem)));
-          removeItems = removeItems.filter((item) => !tempArr.includes(item.path));
+          // Skip compiled tsx и jsx files
+          if (removeItems.length) {
+            const filteredArr = sourceItems[contentType].filter((item) => utils.getExtension(item) === 'map');
+            let tempArr = [];
+            filteredArr.forEach((elem) => tempArr = tempArr.concat(utils.makePathTsxJsx(elem)));
+            removeItems = removeItems.filter((item) => !tempArr.includes(item.path));
+          }
         }
       }
     }
+  } finally {
+    bar.stop();
   }
-
-  bar.stop();
 
   // No changes, skip
   if (createItems.length === 0 && overwriteItems.length === 0 && removeItems.length === 0) {
@@ -143,7 +145,7 @@ async function synchronize(source, target) {
   }
 
   if (overwriteItems.length) {
-    console.log('OVERWRITE:');
+    console.log(overwriteItems.some(item => item.deferred) ? 'MAY OVERWRITE (checked after confirmation):' : 'OVERWRITE:');
     overwriteItems.forEach(item => console.log('    ', chalk.yellow(utils.decodePath(item.path))));
   }
 

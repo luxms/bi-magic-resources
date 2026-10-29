@@ -6,6 +6,7 @@ const path = require('node:path');
 const http = require('node:http');
 const {createHash} = require('node:crypto');
 const Confirm = require('prompt-confirm');
+const {SingleBar} = require('cli-progress');
 const Local = require('../platforms/Local');
 const Server = require('../platforms/Server');
 const auth = require('../lib/auth');
@@ -121,8 +122,15 @@ test('resource download and upload preserve JSON/YAML bytes without parsing or r
   // This synchronization protocol requires the v12 content_hash metadata.
   includeHashes = false;
   remoteReads.length = 0;
+  const stopBar = SingleBar.prototype.stop;
+  let stoppedBars = 0;
+  t.mock.method(SingleBar.prototype, 'stop', function () {
+    stoppedBars++;
+    return stopBar.call(this);
+  });
   await assert.rejects(synchronize(remote, local), /content_hash/);
   assert.deepEqual(remoteReads, [], 'missing hashes must fail without downloading resources');
+  assert.equal(stoppedBars, 1, 'comparison progress must stop on errors');
 
   // Declining pull must not download new or hash-changed server resources.
   includeHashes = true;
