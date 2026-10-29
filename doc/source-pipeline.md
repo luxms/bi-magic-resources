@@ -4,8 +4,10 @@
 
 ```text
 yarn build : src → webpack → dist
-yarn push  : yarn build → yarn _push → сервер
-yarn pull  : сервер → dist → восстановление src
+yarn _push: dist → сервер
+yarn _pull: сервер → dist
+yarn push : yarn build → yarn _push
+yarn pull : yarn _pull → восстановление src из конфигов и source maps
 ```
 
 Сборкой управляет webpack. Дополнительного управляющего процесса и Gulp нет.

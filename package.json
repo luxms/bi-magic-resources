@@ -5,6 +5,7 @@
   "main": "dist/bootstrap.js",
   "scripts": {
     "pull": "node scripts/pull.js",
+    "_pull": "node scripts/_pull.js",
     "push": "yon build && yon _push",
     "start": "node scripts/start.js",
     "test:scripts": "node --test scripts/__tests__/*.test.js",

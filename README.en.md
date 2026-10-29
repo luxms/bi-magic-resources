@@ -80,8 +80,10 @@ Open **http://localhost:3003**, edit files in `src`, and check the results in yo
 | Command | Description |
 |---|---|
 | `yarn start` | Start the local development server |
-| `yarn pull` | Download files from the BI server |
+| `yarn _pull` | Synchronize the BI server into `dist` without changing `src` |
+| `yarn pull` | Run `_pull`, then restore source files into `src` |
 | `yarn build` | Build source files from `src` into `dist` |
+| `yarn _push` | Synchronize `dist` to the BI server without building |
 | `yarn push` | Build the project and synchronize `dist` with the BI server |
 | `yarn test` | Run tests |
 | `yarn create-topic` | Create a topic configuration locally |

@@ -1,19 +1,11 @@
-const fs = require('fs').promises;
 const path = require('path');
-const Server = require('./platforms/Server');
-const Local = require('./platforms/Local');
-const synchronize = require('./lib/synchronize');
 const auth = require('./lib/auth');
 const config = require('./lib/config');
-const { restore, assertNoSymlinks } = require('./lib/restore');
-
-const server = new Server();
-const local = new Local('dist');
+const transferDist = require('./lib/transfer-dist');
+const {restore} = require('./lib/restore');
 
 auth.init(async () => {
-  await assertNoSymlinks(local.BASE_DIR);
-  await fs.mkdir(local.BASE_DIR, { recursive: true });
-  const result = await synchronize(server, local);
+  const result = await transferDist('pull');
   if (result.status === 'cancelled') return;
   await restore({
     rootDir: path.resolve(__dirname, '..'),

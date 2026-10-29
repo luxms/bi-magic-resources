@@ -17,7 +17,7 @@ const KNOWN_CLI_NAMES = new Set(KNOWN_OPTIONS.map(toKebab));
 // the entry script is one of ours — webpack-cli has its own --env/--mode/etc.
 function validateCliArgs() {
   const entry = process.argv[1] || '';
-  if (!/[\\/]scripts[\\/](start|push|pull|create)\.js$/.test(entry)) return;
+  if (!/[\\/]scripts[\\/](_pull|start|push|pull|create)\.js$/.test(entry)) return;
 
   for (const arg of process.argv.slice(2)) {
     if (!arg.startsWith('--')) continue;

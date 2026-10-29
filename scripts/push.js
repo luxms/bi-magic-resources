@@ -1,9 +1,4 @@
-const Server = require('./platforms/Server');
-const Local = require('./platforms/Local');
-const synchronize = require('./lib/synchronize');
 const auth = require('./lib/auth');
+const transferDist = require('./lib/transfer-dist');
 
-const server = new Server();
-const local = new Local('dist');
-
-auth.init(() => synchronize(local, server));
+auth.init(() => transferDist('push'));
