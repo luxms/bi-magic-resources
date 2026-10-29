@@ -92,7 +92,7 @@ class Config {
   }
 
   getForce() {
-    return !!this.getOption('force');
+    return this.hasOption('force');
   }
 
   getInclude() {
@@ -129,7 +129,8 @@ class Config {
   }
 
   hasOption(name) {
-    return !!this.getOption(name);
+    const value = this.getOption(name);
+    return typeof value === 'string' ? !['', 'false', '0'].includes(value.trim().toLowerCase()) : !!value;
   }
 
   /**

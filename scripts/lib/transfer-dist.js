@@ -9,8 +9,9 @@ async function transferDist(direction) {
   }
   const local = new Local('dist');
   const server = new Server();
-  const source = direction === 'pull' ? server : local;
-  const target = direction === 'pull' ? local : server;
+  const [source, target] = direction === 'pull'
+    ? [server, local]
+    : [local, server];
   if (target === local) {
     const {assertNoSymlinks} = require('./restore');
     await assertNoSymlinks(local.BASE_DIR);
